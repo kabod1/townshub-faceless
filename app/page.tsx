@@ -219,12 +219,11 @@ export default function LandingPage() {
             style={{ fontFamily: "var(--font-syne)", color: "#FFFFFF" }}>
             Build a Faceless
             <br />
-            <span className="animate-shimmer" style={{
+            <span style={{
               background: "linear-gradient(90deg,#00D4FF,#38BDF8,#A78BFA,#00D4FF)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
-              backgroundSize: "200% auto",
             }}>
               YouTube Empire
             </span>
@@ -280,13 +279,9 @@ export default function LandingPage() {
             style={{ background: "linear-gradient(to top,#080D1A,transparent)" }} />
 
           <div className="rounded-[17px] p-[1px] animate-border-glow"
-            style={{
-              background: "linear-gradient(135deg, rgba(0,212,255,0.5) 0%, rgba(167,139,250,0.25) 50%, rgba(0,212,255,0.15) 100%)",
-            }}>
-          <div className="rounded-2xl overflow-hidden"
-            style={{
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
-            }}>
+            style={{ background: "linear-gradient(135deg,rgba(0,212,255,0.5) 0%,rgba(167,139,250,0.25) 50%,rgba(0,212,255,0.15) 100%)" }}>
+            <div className="rounded-2xl overflow-hidden"
+              style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)" }}>
             {/* Browser chrome */}
             <div className="flex items-center gap-2 px-5 py-3.5"
               style={{ background: "#0A1020", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
