@@ -1,25 +1,59 @@
 "use client";
 
 import { useState } from "react";
+import { useLocalStorage } from "@/lib/use-local-storage";
 import { Topbar } from "@/components/dashboard/topbar";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  User, Mail, CreditCard, Puzzle, CheckCircle2,
+  User, Mail, Puzzle, CheckCircle2,
   AlertCircle, Shield, Bell, Globe, Trash2,
-  ExternalLink, Zap, Key, LogOut
+  ExternalLink, Zap, Key, LogOut,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+const NOTIFICATION_DEFAULTS = {
+  "Script generation complete": true,
+  "New video ideas available": true,
+  "Production board reminders": false,
+  "Product updates & news": true,
+  "Billing & plan updates": true,
+};
+
+const NOTIFICATION_DESCS: Record<string, string> = {
+  "Script generation complete": "When your script is ready",
+  "New video ideas available": "Daily AI-generated ideas for your niche",
+  "Production board reminders": "Due date reminders for your videos",
+  "Product updates & news": "New features and improvements",
+  "Billing & plan updates": "Invoices and plan changes",
+};
 
 export default function SettingsPage() {
-  const [name, setName] = useState("Towns Hub");
+  const router = useRouter();
+  const [name, setName] = useLocalStorage("th_settings_name", "Towns Hub");
+  const [notifications, setNotifications] = useLocalStorage<Record<string, boolean>>(
+    "th_notifications",
+    NOTIFICATION_DEFAULTS
+  );
   const [email] = useState("townshub1@gmail.com");
   const [saved, setSaved] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const handleSave = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
+  };
+
+  const toggleNotification = (label: string) => {
+    setNotifications((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
   };
 
   return (
@@ -40,7 +74,7 @@ export default function SettingsPage() {
           <CardBody className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xl font-bold font-[family-name:var(--font-syne)] shadow-[0_0_20px_rgba(255,107,53,0.3)]">
-                T
+                {(typeof name === "string" ? name : "T").charAt(0).toUpperCase()}
               </div>
               <div>
                 <p className="text-sm font-semibold text-white font-[family-name:var(--font-syne)]">Profile Photo</p>
@@ -50,7 +84,7 @@ export default function SettingsPage() {
             </div>
             <Input
               label="Name"
-              value={name}
+              value={typeof name === "string" ? name : ""}
               onChange={(e) => setName(e.target.value)}
             />
             <div>
@@ -132,25 +166,23 @@ export default function SettingsPage() {
             </div>
           </CardHeader>
           <CardBody className="space-y-3">
-            {[
-              { label: "Script generation complete", desc: "When your script is ready", default: true },
-              { label: "New video ideas available", desc: "Daily AI-generated ideas for your niche", default: true },
-              { label: "Production board reminders", desc: "Due date reminders for your videos", default: false },
-              { label: "Product updates & news", desc: "New features and improvements", default: true },
-              { label: "Billing & plan updates", desc: "Invoices and plan changes", default: true },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between py-2 border-b border-white/4 last:border-0">
-                <div>
-                  <p className="text-sm text-white font-medium">{item.label}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+            {Object.keys(NOTIFICATION_DEFAULTS).map((label) => {
+              const on = notifications[label] ?? NOTIFICATION_DEFAULTS[label as keyof typeof NOTIFICATION_DEFAULTS];
+              return (
+                <div key={label} className="flex items-center justify-between py-2 border-b border-white/4 last:border-0">
+                  <div>
+                    <p className="text-sm text-white font-medium">{label}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{NOTIFICATION_DESCS[label]}</p>
+                  </div>
+                  <button
+                    onClick={() => toggleNotification(label)}
+                    className={`relative w-10 h-6 rounded-full transition-all duration-200 ${on ? "bg-cyan-500" : "bg-white/10"}`}
+                  >
+                    <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-200 ${on ? "left-4.5" : "left-0.5"}`} />
+                  </button>
                 </div>
-                <button
-                  className={`relative w-10 h-6 rounded-full transition-all duration-200 ${item.default ? "bg-cyan-500" : "bg-white/10"}`}
-                >
-                  <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-200 ${item.default ? "left-4.5" : "left-0.5"}`} />
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </CardBody>
         </Card>
 
@@ -200,7 +232,15 @@ export default function SettingsPage() {
                 <p className="text-sm text-white font-medium">Sign Out</p>
                 <p className="text-xs text-slate-500">Sign out of your Townshub account</p>
               </div>
-              <Button size="sm" variant="ghost" icon={<LogOut size={13} />}>Sign Out</Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={<LogOut size={13} />}
+                onClick={handleLogout}
+                loading={loggingOut}
+              >
+                Sign Out
+              </Button>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg border border-red-500/15">
               <div>

@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   Plus,
   Zap,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -137,6 +138,24 @@ export function Sidebar() {
           </div>
         </div>
       )}
+
+      {/* Logout */}
+      <div className={cn("px-2 pb-3 border-t border-white/5 pt-2", collapsed && "flex justify-center")}>
+        <button
+          onClick={async () => {
+            await fetch("/api/auth/logout", { method: "POST" });
+            window.location.href = "/login";
+          }}
+          title={collapsed ? "Sign Out" : undefined}
+          className={cn(
+            "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm w-full transition-all duration-150 text-slate-500 hover:bg-red-500/8 hover:text-red-400",
+            collapsed && "justify-center w-auto"
+          )}
+        >
+          <LogOut size={15} className="shrink-0" />
+          {!collapsed && <span>Sign Out</span>}
+        </button>
+      </div>
 
       {/* Collapse toggle */}
       <button

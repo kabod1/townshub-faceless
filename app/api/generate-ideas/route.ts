@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { niche, channelHandle, competitors } = body;
+    const { niche, count } = body;
 
     const webhookUrl = process.env.N8N_IDEAS_WEBHOOK_URL;
     if (!webhookUrl) {
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ niche, channelHandle, competitors }),
+      body: JSON.stringify({ niche: niche || "faceless YouTube content creation", count: count || 6 }),
     });
 
     if (!response.ok) {

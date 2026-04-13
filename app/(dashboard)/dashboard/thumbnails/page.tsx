@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useLocalStorage } from "@/lib/use-local-storage";
 import { Topbar } from "@/components/dashboard/topbar";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input, Select } from "@/components/ui/input";
 import {
-  Image, Wand2, Download, Copy, Trash2, Plus,
+  Image, Wand2, Download, Copy, Plus,
   Palette, Type, Layers, Sparkles, ZoomIn, RotateCcw,
-  AlignLeft, AlignCenter, Bold, Italic, Lock
+  AlignLeft, AlignCenter, Bold, Italic, Lock, Trash2
 } from "lucide-react";
 
 const stylePresets = [
@@ -28,15 +29,25 @@ const bgStyles = [
   { value: "split", label: "Split Layout" },
 ];
 
+// Maps Tailwind gradient class pairs to real CSS gradient strings for canvas
+const GRADIENT_MAP: Record<string, [string, string]> = {
+  "from-red-900 to-black":          ["#7f1d1d", "#000000"],
+  "from-slate-800 to-slate-900":    ["#1e293b", "#0f172a"],
+  "from-purple-900 to-black":       ["#581c87", "#000000"],
+  "from-amber-900 to-stone-900":    ["#78350f", "#1c1917"],
+  "from-green-900 to-emerald-950":  ["#14532d", "#022c22"],
+  "from-orange-900 to-red-950":     ["#7c2d12", "#450a0a"],
+};
+
 interface ThumbnailAsset {
   id: string;
   title: string;
+  subtitle: string;
   style: string;
+  accent: string;
   createdAt: string;
-  isPro?: boolean;
+  dataUrl?: string;
 }
-
-const savedAssets: ThumbnailAsset[] = [];
 
 export default function ThumbnailsPage() {
   const [activeTab, setActiveTab] = useState<"create" | "library">("create");
@@ -46,15 +57,95 @@ export default function ThumbnailsPage() {
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [bgStyle, setBgStyle] = useState("gradient");
+  const [savedAssets, setSavedAssets] = useLocalStorage<ThumbnailAsset[]>("th_thumbnails", []);
+  const [textColor, setTextColor] = useState("#FFFFFF");
+  const [accentColor, setAccentColor] = useState("");
+
+  const style = stylePresets.find(s => s.id === selectedStyle)!;
+  const effectiveAccent = accentColor || style.accent;
+
+  // Renders the thumbnail to a 1280×720 canvas and returns a data URL
+  const renderToCanvas = useCallback((): string => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1280;
+    canvas.height = 720;
+    const ctx = canvas.getContext("2d")!;
+
+    // Background gradient
+    const [c1, c2] = GRADIENT_MAP[style.bg] ?? ["#111827", "#000000"];
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    grad.addColorStop(0, c1);
+    grad.addColorStop(1, c2);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Accent glow at top-centre
+    const radial = ctx.createRadialGradient(640, 0, 0, 640, 0, 500);
+    radial.addColorStop(0, `${effectiveAccent}55`);
+    radial.addColorStop(1, "transparent");
+    ctx.fillStyle = radial;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Dot grid
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    for (let x = 0; x < canvas.width; x += 40) {
+      for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath();
+        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Title text
+    const titleSize = Math.min(96, Math.floor(1280 / (titleText.length * 0.55 + 4)));
+    ctx.font = `bold ${titleSize}px Syne, sans-serif`;
+    ctx.fillStyle = textColor;
+    ctx.textAlign = "center";
+    ctx.shadowColor = effectiveAccent;
+    ctx.shadowBlur = 40;
+    ctx.fillText(titleText || "Your Title Here", 640, subtitleText ? 320 : 380);
+
+    // Subtitle
+    if (subtitleText) {
+      ctx.shadowBlur = 0;
+      const subSize = Math.round(titleSize * 0.55);
+      ctx.font = `600 ${subSize}px Syne, sans-serif`;
+      ctx.fillStyle = effectiveAccent;
+      ctx.fillText(subtitleText, 640, 320 + titleSize * 0.7 + 16);
+    }
+
+    return canvas.toDataURL("image/png");
+  }, [style, effectiveAccent, textColor, titleText, subtitleText]);
 
   const handleGenerate = async () => {
     setGenerating(true);
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 800)); // brief "generating" UX
     setGenerating(false);
     setGenerated(true);
   };
 
-  const style = stylePresets.find(s => s.id === selectedStyle)!;
+  const handleExport = () => {
+    const dataUrl = renderToCanvas();
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = `${(titleText || "thumbnail").slice(0, 40).replace(/[^a-z0-9]/gi, "-")}.png`;
+    a.click();
+  };
+
+  const handleSaveToLibrary = () => {
+    const dataUrl = renderToCanvas();
+    const asset: ThumbnailAsset = {
+      id: Date.now().toString(),
+      title: titleText || "Untitled",
+      subtitle: subtitleText,
+      style: style.label,
+      accent: effectiveAccent,
+      createdAt: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+      dataUrl,
+    };
+    setSavedAssets((prev) => [asset, ...prev]);
+    setActiveTab("library");
+  };
 
   return (
     <div className="min-h-screen">
@@ -66,7 +157,7 @@ export default function ThumbnailsPage() {
         <div className="flex gap-1 p-1 rounded-xl bg-white/3 border border-white/8 w-fit mb-6">
           {[
             { id: "create", label: "Create Thumbnail" },
-            { id: "library", label: `My Assets (${savedAssets.length})` },
+            { id: "library", label: `My Assets (${savedAssets.length ?? 0})` },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -154,8 +245,8 @@ export default function ThumbnailsPage() {
                       <RotateCcw size={12} /> Reset
                     </button>
                     <div className="ml-auto flex gap-2">
-                      <Button size="sm" variant="outline" icon={<Copy size={12} />}>Duplicate</Button>
-                      <Button size="sm" icon={<Download size={12} />}>Export PNG</Button>
+                      <Button size="sm" variant="outline" icon={<Copy size={12} />} onClick={handleSaveToLibrary}>Save to Library</Button>
+                      <Button size="sm" icon={<Download size={12} />} onClick={handleExport}>Export PNG</Button>
                     </div>
                   </div>
                 </CardBody>
@@ -219,8 +310,9 @@ export default function ThumbnailsPage() {
                       {["#FFFFFF", "#00D4FF", "#FF6B35", "#FFD700", "#4ADE80"].map((color) => (
                         <button
                           key={color}
-                          className="w-6 h-6 rounded-full border-2 border-white/10 hover:border-white/40 transition-all"
-                          style={{ background: color }}
+                          onClick={() => setTextColor(color)}
+                          className="w-6 h-6 rounded-full border-2 transition-all"
+                          style={{ background: color, borderColor: textColor === color ? "white" : "rgba(255,255,255,0.1)" }}
                         />
                       ))}
                     </div>
@@ -279,8 +371,9 @@ export default function ThumbnailsPage() {
                       {["#00D4FF", "#FF6B35", "#FF3333", "#FFD700", "#4ADE80", "#A855F7"].map((color) => (
                         <button
                           key={color}
-                          className="w-7 h-7 rounded-full border-2 border-white/10 hover:border-white/40 transition-all hover:scale-110"
-                          style={{ background: color }}
+                          onClick={() => setAccentColor(color)}
+                          className="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
+                          style={{ background: color, borderColor: effectiveAccent === color ? "white" : "rgba(255,255,255,0.1)" }}
                         />
                       ))}
                     </div>
@@ -318,11 +411,40 @@ export default function ThumbnailsPage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {savedAssets.map((asset) => (
-                  <div key={asset.id} className="group rounded-xl border border-white/8 bg-[#162035]/80 overflow-hidden hover:border-cyan-500/20 transition-all">
-                    <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900" />
+                  <div key={asset.id} className="group relative rounded-xl border border-white/8 bg-[#162035]/80 overflow-hidden hover:border-cyan-500/25 hover:shadow-[0_0_20px_rgba(0,212,255,0.08)] transition-all">
+                    {/* Thumbnail preview */}
+                    {asset.dataUrl
+                      ? <img src={asset.dataUrl} alt={asset.title} className="w-full aspect-video object-cover" />
+                      : <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                          <Image size={20} className="text-slate-600" />
+                        </div>
+                    }
+                    {/* Hover actions overlay */}
+                    <div className="absolute inset-x-0 top-0 aspect-video flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-black/55 backdrop-blur-[2px]">
+                      <button
+                        onClick={() => {
+                          if (!asset.dataUrl) return;
+                          const a = document.createElement("a");
+                          a.href = asset.dataUrl;
+                          a.download = `${asset.title.slice(0, 40).replace(/[^a-z0-9]/gi, "-")}.png`;
+                          a.click();
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all backdrop-blur-sm"
+                        style={{ background: "rgba(255,255,255,0.12)", color: "#E8F0FF", border: "1px solid rgba(255,255,255,0.15)" }}
+                      >
+                        <Download size={11} /> Export
+                      </button>
+                      <button
+                        onClick={() => setSavedAssets((prev) => prev.filter((a) => a.id !== asset.id))}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                        style={{ background: "rgba(239,68,68,0.15)", color: "#F87171", border: "1px solid rgba(239,68,68,0.25)" }}
+                      >
+                        <Trash2 size={11} /> Delete
+                      </button>
+                    </div>
                     <div className="p-3">
                       <p className="text-xs font-semibold text-white truncate font-[family-name:var(--font-syne)]">{asset.title}</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">{asset.createdAt}</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">{asset.style} · {asset.createdAt}</p>
                     </div>
                   </div>
                 ))}

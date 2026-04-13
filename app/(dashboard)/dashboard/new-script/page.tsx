@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useLocalStorage } from "@/lib/use-local-storage";
 import { Topbar } from "@/components/dashboard/topbar";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   PenLine, Sparkles, Link2, FileText, Plus,
   Trash2, ChevronDown, ChevronUp, Copy, Download,
-  CheckCircle2, Clock, Zap, BookOpen, AlertCircle
+  CheckCircle2, Clock, Zap, BookOpen, AlertCircle,
 } from "lucide-react";
 
 const lengthOptions = [
@@ -51,6 +53,18 @@ interface GeneratedScript {
   sections: Omit<ScriptSection, "expanded">[];
 }
 
+interface SavedScript {
+  id: string;
+  title: string;
+  niche: string;
+  format: string;
+  words: number;
+  duration: number;
+  createdAt: string;
+  status: "draft" | "final" | "published";
+  sections: Omit<ScriptSection, "expanded">[];
+}
+
 // Generating steps shown while waiting
 const STEPS = [
   "Analysing your topic…",
@@ -61,8 +75,14 @@ const STEPS = [
   "Finalising your script…",
 ];
 
-export default function NewScriptPage() {
-  const [videoIdea, setVideoIdea] = useState("");
+function NewScriptInner() {
+  const searchParams = useSearchParams();
+  const ideaParam = searchParams.get("idea") || "";
+  const [videoIdea, setVideoIdea] = useState(ideaParam);
+
+  useEffect(() => {
+    if (ideaParam) setVideoIdea(ideaParam);
+  }, [ideaParam]);
   const [targetLength, setTargetLength] = useState("10");
   const [format, setFormat] = useState("listicle");
   const [researchNotes, setResearchNotes] = useState<ResearchNote[]>([]);
@@ -74,6 +94,8 @@ export default function NewScriptPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [step, setStep] = useState<"setup" | "result">("setup");
+  const [savedScripts, setSavedScripts] = useLocalStorage<SavedScript[]>("th_scripts", []);
+  const [scriptSaved, setScriptSaved] = useState(false);
 
   const addNote = (type: "url" | "text") => {
     if (!newNote.trim()) return;
@@ -156,6 +178,24 @@ export default function NewScriptPage() {
 
   const copySection = (content: string) => {
     navigator.clipboard.writeText(content);
+  };
+
+  const saveScript = () => {
+    if (!scriptMeta || sections.length === 0) return;
+    const newScript: SavedScript = {
+      id: Date.now().toString(),
+      title: scriptMeta.title,
+      niche: "General",
+      format,
+      words: scriptMeta.totalWords,
+      duration: scriptMeta.estimatedMinutes,
+      createdAt: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+      status: "draft",
+      sections: sections.map(({ id, title, content, wordCount }) => ({ id, title, content, wordCount })),
+    };
+    setSavedScripts((prev) => [newScript, ...prev]);
+    setScriptSaved(true);
+    setTimeout(() => setScriptSaved(false), 2500);
   };
 
   // ── Result view ────────────────────────────────────────────────────────────
@@ -251,10 +291,17 @@ export default function NewScriptPage() {
           </div>
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => { setStep("setup"); setSections([]); setScriptMeta(null); }}>
+            <Button variant="outline" onClick={() => { setStep("setup"); setSections([]); setScriptMeta(null); setScriptSaved(false); }}>
               ← Edit Inputs
             </Button>
-            <Button icon={<Zap size={14} />}>Save to My Scripts</Button>
+            <Button
+              icon={scriptSaved ? <CheckCircle2 size={14} /> : <Zap size={14} />}
+              variant={scriptSaved ? "outline" : "primary"}
+              onClick={saveScript}
+              disabled={scriptSaved}
+            >
+              {scriptSaved ? "Saved to My Scripts!" : "Save to My Scripts"}
+            </Button>
           </div>
         </div>
       </div>
@@ -485,5 +532,13 @@ export default function NewScriptPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function NewScriptPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#080D1A]" />}>
+      <NewScriptInner />
+    </Suspense>
   );
 }

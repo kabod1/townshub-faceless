@@ -81,17 +81,37 @@ export default function DashboardPage() {
         </div>
 
         {/* Welcome Banner */}
-        <div className="rounded-xl overflow-hidden relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/25 via-violet-600/15 to-transparent" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_80%_at_80%_50%,rgba(0,212,255,0.05),transparent)]" />
-          <div className="relative p-6 flex items-center justify-between">
+        <div className="rounded-2xl overflow-hidden relative border border-cyan-500/12"
+          style={{ background: "linear-gradient(135deg,rgba(22,32,53,0.98) 0%,rgba(10,16,32,1) 60%,rgba(0,20,40,1) 100%)" }}>
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/18 via-violet-600/10 to-transparent" />
+          <div className="absolute top-0 right-0 w-72 h-full opacity-25 pointer-events-none"
+            style={{ background: "radial-gradient(ellipse at 100% 50%,#00D4FF,transparent)" }} />
+          <div className="absolute inset-0 opacity-[0.025] pointer-events-none"
+            style={{ backgroundImage: "linear-gradient(rgba(0,212,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,1) 1px,transparent 1px)", backgroundSize: "40px 40px" }} />
+          <div className="relative p-6 flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-bold text-cyan-400 tracking-widest uppercase mb-2 font-[family-name:var(--font-syne)]">Welcome back</p>
-              <h2 className="text-2xl font-bold text-white font-[family-name:var(--font-syne)]">Towns Hub</h2>
-              <p className="text-sm text-slate-400 mt-1">Here&apos;s your workspace overview.</p>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <p className="text-xs font-bold text-slate-400 tracking-[0.15em] uppercase font-[family-name:var(--font-syne)]">Welcome back</p>
+              </div>
+              <h2 className="text-2xl font-bold text-white font-[family-name:var(--font-syne)] mb-1">
+                Towns <span style={{ color: "#00D4FF" }}>Hub</span>
+              </h2>
+              <p className="text-sm text-slate-400">Ready to create something great today?</p>
             </div>
-            <div className="hidden sm:flex items-center gap-2">
-              <TrendingUp size={40} className="text-cyan-500/20" />
+            <div className="hidden sm:flex items-center gap-2 shrink-0">
+              <Link href="/dashboard/new-script"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all font-[family-name:var(--font-syne)]"
+                style={{ background: "linear-gradient(135deg,#00D4FF,#0090cc)", color: "#04080F", boxShadow: "0 0 20px rgba(0,212,255,0.25)" }}>
+                <PenLine size={14} />
+                Write Script
+              </Link>
+              <Link href="/dashboard/ideas"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border border-white/10 text-slate-300 hover:border-cyan-500/30 hover:text-white transition-all font-[family-name:var(--font-syne)]"
+                style={{ background: "rgba(255,255,255,0.03)" }}>
+                <Zap size={14} className="text-yellow-400" />
+                Get Ideas
+              </Link>
             </div>
           </div>
         </div>

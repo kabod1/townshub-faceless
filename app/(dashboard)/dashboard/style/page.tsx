@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocalStorage } from "@/lib/use-local-storage";
 import { Topbar } from "@/components/dashboard/topbar";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,25 +43,50 @@ interface ChannelProfile {
   competitors: string[];
 }
 
+interface StyleSettings {
+  tone: string;
+  hooks: string[];
+  pillars: string[];
+  writingDNA: string;
+}
+
+const DEFAULT_STYLE: StyleSettings = {
+  tone: "educational",
+  hooks: ["question", "promise"],
+  pillars: ["How-to Tutorials", "List Videos"],
+  writingDNA: "",
+};
+
 export default function StylePage() {
-  const [selectedTone, setSelectedTone] = useState("educational");
-  const [selectedHooks, setSelectedHooks] = useState<string[]>(["question", "promise"]);
-  const [selectedPillars, setSelectedPillars] = useState<string[]>(["How-to Tutorials", "List Videos"]);
-  const [writingDNA, setWritingDNA] = useState("");
-  const [channels, setChannels] = useState<ChannelProfile[]>([]);
+  const [style, setStyle, , ] = useLocalStorage<StyleSettings>("th_style", DEFAULT_STYLE);
+  const [channels, setChannels] = useLocalStorage<ChannelProfile[]>("th_channels", []);
+  const [saved, setSaved] = useState(false);
   const [showAddChannel, setShowAddChannel] = useState(false);
   const [newChannel, setNewChannel] = useState({ name: "", niche: "", handle: "", competitor: "" });
 
-  const toggleHook = (id: string) => {
-    setSelectedHooks((prev) =>
-      prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id]
-    );
-  };
+  const selectedTone = style.tone;
+  const selectedHooks = style.hooks;
+  const selectedPillars = style.pillars;
+  const writingDNA = style.writingDNA;
 
-  const togglePillar = (p: string) => {
-    setSelectedPillars((prev) =>
-      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]
-    );
+  const setSelectedTone = (v: string) => setStyle((p) => ({ ...p, tone: v }));
+  const setWritingDNA = (v: string) => setStyle((p) => ({ ...p, writingDNA: v }));
+
+  const toggleHook = (id: string) =>
+    setStyle((p) => ({
+      ...p,
+      hooks: p.hooks.includes(id) ? p.hooks.filter((h) => h !== id) : [...p.hooks, id],
+    }));
+
+  const togglePillar = (p: string) =>
+    setStyle((prev) => ({
+      ...prev,
+      pillars: prev.pillars.includes(p) ? prev.pillars.filter((x) => x !== p) : [...prev.pillars, p],
+    }));
+
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   const addChannel = () => {
@@ -176,8 +202,13 @@ export default function StylePage() {
                   hint="These instructions are applied to every script you generate."
                 />
 
-                <Button size="md" icon={<Sparkles size={14} />}>
-                  Save Style Settings
+                <Button
+                  size="md"
+                  icon={saved ? <CheckCircle2 size={14} /> : <Sparkles size={14} />}
+                  variant={saved ? "outline" : "primary"}
+                  onClick={handleSave}
+                >
+                  {saved ? "Saved!" : "Save Style Settings"}
                 </Button>
               </CardBody>
             </Card>
@@ -267,7 +298,7 @@ export default function StylePage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => setChannels((p) => p.filter((c) => c.id !== ch.id))}
+                      onClick={() => setChannels((p: ChannelProfile[]) => p.filter((c) => c.id !== ch.id))}
                       className="text-slate-600 hover:text-red-400 transition-colors"
                     >
                       <Trash2 size={14} />
