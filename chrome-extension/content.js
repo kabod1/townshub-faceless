@@ -48,77 +48,116 @@
 
   // ── Scrape channel data from the DOM ───────────────────────────────────────
 
+  function isVideoPage() {
+    return location.pathname === "/watch";
+  }
+
   function scrapeChannelData() {
     const data = {};
+    const onVideo = isVideoPage();
 
-    // Channel name
-    data.name =
-      document.querySelector("ytd-channel-name yt-formatted-string")?.textContent?.trim() ||
-      document.querySelector("#channel-name .ytd-channel-name")?.textContent?.trim() ||
-      document.title.replace(" - YouTube", "").trim() ||
-      "Unknown Channel";
+    // ── Channel name ─────────────────────────────────────────────────────────
+    if (onVideo) {
+      // On watch page, channel name is in the owner section
+      data.name =
+        document.querySelector("ytd-video-owner-renderer #channel-name yt-formatted-string")?.textContent?.trim() ||
+        document.querySelector("ytd-video-owner-renderer .ytd-channel-name")?.textContent?.trim() ||
+        document.querySelector("#owner #channel-name")?.textContent?.trim() ||
+        document.querySelector("ytd-channel-name yt-formatted-string")?.textContent?.trim() ||
+        "Unknown Channel";
+      data.context = "video";
+    } else {
+      data.name =
+        document.querySelector("ytd-channel-name yt-formatted-string")?.textContent?.trim() ||
+        document.querySelector("#channel-name .ytd-channel-name")?.textContent?.trim() ||
+        document.title.replace(" - YouTube", "").trim() ||
+        "Unknown Channel";
+      data.context = "channel";
+    }
 
-    // Subscriber count
-    const subEl =
-      document.querySelector("#subscriber-count") ||
-      document.querySelector("yt-formatted-string#subscriber-count") ||
-      document.querySelector("[id*='subscriber']");
+    // ── Subscriber count ─────────────────────────────────────────────────────
+    const subEl = onVideo
+      ? document.querySelector("ytd-video-owner-renderer #owner-sub-count") ||
+        document.querySelector("ytd-video-owner-renderer yt-formatted-string[id*='sub']") ||
+        document.querySelector("#owner-sub-count")
+      : document.querySelector("#subscriber-count") ||
+        document.querySelector("yt-formatted-string#subscriber-count") ||
+        document.querySelector("[id*='subscriber']");
     const subText = subEl?.textContent?.trim() || "";
     data.subsText = subText || "—";
     data.subs = parseCount(subText.replace(/\s*(subscribers?|member)/gi, ""));
 
-    // Video count
-    const metaItems = [...document.querySelectorAll("#videos-count, .yt-content-metadata-view-model-wiz__metadata-text")];
+    // Video count (only available on channel pages)
     data.videoCount = "—";
-    for (const el of metaItems) {
-      const text = el.textContent?.trim() || "";
-      if (/\d/.test(text) && /video/i.test(text)) {
-        data.videoCount = text.replace(/\s*videos?/i, "").trim();
-        break;
+    if (!onVideo) {
+      const metaItems = [...document.querySelectorAll("#videos-count, .yt-content-metadata-view-model-wiz__metadata-text")];
+      for (const el of metaItems) {
+        const text = el.textContent?.trim() || "";
+        if (/\d/.test(text) && /video/i.test(text)) {
+          data.videoCount = text.replace(/\s*videos?/i, "").trim();
+          break;
+        }
       }
     }
 
-    // Channel join date / views from about page metadata
-    data.totalViews = "—";
-    data.joinedDate = "—";
-    const aboutMeta = [...document.querySelectorAll("yt-content-metadata-view-model-wiz__metadata-text, #additional-info-container span")];
-    for (const el of aboutMeta) {
-      const text = el.textContent?.trim() || "";
-      if (/view/i.test(text)) data.totalViews = text;
-      if (/joined/i.test(text)) data.joinedDate = text;
-    }
-
-    // Top videos — scrape from channel videos tab
-    data.videos = [];
-    const videoRenderers = document.querySelectorAll("ytd-rich-item-renderer, ytd-grid-video-renderer");
-    videoRenderers.forEach((el, i) => {
-      if (i >= 6) return;
-      const titleEl = el.querySelector("#video-title, .title");
-      const viewEl  = el.querySelector(".ytd-video-meta-block span, #metadata-line span");
-      const title   = titleEl?.textContent?.trim() || "";
-      const viewsText = viewEl?.textContent?.trim() || "";
-      if (!title) return;
-      const views = parseCount(viewsText.replace(/\s*views?/i, "").trim());
-      const score = outlierScore(views, data.subs);
-      data.videos.push({ title, viewsText: viewsText || "—", views, score });
-    });
-
-    // Tags — from meta tags
+    // Tags — from page meta
     data.tags = [];
     const keywordsMeta = document.querySelector('meta[name="keywords"]');
     if (keywordsMeta) {
       data.tags = keywordsMeta.content.split(",").map(t => t.trim()).filter(Boolean).slice(0, 8);
     }
 
-    // Monetization heuristic — channels with >1K subs + consistent uploads
+    // Current video data (on watch page)
+    data.currentVideo = null;
+    if (onVideo) {
+      const videoTitle =
+        document.querySelector("ytd-watch-metadata h1 yt-formatted-string")?.textContent?.trim() ||
+        document.querySelector("h1.ytd-video-primary-info-renderer")?.textContent?.trim() ||
+        document.title.replace(" - YouTube", "").trim();
+
+      const viewsEl =
+        document.querySelector("ytd-watch-metadata .ytd-video-view-count-renderer span") ||
+        document.querySelector("#count .ytd-video-view-count-renderer") ||
+        document.querySelector("ytd-video-view-count-renderer .view-count");
+      const viewsText = viewsEl?.textContent?.trim() || "";
+      const views = parseCount(viewsText.replace(/\s*views?/gi, "").replace(/,/g, "").trim());
+
+      if (videoTitle && data.subs > 0) {
+        const score = outlierScore(views, data.subs);
+        data.currentVideo = { title: videoTitle, viewsText: viewsText || "—", views, score };
+        data.videos = [data.currentVideo];
+        data.avgOutlierScore = score;
+      }
+    }
+
+    // Top videos from channel page
+    if (!onVideo) {
+      data.videos = [];
+      const videoRenderers = document.querySelectorAll("ytd-rich-item-renderer, ytd-grid-video-renderer");
+      videoRenderers.forEach((el, i) => {
+        if (i >= 6) return;
+        const titleEl = el.querySelector("#video-title, .title");
+        const viewEl  = el.querySelector(".ytd-video-meta-block span, #metadata-line span");
+        const title   = titleEl?.textContent?.trim() || "";
+        const viewsText = viewEl?.textContent?.trim() || "";
+        if (!title) return;
+        const views = parseCount(viewsText.replace(/\s*views?/i, "").trim());
+        const score = outlierScore(views, data.subs);
+        data.videos.push({ title, viewsText: viewsText || "—", views, score });
+      });
+    }
+
+    // Monetization heuristic
     data.monetized = data.subs >= 1000 ? "likely" : data.subs >= 500 ? "possible" : "unlikely";
 
-    // Average outlier score from videos
-    if (data.videos.length > 0) {
-      const avg = data.videos.reduce((a, v) => a + v.score, 0) / data.videos.length;
-      data.avgOutlierScore = Math.round(avg);
-    } else {
-      data.avgOutlierScore = outlierScore(data.subs * 0.5, data.subs);
+    // Average outlier score
+    if (!data.avgOutlierScore) {
+      if (data.videos && data.videos.length > 0) {
+        const avg = data.videos.reduce((a, v) => a + v.score, 0) / data.videos.length;
+        data.avgOutlierScore = Math.round(avg);
+      } else {
+        data.avgOutlierScore = outlierScore(data.subs * 0.5, data.subs);
+      }
     }
 
     return data;
@@ -160,13 +199,29 @@
           <div id="th-logo-icon">⚡</div>
           <div>
             <div id="th-logo-text">Townshub</div>
-            <div id="th-logo-sub">Channel Analyzer</div>
+            <div id="th-logo-sub">${data.context === "video" ? "Video Analyzer" : "Channel Analyzer"}</div>
           </div>
         </div>
         <button id="th-close" title="Close">✕</button>
       </div>
 
       <div id="th-body">
+        <!-- Current video score (video pages only) -->
+        ${data.context === "video" && data.currentVideo ? `
+        <div class="th-section">
+          <div class="th-section-title">Current Video Outlier Score</div>
+          <div class="th-metric" style="background:rgba(0,212,255,0.04);border-color:rgba(0,212,255,0.15)">
+            <div style="font-size:11px;color:#cbd5e1;margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${data.currentVideo.title}">${data.currentVideo.title}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:10px;color:#64748b">${data.currentVideo.viewsText} views</span>
+              <span style="font-size:22px;font-weight:800;color:${scoreColor(data.avgOutlierScore)}">${data.avgOutlierScore}</span>
+            </div>
+            <div class="th-score-bar">
+              <div class="th-score-fill" style="width:${data.avgOutlierScore}%;background:${scoreColor(data.avgOutlierScore)}"></div>
+            </div>
+          </div>
+        </div>` : ""}
+
         <!-- Channel overview -->
         <div class="th-section">
           <div class="th-section-title">Channel Overview</div>
@@ -236,7 +291,8 @@
       location.pathname.includes("/@") ||
       location.pathname.includes("/channel/") ||
       location.pathname.includes("/user/") ||
-      location.pathname.includes("/c/")
+      location.pathname.includes("/c/") ||
+      location.pathname === "/watch"
     );
   }
 
@@ -278,14 +334,14 @@
           <div id="th-logo-icon">⚡</div>
           <div>
             <div id="th-logo-text">Townshub</div>
-            <div id="th-logo-sub">Analyzing…</div>
+            <div id="th-logo-sub">${isVideoPage() ? "Video Analyzer" : "Analyzing…"}</div>
           </div>
         </div>
         <button id="th-close">✕</button>
       </div>
       <div class="th-loading">
         <div class="th-spinner"></div>
-        Scraping channel data…
+        ${isVideoPage() ? "Reading video & channel data…" : "Scraping channel data…"}
       </div>`;
 
     document.body.appendChild(panel);
