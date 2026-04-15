@@ -3,50 +3,24 @@
 import { useState, useCallback } from "react";
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { Topbar } from "@/components/dashboard/topbar";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input, Select } from "@/components/ui/input";
 import {
-  Image, Wand2, Download, Copy, Plus,
-  Palette, Type, Layers, Sparkles, ZoomIn, RotateCcw,
-  AlignLeft, AlignCenter, Bold, Italic, Lock, Trash2
+  Wand2, Download, Plus, Palette, Type, Layers,
+  Sparkles, ZoomIn, RotateCcw, AlignLeft, AlignCenter,
+  Bold, Italic, Lock, Trash2, ImageIcon,
 } from "lucide-react";
 
 const stylePresets = [
-  { id: "bold", label: "Bold & Dramatic", bg: "from-red-900 to-black", accent: "#FF3333" },
-  { id: "clean", label: "Clean & Minimal", bg: "from-slate-800 to-slate-900", accent: "#00D4FF" },
-  { id: "neon", label: "Neon Cyberpunk", bg: "from-purple-900 to-black", accent: "#FF00FF" },
-  { id: "gold", label: "Premium Gold", bg: "from-amber-900 to-stone-900", accent: "#FFD700" },
-  { id: "nature", label: "Natural Organic", bg: "from-green-900 to-emerald-950", accent: "#4ADE80" },
-  { id: "fire", label: "Fire & Energy", bg: "from-orange-900 to-red-950", accent: "#FF6B35" },
+  { id: "bold",   label: "Bold & Dramatic",  bg: ["#7f1d1d", "#000000"],   accent: "#FF3333" },
+  { id: "clean",  label: "Clean & Minimal",  bg: ["#1e293b", "#0f172a"],   accent: "#00D4FF" },
+  { id: "neon",   label: "Neon Cyberpunk",   bg: ["#581c87", "#000000"],   accent: "#FF00FF" },
+  { id: "gold",   label: "Premium Gold",     bg: ["#78350f", "#1c1917"],   accent: "#FFD700" },
+  { id: "nature", label: "Natural Organic",  bg: ["#14532d", "#022c22"],   accent: "#4ADE80" },
+  { id: "fire",   label: "Fire & Energy",    bg: ["#7c2d12", "#450a0a"],   accent: "#FF6B35" },
 ];
-
-const bgStyles = [
-  { value: "solid", label: "Solid Color" },
-  { value: "gradient", label: "Gradient" },
-  { value: "image", label: "AI Generated Image" },
-  { value: "split", label: "Split Layout" },
-];
-
-// Maps Tailwind gradient class pairs to real CSS gradient strings for canvas
-const GRADIENT_MAP: Record<string, [string, string]> = {
-  "from-red-900 to-black":          ["#7f1d1d", "#000000"],
-  "from-slate-800 to-slate-900":    ["#1e293b", "#0f172a"],
-  "from-purple-900 to-black":       ["#581c87", "#000000"],
-  "from-amber-900 to-stone-900":    ["#78350f", "#1c1917"],
-  "from-green-900 to-emerald-950":  ["#14532d", "#022c22"],
-  "from-orange-900 to-red-950":     ["#7c2d12", "#450a0a"],
-};
 
 interface ThumbnailAsset {
-  id: string;
-  title: string;
-  subtitle: string;
-  style: string;
-  accent: string;
-  createdAt: string;
-  dataUrl?: string;
+  id: string; title: string; subtitle: string;
+  style: string; accent: string; createdAt: string; dataUrl?: string;
 }
 
 export default function ThumbnailsPage() {
@@ -56,401 +30,361 @@ export default function ThumbnailsPage() {
   const [selectedStyle, setSelectedStyle] = useState("bold");
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
-  const [bgStyle, setBgStyle] = useState("gradient");
-  const [savedAssets, setSavedAssets] = useLocalStorage<ThumbnailAsset[]>("th_thumbnails", []);
   const [textColor, setTextColor] = useState("#FFFFFF");
   const [accentColor, setAccentColor] = useState("");
+  const [savedAssets, setSavedAssets] = useLocalStorage<ThumbnailAsset[]>("th_thumbnails", []);
 
   const style = stylePresets.find(s => s.id === selectedStyle)!;
   const effectiveAccent = accentColor || style.accent;
 
-  // Renders the thumbnail to a 1280×720 canvas and returns a data URL
   const renderToCanvas = useCallback((): string => {
     const canvas = document.createElement("canvas");
-    canvas.width = 1280;
-    canvas.height = 720;
+    canvas.width = 1280; canvas.height = 720;
     const ctx = canvas.getContext("2d")!;
-
-    // Background gradient
-    const [c1, c2] = GRADIENT_MAP[style.bg] ?? ["#111827", "#000000"];
     const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    grad.addColorStop(0, c1);
-    grad.addColorStop(1, c2);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Accent glow at top-centre
+    grad.addColorStop(0, style.bg[0]); grad.addColorStop(1, style.bg[1]);
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
     const radial = ctx.createRadialGradient(640, 0, 0, 640, 0, 500);
-    radial.addColorStop(0, `${effectiveAccent}55`);
-    radial.addColorStop(1, "transparent");
-    ctx.fillStyle = radial;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Dot grid
+    radial.addColorStop(0, `${effectiveAccent}55`); radial.addColorStop(1, "transparent");
+    ctx.fillStyle = radial; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(255,255,255,0.04)";
-    for (let x = 0; x < canvas.width; x += 40) {
-      for (let y = 0; y < canvas.height; y += 40) {
-        ctx.beginPath();
-        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    for (let x = 0; x < canvas.width; x += 40) for (let y = 0; y < canvas.height; y += 40) {
+      ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
     }
-
-    // Title text
     const titleSize = Math.min(96, Math.floor(1280 / (titleText.length * 0.55 + 4)));
-    ctx.font = `bold ${titleSize}px Syne, sans-serif`;
-    ctx.fillStyle = textColor;
-    ctx.textAlign = "center";
-    ctx.shadowColor = effectiveAccent;
-    ctx.shadowBlur = 40;
+    ctx.font = `bold ${titleSize}px Syne, sans-serif`; ctx.fillStyle = textColor;
+    ctx.textAlign = "center"; ctx.shadowColor = effectiveAccent; ctx.shadowBlur = 40;
     ctx.fillText(titleText || "Your Title Here", 640, subtitleText ? 320 : 380);
-
-    // Subtitle
     if (subtitleText) {
       ctx.shadowBlur = 0;
       const subSize = Math.round(titleSize * 0.55);
-      ctx.font = `600 ${subSize}px Syne, sans-serif`;
-      ctx.fillStyle = effectiveAccent;
+      ctx.font = `600 ${subSize}px Syne, sans-serif`; ctx.fillStyle = effectiveAccent;
       ctx.fillText(subtitleText, 640, 320 + titleSize * 0.7 + 16);
     }
-
     return canvas.toDataURL("image/png");
   }, [style, effectiveAccent, textColor, titleText, subtitleText]);
 
   const handleGenerate = async () => {
     setGenerating(true);
-    await new Promise((r) => setTimeout(r, 800)); // brief "generating" UX
-    setGenerating(false);
-    setGenerated(true);
+    await new Promise(r => setTimeout(r, 800));
+    setGenerating(false); setGenerated(true);
   };
 
   const handleExport = () => {
     const dataUrl = renderToCanvas();
     const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `${(titleText || "thumbnail").slice(0, 40).replace(/[^a-z0-9]/gi, "-")}.png`;
-    a.click();
+    a.href = dataUrl; a.download = `${(titleText || "thumbnail").slice(0, 40).replace(/[^a-z0-9]/gi, "-")}.png`; a.click();
   };
 
   const handleSaveToLibrary = () => {
     const dataUrl = renderToCanvas();
-    const asset: ThumbnailAsset = {
-      id: Date.now().toString(),
-      title: titleText || "Untitled",
-      subtitle: subtitleText,
-      style: style.label,
-      accent: effectiveAccent,
+    setSavedAssets(prev => [{
+      id: Date.now().toString(), title: titleText || "Untitled", subtitle: subtitleText,
+      style: style.label, accent: effectiveAccent,
       createdAt: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
       dataUrl,
-    };
-    setSavedAssets((prev) => [asset, ...prev]);
+    }, ...prev]);
     setActiveTab("library");
   };
 
-  return (
-    <div className="min-h-screen">
-      <Topbar title="Thumbnail Studio" />
+  const S = {
+    card: {
+      borderRadius: 16, overflow: "hidden" as const,
+      background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))",
+      border: "1px solid rgba(255,255,255,0.06)", marginBottom: 16,
+    } as React.CSSProperties,
+    cardHeader: { padding: "14px 18px", borderBottom: "1px solid rgba(255,255,255,0.04)" } as React.CSSProperties,
+    cardBody: { padding: "16px 18px" } as React.CSSProperties,
+    input: {
+      width: "100%", boxSizing: "border-box" as const,
+      background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 10, padding: "9px 13px", color: "#e2e8f0", fontSize: 13, outline: "none",
+    } as React.CSSProperties,
+    label: { fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.1em", textTransform: "uppercase" as const, display: "block", marginBottom: 6 } as React.CSSProperties,
+  };
 
-      <div className="p-6 max-w-7xl mx-auto">
+  return (
+    <div style={{ minHeight: "100vh", background: "#080D1A" }}>
+      <Topbar title="Thumbnail Studio" subtitle="Create eye-catching YouTube thumbnails" />
+
+      <div style={{ padding: "24px 28px", maxWidth: 1300, margin: "0 auto" }}>
 
         {/* Tabs */}
-        <div className="flex gap-1 p-1 rounded-xl bg-white/3 border border-white/8 w-fit mb-6">
+        <div style={{ display: "inline-flex", padding: 4, borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 22 }}>
           {[
             { id: "create", label: "Create Thumbnail" },
             { id: "library", label: `My Assets (${savedAssets.length ?? 0})` },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as "create" | "library")}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all font-[family-name:var(--font-syne)] ${
-                activeTab === tab.id
-                  ? "bg-[#162035] text-white border border-cyan-500/20 shadow-sm"
-                  : "text-slate-500 hover:text-slate-300"
-              }`}
-            >
-              {tab.label}
-            </button>
+          ].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as "create" | "library")} style={{
+              padding: "8px 20px", borderRadius: 9, fontSize: 13, fontWeight: 600,
+              cursor: "pointer", transition: "all 0.15s", border: "none",
+              background: activeTab === tab.id ? "rgba(15,24,42,0.95)" : "transparent",
+              color: activeTab === tab.id ? "#e2e8f0" : "#475569",
+              outline: activeTab === tab.id ? "1px solid rgba(0,212,255,0.18)" : "none",
+            }}>{tab.label}</button>
           ))}
         </div>
 
         {activeTab === "create" ? (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 20 }}>
 
-            {/* Preview */}
-            <div className="lg:col-span-3 space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">Preview</h3>
-                    <div className="flex gap-2">
-                      <Badge variant="neutral">1280×720</Badge>
-                      <Badge variant="cyan">16:9</Badge>
+            {/* Preview column */}
+            <div>
+              {/* Preview card */}
+              <div style={S.card}>
+                <div style={S.cardHeader}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Preview</span>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "rgba(255,255,255,0.05)", color: "#64748b", border: "1px solid rgba(255,255,255,0.07)" }}>1280×720</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "rgba(0,212,255,0.08)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.18)" }}>16:9</span>
                     </div>
                   </div>
-                </CardHeader>
-                <CardBody>
-                  {/* Thumbnail Preview Canvas */}
-                  <div className={`relative w-full aspect-video rounded-xl overflow-hidden bg-gradient-to-br ${style.bg} flex flex-col items-center justify-center select-none`}>
+                </div>
+                <div style={S.cardBody}>
+                  {/* Thumbnail canvas preview */}
+                  <div style={{
+                    position: "relative", width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
+                    background: `linear-gradient(135deg, ${style.bg[0]}, ${style.bg[1]})`,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    userSelect: "none",
+                  }}>
                     {/* Grid overlay */}
-                    <div className="absolute inset-0 opacity-10"
-                      style={{
-                        backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-                        backgroundSize: "40px 40px"
-                      }}
-                    />
-                    {/* Accent glow */}
-                    <div
-                      className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-1/2 rounded-full blur-3xl opacity-30"
-                      style={{ background: style.accent }}
-                    />
+                    <div style={{ position: "absolute", inset: 0, opacity: 0.08, backgroundImage: "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+                    {/* Glow */}
+                    <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "75%", height: "50%", borderRadius: "50%", filter: "blur(40px)", background: effectiveAccent, opacity: 0.25 }} />
                     {/* Content */}
-                    <div className="relative text-center px-8">
-                      <p
-                        className="font-bold font-[family-name:var(--font-syne)] text-white drop-shadow-lg leading-tight"
-                        style={{ fontSize: "clamp(14px, 3vw, 32px)", textShadow: `0 0 40px ${style.accent}` }}
-                      >
+                    <div style={{ position: "relative", textAlign: "center", padding: "0 32px" }}>
+                      <p style={{ fontWeight: 800, color: textColor, lineHeight: 1.2, margin: "0 0 8px", fontSize: "clamp(14px, 3vw, 36px)", textShadow: `0 0 40px ${effectiveAccent}` }}>
                         {titleText || "Your Title Here"}
                       </p>
                       {subtitleText && (
-                        <p
-                          className="mt-2 font-semibold font-[family-name:var(--font-syne)] opacity-80"
-                          style={{ color: style.accent, fontSize: "clamp(10px, 1.8vw, 20px)" }}
-                        >
+                        <p style={{ fontWeight: 600, color: effectiveAccent, fontSize: "clamp(10px, 1.8vw, 22px)", margin: 0, opacity: 0.85 }}>
                           {subtitleText}
                         </p>
                       )}
                     </div>
-                    {/* Watermark */}
+                    {/* Preview watermark */}
                     {!generated && (
-                      <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2 py-1 rounded bg-black/40 border border-white/10">
-                        <Image size={10} className="text-slate-400" />
-                        <span className="text-[10px] text-slate-400">Preview</span>
+                      <div style={{ position: "absolute", bottom: 10, right: 10, display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                        <ImageIcon size={10} color="#64748b" />
+                        <span style={{ fontSize: 10, color: "#64748b" }}>Preview</span>
                       </div>
                     )}
                   </div>
 
                   {/* Toolbar */}
-                  <div className="flex items-center gap-2 mt-4 flex-wrap">
-                    <div className="flex gap-1 p-1 rounded-lg bg-white/3 border border-white/8">
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 2, padding: 4, borderRadius: 9, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
                       {[AlignLeft, AlignCenter, Bold, Italic].map((Icon, i) => (
-                        <button key={i} className="p-1.5 rounded text-slate-500 hover:text-slate-300 hover:bg-white/8 transition-all">
+                        <button key={i} style={{ padding: 6, borderRadius: 6, background: "transparent", border: "none", cursor: "pointer", color: "#94a3b8", display: "flex" }}>
                           <Icon size={13} />
                         </button>
                       ))}
                     </div>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/3 border border-white/8 text-slate-500 hover:text-slate-300 text-xs transition-all">
+                    <button style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
                       <ZoomIn size={12} /> Zoom
                     </button>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/3 border border-white/8 text-slate-500 hover:text-slate-300 text-xs transition-all">
+                    <button onClick={() => { setTitleText("Why 99% of YouTube Channels FAIL"); setSubtitleText("(And How to Be the 1%)"); setSelectedStyle("bold"); setAccentColor(""); setTextColor("#FFFFFF"); setGenerated(false); }}
+                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
                       <RotateCcw size={12} /> Reset
                     </button>
-                    <div className="ml-auto flex gap-2">
-                      <Button size="sm" variant="outline" icon={<Copy size={12} />} onClick={handleSaveToLibrary}>Save to Library</Button>
-                      <Button size="sm" icon={<Download size={12} />} onClick={handleExport}>Export PNG</Button>
+                    <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                      <button onClick={handleSaveToLibrary} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                        Save to Library
+                      </button>
+                      <button onClick={handleExport} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, background: "linear-gradient(135deg, #00D4FF, #0080cc)", border: "none", color: "#04080F", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                        <Download size={12} /> Export PNG
+                      </button>
                     </div>
                   </div>
-                </CardBody>
-              </Card>
+                </div>
+              </div>
 
-              {/* AI Generate */}
-              <Card>
-                <CardBody>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-violet-500/15 flex items-center justify-center shrink-0">
-                      <Sparkles size={16} className="text-violet-400" />
+              {/* AI Background (locked) */}
+              <div style={S.card}>
+                <div style={S.cardBody}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 11, background: "rgba(167,139,250,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Sparkles size={16} color="#a78bfa" />
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">AI Background Generation</p>
-                      <p className="text-xs text-slate-500 mt-0.5">Describe a scene and we&apos;ll generate a stunning background with Flux.1</p>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", margin: "0 0 2px" }}>AI Background Generation</p>
+                      <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Describe a scene and we&apos;ll generate a stunning background with Flux.1</p>
                     </div>
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 shrink-0">
-                      <Lock size={10} className="text-yellow-400" />
-                      <span className="text-[10px] font-bold text-yellow-400 font-[family-name:var(--font-syne)]">PRO</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 99, background: "rgba(250,204,21,0.08)", border: "1px solid rgba(250,204,21,0.2)", flexShrink: 0 }}>
+                      <Lock size={10} color="#facc15" />
+                      <span style={{ fontSize: 10, fontWeight: 800, color: "#facc15" }}>PRO</span>
                     </div>
                   </div>
-                  <div className="mt-3 flex gap-2">
-                    <input
-                      placeholder="e.g. Dramatic mountain peak at golden hour, epic cinematic..."
-                      className="flex-1 bg-[#0F1829]/80 border border-cyan-500/15 rounded-lg px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500/40 transition-all opacity-50 cursor-not-allowed"
-                      disabled
-                    />
-                    <Button size="md" variant="outline" disabled icon={<Wand2 size={14} />}>Generate</Button>
+                  <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                    <input placeholder="e.g. Dramatic mountain peak at golden hour, epic cinematic..." disabled
+                      style={{ flex: 1, background: "rgba(8,13,26,0.6)", border: "1px solid rgba(0,212,255,0.08)", borderRadius: 10, padding: "10px 14px", color: "#64748b", fontSize: 13, outline: "none", cursor: "not-allowed", opacity: 0.5 }} />
+                    <button disabled style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#64748b", fontSize: 12, fontWeight: 700, cursor: "not-allowed", opacity: 0.5 }}>
+                      <Wand2 size={13} /> Generate
+                    </button>
                   </div>
-                </CardBody>
-              </Card>
+                </div>
+              </div>
             </div>
 
-            {/* Controls */}
-            <div className="lg:col-span-2 space-y-4">
-
+            {/* Controls column */}
+            <div>
               {/* Text */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Type size={13} className="text-cyan-400" />
-                    <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">Text</h3>
+              <div style={S.card}>
+                <div style={S.cardHeader}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Type size={13} color="#00D4FF" />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Text</span>
                   </div>
-                </CardHeader>
-                <CardBody className="space-y-3">
-                  <Input
-                    label="Main Title"
-                    value={titleText}
-                    onChange={(e) => setTitleText(e.target.value)}
-                    placeholder="Enter your title..."
-                  />
-                  <Input
-                    label="Subtitle / Tagline"
-                    value={subtitleText}
-                    onChange={(e) => setSubtitleText(e.target.value)}
-                    placeholder="Optional subtitle..."
-                  />
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 font-[family-name:var(--font-syne)] font-semibold uppercase tracking-widest">Text Color</span>
-                    <div className="flex gap-2 ml-auto">
-                      {["#FFFFFF", "#00D4FF", "#FF6B35", "#FFD700", "#4ADE80"].map((color) => (
-                        <button
-                          key={color}
-                          onClick={() => setTextColor(color)}
-                          className="w-6 h-6 rounded-full border-2 transition-all"
-                          style={{ background: color, borderColor: textColor === color ? "white" : "rgba(255,255,255,0.1)" }}
-                        />
+                </div>
+                <div style={S.cardBody}>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={S.label}>Main Title</label>
+                    <input value={titleText} onChange={e => setTitleText(e.target.value)} placeholder="Enter your title..." style={S.input}
+                      onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.3)"}
+                      onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"} />
+                  </div>
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={S.label}>Subtitle / Tagline</label>
+                    <input value={subtitleText} onChange={e => setSubtitleText(e.target.value)} placeholder="Optional subtitle..." style={S.input}
+                      onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.3)"}
+                      onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Text Color</label>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {["#FFFFFF", "#00D4FF", "#FF6B35", "#FFD700", "#4ADE80"].map(color => (
+                        <button key={color} onClick={() => setTextColor(color)} style={{
+                          width: 26, height: 26, borderRadius: "50%", background: color, cursor: "pointer",
+                          border: textColor === color ? "2px solid #fff" : "2px solid rgba(255,255,255,0.1)",
+                        }} />
                       ))}
                     </div>
                   </div>
-                </CardBody>
-              </Card>
+                </div>
+              </div>
 
               {/* Style Presets */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Palette size={13} className="text-cyan-400" />
-                    <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">Style Presets</h3>
+              <div style={S.card}>
+                <div style={S.cardHeader}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Palette size={13} color="#00D4FF" />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Style Presets</span>
                   </div>
-                </CardHeader>
-                <CardBody>
-                  <div className="grid grid-cols-2 gap-2">
-                    {stylePresets.map((preset) => (
-                      <button
-                        key={preset.id}
-                        onClick={() => setSelectedStyle(preset.id)}
-                        className={`relative h-12 rounded-lg bg-gradient-to-br ${preset.bg} overflow-hidden border transition-all ${
-                          selectedStyle === preset.id ? "border-cyan-400" : "border-white/10 hover:border-white/25"
-                        }`}
-                      >
-                        <span className="absolute inset-x-0 bottom-0 px-2 py-1 text-[10px] font-semibold text-white font-[family-name:var(--font-syne)] bg-black/40 truncate">
-                          {preset.label}
-                        </span>
+                </div>
+                <div style={S.cardBody}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {stylePresets.map(preset => (
+                      <button key={preset.id} onClick={() => setSelectedStyle(preset.id)} style={{
+                        position: "relative", height: 48, borderRadius: 10, overflow: "hidden",
+                        background: `linear-gradient(135deg, ${preset.bg[0]}, ${preset.bg[1]})`,
+                        border: selectedStyle === preset.id ? "2px solid #00D4FF" : "1px solid rgba(255,255,255,0.1)",
+                        cursor: "pointer",
+                      }}>
+                        <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "3px 6px", background: "rgba(0,0,0,0.45)", fontSize: 10, fontWeight: 600, color: "#fff", textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{preset.label}</span>
                         {selectedStyle === preset.id && (
-                          <div className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(0,212,255,0.8)]" />
+                          <div style={{ position: "absolute", top: 5, right: 5, width: 10, height: 10, borderRadius: "50%", background: "#00D4FF", boxShadow: "0 0 6px rgba(0,212,255,0.8)" }} />
                         )}
                       </button>
                     ))}
                   </div>
-                </CardBody>
-              </Card>
+                </div>
+              </div>
 
               {/* Background */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Layers size={13} className="text-cyan-400" />
-                    <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">Background</h3>
+              <div style={S.card}>
+                <div style={S.cardHeader}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Layers size={13} color="#00D4FF" />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Accent Color</span>
                   </div>
-                </CardHeader>
-                <CardBody className="space-y-3">
-                  <Select
-                    label="Background Type"
-                    value={bgStyle}
-                    onChange={(e) => setBgStyle(e.target.value)}
-                    options={bgStyles}
-                  />
-                  <div>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 font-[family-name:var(--font-syne)]">Accent Color</p>
-                    <div className="flex gap-2">
-                      {["#00D4FF", "#FF6B35", "#FF3333", "#FFD700", "#4ADE80", "#A855F7"].map((color) => (
-                        <button
-                          key={color}
-                          onClick={() => setAccentColor(color)}
-                          className="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
-                          style={{ background: color, borderColor: effectiveAccent === color ? "white" : "rgba(255,255,255,0.1)" }}
-                        />
-                      ))}
-                    </div>
+                </div>
+                <div style={S.cardBody}>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    {["#00D4FF", "#FF6B35", "#FF3333", "#FFD700", "#4ADE80", "#A855F7"].map(color => (
+                      <button key={color} onClick={() => setAccentColor(color)} style={{
+                        width: 28, height: 28, borderRadius: "50%", background: color, cursor: "pointer",
+                        border: effectiveAccent === color ? "2px solid #fff" : "2px solid rgba(255,255,255,0.1)",
+                        transition: "transform 0.1s",
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.transform = "scale(1.15)"}
+                        onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+                      />
+                    ))}
                   </div>
-                </CardBody>
-              </Card>
+                </div>
+              </div>
 
-              <Button
-                size="lg"
-                loading={generating}
+              <button
                 onClick={handleGenerate}
-                icon={<Wand2 size={16} />}
-                className="w-full justify-center"
+                disabled={generating}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  padding: "13px", borderRadius: 12, border: "none",
+                  background: "linear-gradient(135deg, #00D4FF, #0080cc)", color: "#04080F",
+                  fontSize: 13, fontWeight: 800, cursor: generating ? "not-allowed" : "pointer",
+                  opacity: generating ? 0.7 : 1,
+                }}
               >
-                {generating ? "Creating thumbnail..." : "Generate Thumbnail"}
-              </Button>
+                <Wand2 size={15} />
+                {generating ? "Creating thumbnail…" : "Generate Thumbnail"}
+              </button>
             </div>
           </div>
         ) : (
-          /* Library Tab */
-          <div>
-            {savedAssets.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 space-y-4">
-                <div className="w-16 h-16 rounded-full bg-white/3 border border-white/8 flex items-center justify-center">
-                  <Image size={28} className="text-slate-600" />
-                </div>
-                <div className="text-center">
-                  <p className="text-base font-bold text-slate-400 font-[family-name:var(--font-syne)]">No thumbnails yet</p>
-                  <p className="text-sm text-slate-600 mt-1">Create your first eye-catching thumbnail with AI.</p>
-                </div>
-                <Button onClick={() => setActiveTab("create")} icon={<Plus size={14} />}>
-                  Create First Thumbnail
-                </Button>
+          /* Library tab */
+          savedAssets.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "80px 20px" }}>
+              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                <ImageIcon size={28} color="#475569" />
               </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {savedAssets.map((asset) => (
-                  <div key={asset.id} className="group relative rounded-xl border border-white/8 bg-[#162035]/80 overflow-hidden hover:border-cyan-500/25 hover:shadow-[0_0_20px_rgba(0,212,255,0.08)] transition-all">
-                    {/* Thumbnail preview */}
-                    {asset.dataUrl
-                      ? <img src={asset.dataUrl} alt={asset.title} className="w-full aspect-video object-cover" />
-                      : <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                          <Image size={20} className="text-slate-600" />
-                        </div>
-                    }
-                    {/* Hover actions overlay */}
-                    <div className="absolute inset-x-0 top-0 aspect-video flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-black/55 backdrop-blur-[2px]">
-                      <button
-                        onClick={() => {
-                          if (!asset.dataUrl) return;
-                          const a = document.createElement("a");
-                          a.href = asset.dataUrl;
-                          a.download = `${asset.title.slice(0, 40).replace(/[^a-z0-9]/gi, "-")}.png`;
-                          a.click();
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all backdrop-blur-sm"
-                        style={{ background: "rgba(255,255,255,0.12)", color: "#E8F0FF", border: "1px solid rgba(255,255,255,0.15)" }}
-                      >
-                        <Download size={11} /> Export
-                      </button>
-                      <button
-                        onClick={() => setSavedAssets((prev) => prev.filter((a) => a.id !== asset.id))}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                        style={{ background: "rgba(239,68,68,0.15)", color: "#F87171", border: "1px solid rgba(239,68,68,0.25)" }}
-                      >
-                        <Trash2 size={11} /> Delete
-                      </button>
-                    </div>
-                    <div className="p-3">
-                      <p className="text-xs font-semibold text-white truncate font-[family-name:var(--font-syne)]">{asset.title}</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">{asset.style} · {asset.createdAt}</p>
-                    </div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#94a3b8", margin: "0 0 6px" }}>No thumbnails yet</p>
+              <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 22px" }}>Create your first eye-catching thumbnail with AI.</p>
+              <button onClick={() => setActiveTab("create")} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 22px", borderRadius: 11, border: "none", background: "linear-gradient(135deg, #00D4FF, #0080cc)", color: "#04080F", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                <Plus size={14} /> Create First Thumbnail
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+              {savedAssets.map(asset => (
+                <div key={asset.id} style={{
+                  position: "relative", borderRadius: 14, overflow: "hidden",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  background: "linear-gradient(135deg, rgba(15,24,42,0.9), rgba(8,13,26,0.95))",
+                }}>
+                  {asset.dataUrl
+                    ? <img src={asset.dataUrl} alt={asset.title} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
+                    : <div style={{ aspectRatio: "16/9", background: "linear-gradient(135deg, #1e293b, #0f172a)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <ImageIcon size={20} color="#475569" />
+                      </div>
+                  }
+                  <div style={{ padding: "10px 12px" }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: "#e2e8f0", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{asset.title}</p>
+                    <p style={{ fontSize: 10, color: "#64748b", margin: 0 }}>{asset.style} · {asset.createdAt}</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  {/* Hover actions */}
+                  <div style={{
+                    position: "absolute", top: 0, left: 0, right: 0, aspectRatio: "16/9",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    background: "rgba(0,0,0,0.55)", opacity: 0, transition: "opacity 0.2s",
+                  }}
+                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.opacity = "1"}
+                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.opacity = "0"}
+                  >
+                    <button onClick={() => { if (!asset.dataUrl) return; const a = document.createElement("a"); a.href = asset.dataUrl; a.download = `${asset.title.slice(0, 40).replace(/[^a-z0-9]/gi, "-")}.png`; a.click(); }}
+                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)", color: "#e2e8f0", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                      <Download size={11} /> Export
+                    </button>
+                    <button onClick={() => setSavedAssets(prev => prev.filter(a => a.id !== asset.id))}
+                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                      <Trash2 size={11} /> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>

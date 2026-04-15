@@ -89,7 +89,7 @@ export default function NicheFinderPage() {
             </div>
             <div>
               <p style={{ fontSize: 16, fontWeight: 800, color: "#e2e8f0", margin: 0 }}>Niche Finder Database</p>
-              <p style={{ fontSize: 12, color: "#475569", margin: "3px 0 0" }}>AI-powered analysis — competition gaps, RPM data, growth trends, and viral potential.</p>
+              <p style={{ fontSize: 12, color: "#94a3b8", margin: "3px 0 0" }}>AI-powered analysis — competition gaps, RPM data, growth trends, and viral potential.</p>
             </div>
           </div>
 
@@ -125,7 +125,7 @@ export default function NicheFinderPage() {
               <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
                 <div style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #34d399, #00D4FF)", transition: "width 2000ms ease-out", width: `${((generatingStep + 1) / STEPS.length) * 100}%` }} />
               </div>
-              <p style={{ fontSize: 11, color: "#334155", marginTop: 6 }}>Using GPT-4o · Usually 10–20 seconds</p>
+              <p style={{ fontSize: 11, color: "#64748b", marginTop: 6 }}>Using GPT-4o · Usually 10–20 seconds</p>
             </div>
           )}
 
@@ -140,7 +140,7 @@ export default function NicheFinderPage() {
                   <s.icon size={13} color={s.color} />
                   <div>
                     <p style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0 }}>{s.value}</p>
-                    <p style={{ fontSize: 10, color: "#334155", margin: 0 }}>{s.label}</p>
+                    <p style={{ fontSize: 10, color: "#64748b", margin: 0 }}>{s.label}</p>
                   </div>
                 </div>
               ))}
@@ -166,7 +166,7 @@ export default function NicheFinderPage() {
               <Compass size={24} color="#34d399" />
             </div>
             <p style={{ fontSize: 16, fontWeight: 700, color: "#94a3b8", margin: "0 0 8px" }}>Discover High-Performing Niches</p>
-            <p style={{ fontSize: 13, color: "#334155", margin: "0 0 24px", maxWidth: 400, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
+            <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 24px", maxWidth: 400, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
               Our AI analyses thousands of channels to surface untapped niches with strong RPM and low competition.
             </p>
             <button onClick={handleSearch} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #00D4FF, #0080cc)", color: "#04080F", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
@@ -209,13 +209,13 @@ export default function NicheFinderPage() {
                       {niche.tags?.length > 0 && (
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
                           {niche.tags.map((tag) => (
-                            <span key={tag} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "rgba(255,255,255,0.04)", color: "#475569", border: "1px solid rgba(255,255,255,0.06)" }}>{tag}</span>
+                            <span key={tag} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "rgba(255,255,255,0.04)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.06)" }}>{tag}</span>
                           ))}
                         </div>
                       )}
 
                       <div style={{ marginBottom: 14 }}>
-                        <p style={{ fontSize: 10, fontWeight: 700, color: "#334155", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>Niche Potential</p>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: "#64748b", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>Niche Potential</p>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <div style={{ flex: 1, height: 5, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
                             <div style={{ height: "100%", borderRadius: 99, width: `${niche.potential}%`, background: niche.potential >= 90 ? "linear-gradient(90deg, #34d399, #10b981)" : niche.potential >= 80 ? "linear-gradient(90deg, #00D4FF, #0080cc)" : "linear-gradient(90deg, #facc15, #f59e0b)" }} />
@@ -232,9 +232,9 @@ export default function NicheFinderPage() {
                           { label: "Channels", value: String(niche.topChannels), icon: Play },
                         ].map((s) => (
                           <div key={s.label} style={{ textAlign: "center", padding: "8px 4px", borderRadius: 8, background: "rgba(255,255,255,0.02)" }}>
-                            <s.icon size={11} color="#334155" style={{ margin: "0 auto 4px", display: "block" }} />
+                            <s.icon size={11} color="#475569" style={{ margin: "0 auto 4px", display: "block" }} />
                             <p style={{ fontSize: 11, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>{s.value}</p>
-                            <p style={{ fontSize: 9, color: "#1e293b", margin: 0 }}>{s.label}</p>
+                            <p style={{ fontSize: 9, color: "#94a3b8", margin: 0 }}>{s.label}</p>
                           </div>
                         ))}
                       </div>
@@ -284,7 +284,7 @@ export default function NicheFinderPage() {
             </div>
 
             <div style={{ textAlign: "center" }}>
-              <button onClick={handleSearch} disabled={generating} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: "#334155", background: "none", border: "none", cursor: generating ? "not-allowed" : "pointer", opacity: generating ? 0.5 : 1 }}>
+              <button onClick={handleSearch} disabled={generating} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: "#64748b", background: "none", border: "none", cursor: generating ? "not-allowed" : "pointer", opacity: generating ? 0.5 : 1 }}>
                 <RefreshCw size={14} style={generating ? { animation: "spin 0.7s linear infinite" } : {}} />
                 {generating ? "Refreshing…" : "Refresh niche analysis"}
               </button>

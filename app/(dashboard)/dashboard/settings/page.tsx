@@ -37,7 +37,7 @@ const S = {
     padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.04)",
   },
   cardBody: { padding: "20px 22px" },
-  label: { fontSize: 11, fontWeight: 700, color: "#475569", letterSpacing: "0.1em", textTransform: "uppercase" as const, display: "block", marginBottom: 8 },
+  label: { fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.1em", textTransform: "uppercase" as const, display: "block", marginBottom: 8 },
   input: {
     width: "100%", boxSizing: "border-box" as const,
     background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.08)",
@@ -74,7 +74,7 @@ export default function SettingsPage() {
               <User size={14} color="#00D4FF" />
               <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Profile</span>
             </div>
-            <p style={{ fontSize: 11, color: "#334155", margin: "2px 0 0" }}>Your personal information</p>
+            <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>Your personal information</p>
           </div>
           <div style={S.cardBody}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
@@ -89,7 +89,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", margin: 0 }}>Profile Photo</p>
-                <p style={{ fontSize: 11, color: "#475569", margin: "3px 0 0" }}>Upload a photo or leave it as initials</p>
+                <p style={{ fontSize: 11, color: "#94a3b8", margin: "3px 0 0" }}>Upload a photo or leave it as initials</p>
                 <button style={{ fontSize: 12, color: "#00D4FF", background: "none", border: "none", cursor: "pointer", padding: 0, marginTop: 4 }}>Change photo</button>
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function SettingsPage() {
               <Globe size={14} color="#00D4FF" />
               <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Chrome Extension</span>
             </div>
-            <p style={{ fontSize: 11, color: "#334155", margin: "2px 0 0" }}>Analyze YouTube channels directly on YouTube</p>
+            <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>Analyze YouTube channels directly on YouTube</p>
           </div>
           <div style={S.cardBody}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 16px", borderRadius: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 16 }}>
@@ -147,7 +147,7 @@ export default function SettingsPage() {
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", margin: 0 }}>Extension Not Connected</p>
-                <p style={{ fontSize: 11, color: "#475569", margin: "2px 0 0" }}>Install the Chrome Extension to analyze channels.</p>
+                <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0" }}>Install the Chrome Extension to analyze channels.</p>
               </div>
               <button style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 9,
@@ -158,8 +158,8 @@ export default function SettingsPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {["Outlier score on every YouTube video","Channel analytics overlay","Video tags & SEO data","Monetization status indicator","One-click channel import"].map((f) => (
                 <div key={f} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <CheckCircle2 size={12} color="#1e293b" />
-                  <span style={{ fontSize: 12, color: "#475569" }}>{f}</span>
+                  <CheckCircle2 size={12} color="#475569" />
+                  <span style={{ fontSize: 12, color: "#94a3b8" }}>{f}</span>
                 </div>
               ))}
             </div>
@@ -181,7 +181,7 @@ export default function SettingsPage() {
                 <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderBottom: i < arr.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
                   <div>
                     <p style={{ fontSize: 13, color: "#e2e8f0", margin: 0, fontWeight: 500 }}>{label}</p>
-                    <p style={{ fontSize: 11, color: "#334155", margin: "2px 0 0" }}>{NOTIFICATION_DESCS[label]}</p>
+                    <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>{NOTIFICATION_DESCS[label]}</p>
                   </div>
                   <button onClick={() => toggleNotification(label)} style={{
                     position: "relative", width: 40, height: 22, borderRadius: 99,
@@ -226,7 +226,7 @@ export default function SettingsPage() {
                   <item.icon size={14} color="#475569" />
                   <div style={{ textAlign: "left" }}>
                     <p style={{ fontSize: 13, color: "#e2e8f0", margin: 0, fontWeight: 500 }}>{item.label}</p>
-                    <p style={{ fontSize: 11, color: "#334155", margin: "2px 0 0" }}>{item.sub}</p>
+                    <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>{item.sub}</p>
                   </div>
                 </div>
                 <span style={{ fontSize: 13, color: "#00D4FF" }}>→</span>
@@ -247,7 +247,7 @@ export default function SettingsPage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.05)", marginBottom: 10 }}>
               <div>
                 <p style={{ fontSize: 13, color: "#e2e8f0", margin: 0, fontWeight: 500 }}>Sign Out</p>
-                <p style={{ fontSize: 11, color: "#334155", margin: "2px 0 0" }}>Sign out of your Townshub account</p>
+                <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>Sign out of your Townshub account</p>
               </div>
               <button onClick={handleLogout} disabled={loggingOut} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 9,
@@ -260,7 +260,7 @@ export default function SettingsPage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.15)" }}>
               <div>
                 <p style={{ fontSize: 13, color: "#f87171", margin: 0, fontWeight: 500 }}>Delete Account</p>
-                <p style={{ fontSize: 11, color: "#334155", margin: "2px 0 0" }}>Permanently delete your account and all data</p>
+                <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>Permanently delete your account and all data</p>
               </div>
               <button style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 9,

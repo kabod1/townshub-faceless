@@ -3,14 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardBody } from "@/components/ui/card";
-import {
-  Plus, GripVertical, Clock, User, Calendar,
-  MoreHorizontal, CheckCircle2, Circle, AlertCircle,
-  Kanban, Video, Image, Mic2, Upload, Eye
-} from "lucide-react";
+import { Plus, Calendar } from "lucide-react";
 
 type TaskStatus = "ideas" | "scripting" | "production" | "editing" | "scheduled" | "published";
 
@@ -20,154 +13,111 @@ interface Task {
   stage: TaskStatus;
   priority: "high" | "medium" | "low";
   dueDate?: string;
-  assignee?: string;
-  thumbnail?: string;
   tags: string[];
   checklist: { done: boolean; label: string }[];
 }
 
-const columns: { id: TaskStatus; label: string; color: string; icon: React.ReactNode }[] = [
-  { id: "ideas", label: "Ideas", color: "border-yellow-500/20 bg-yellow-500/4", icon: <AlertCircle size={14} className="text-yellow-400" /> },
-  { id: "scripting", label: "Scripting", color: "border-cyan-500/20 bg-cyan-500/4", icon: <Circle size={14} className="text-cyan-400" /> },
-  { id: "production", label: "Production", color: "border-violet-500/20 bg-violet-500/4", icon: <Video size={14} className="text-violet-400" /> },
-  { id: "editing", label: "Editing", color: "border-orange-500/20 bg-orange-500/4", icon: <Image size={14} className="text-orange-400" /> },
-  { id: "scheduled", label: "Scheduled", color: "border-blue-500/20 bg-blue-500/4", icon: <Calendar size={14} className="text-blue-400" /> },
-  { id: "published", label: "Published", color: "border-emerald-500/20 bg-emerald-500/4", icon: <CheckCircle2 size={14} className="text-emerald-400" /> },
+const COLUMNS: { id: TaskStatus; label: string; dot: string; headerBg: string; headerBorder: string }[] = [
+  { id: "ideas",      label: "Ideas",      dot: "#facc15", headerBg: "rgba(250,204,21,0.06)",  headerBorder: "rgba(250,204,21,0.18)" },
+  { id: "scripting",  label: "Scripting",  dot: "#00D4FF", headerBg: "rgba(0,212,255,0.06)",   headerBorder: "rgba(0,212,255,0.18)"  },
+  { id: "production", label: "Production", dot: "#a78bfa", headerBg: "rgba(167,139,250,0.06)", headerBorder: "rgba(167,139,250,0.18)"},
+  { id: "editing",    label: "Editing",    dot: "#fb923c", headerBg: "rgba(251,146,60,0.06)",  headerBorder: "rgba(251,146,60,0.18)" },
+  { id: "scheduled",  label: "Scheduled",  dot: "#60a5fa", headerBg: "rgba(96,165,250,0.06)",  headerBorder: "rgba(96,165,250,0.18)" },
+  { id: "published",  label: "Published",  dot: "#34d399", headerBg: "rgba(52,211,153,0.06)",  headerBorder: "rgba(52,211,153,0.18)" },
 ];
 
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    title: "Why 99% of Faceless Channels Fail",
-    stage: "scripting",
-    priority: "high",
-    dueDate: "Apr 18",
-    tags: ["YouTube Growth", "10 min"],
-    checklist: [
-      { done: true, label: "Research competitors" },
-      { done: true, label: "Outline script" },
-      { done: false, label: "Write full script" },
-      { done: false, label: "Review & edit" },
-    ],
-  },
-  {
-    id: "2",
-    title: "5 AI Tools That Actually Make Money",
-    stage: "ideas",
-    priority: "medium",
-    tags: ["AI Tools", "8 min"],
-    checklist: [
-      { done: false, label: "Validate idea" },
-      { done: false, label: "Keyword research" },
-    ],
-  },
-  {
-    id: "3",
-    title: "Faceless Channel Niche Blueprint 2025",
-    stage: "production",
-    priority: "high",
-    dueDate: "Apr 22",
-    tags: ["Niche Research", "15 min"],
-    checklist: [
-      { done: true, label: "Script complete" },
-      { done: true, label: "Thumbnail designed" },
-      { done: false, label: "AI voiceover" },
-      { done: false, label: "B-roll footage" },
-    ],
-  },
-  {
-    id: "4",
-    title: "How I Made $0 My First 90 Days",
-    stage: "editing",
-    priority: "low",
-    dueDate: "Apr 25",
-    tags: ["Story", "12 min"],
-    checklist: [
-      { done: true, label: "Script & VO done" },
-      { done: false, label: "Edit video" },
-      { done: false, label: "Add captions" },
-    ],
-  },
-  {
-    id: "5",
-    title: "Top 10 Faceless Niches That Print Money",
-    stage: "scheduled",
-    priority: "medium",
-    dueDate: "Apr 28",
-    tags: ["List Video", "10 min"],
-    checklist: [
-      { done: true, label: "All production done" },
-      { done: false, label: "Schedule on YouTube" },
-    ],
-  },
-];
-
-const priorityColors = {
-  high: "coral" as const,
-  medium: "gold" as const,
-  low: "neutral" as const,
+const PRIORITY: Record<string, { bg: string; color: string; border: string }> = {
+  high:   { bg: "rgba(239,68,68,0.1)",   color: "#f87171", border: "rgba(239,68,68,0.25)"   },
+  medium: { bg: "rgba(250,204,21,0.1)",  color: "#facc15", border: "rgba(250,204,21,0.25)"  },
+  low:    { bg: "rgba(100,116,139,0.1)", color: "#64748b", border: "rgba(100,116,139,0.2)"  },
 };
+
+const INITIAL_TASKS: Task[] = [
+  {
+    id: "1", title: "Why 99% of Faceless Channels Fail", stage: "scripting", priority: "high", dueDate: "Apr 18",
+    tags: ["YouTube Growth", "10 min"],
+    checklist: [{ done: true, label: "Research competitors" }, { done: true, label: "Outline script" }, { done: false, label: "Write full script" }, { done: false, label: "Review & edit" }],
+  },
+  {
+    id: "2", title: "5 AI Tools That Actually Make Money", stage: "ideas", priority: "medium",
+    tags: ["AI Tools", "8 min"],
+    checklist: [{ done: false, label: "Validate idea" }, { done: false, label: "Keyword research" }],
+  },
+  {
+    id: "3", title: "Faceless Channel Niche Blueprint 2025", stage: "production", priority: "high", dueDate: "Apr 22",
+    tags: ["Niche Research", "15 min"],
+    checklist: [{ done: true, label: "Script complete" }, { done: true, label: "Thumbnail designed" }, { done: false, label: "AI voiceover" }, { done: false, label: "B-roll footage" }],
+  },
+  {
+    id: "4", title: "How I Made $0 My First 90 Days", stage: "editing", priority: "low", dueDate: "Apr 25",
+    tags: ["Story", "12 min"],
+    checklist: [{ done: true, label: "Script & VO done" }, { done: false, label: "Edit video" }, { done: false, label: "Add captions" }],
+  },
+  {
+    id: "5", title: "Top 10 Faceless Niches That Print Money", stage: "scheduled", priority: "medium", dueDate: "Apr 28",
+    tags: ["List Video", "10 min"],
+    checklist: [{ done: true, label: "All production done" }, { done: false, label: "Schedule on YouTube" }],
+  },
+];
 
 function TaskCard({ task, onMove }: { task: Task; onMove: (id: string, stage: TaskStatus) => void }) {
   const done = task.checklist.filter(c => c.done).length;
   const total = task.checklist.length;
   const progress = total > 0 ? (done / total) * 100 : 0;
+  const p = PRIORITY[task.priority];
+  const moveCols = COLUMNS.filter(c => c.id !== task.stage).slice(0, 2);
 
   return (
-    <div className="group rounded-xl border border-white/8 bg-gradient-to-br from-[#162035]/90 to-[#0F1829]/95 p-3.5 cursor-grab active:cursor-grabbing hover:border-cyan-500/20 transition-all shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="flex flex-wrap gap-1">
-          {task.tags.map((tag) => (
-            <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 font-medium">{tag}</span>
+    <div style={{
+      borderRadius: 12, padding: "14px 14px",
+      background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))",
+      border: "1px solid rgba(255,255,255,0.06)", cursor: "grab",
+    }}>
+      {/* Tags + priority */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+          {task.tags.map(tag => (
+            <span key={tag} style={{ fontSize: 10, padding: "2px 7px", borderRadius: 99, background: "rgba(255,255,255,0.04)", color: "#94a3b8" }}>{tag}</span>
           ))}
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Badge variant={priorityColors[task.priority]}>{task.priority}</Badge>
-          <button className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-slate-400 transition-all">
-            <MoreHorizontal size={14} />
-          </button>
-        </div>
+        <span style={{
+          fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99,
+          background: p.bg, color: p.color, border: `1px solid ${p.border}`,
+          textTransform: "capitalize", flexShrink: 0,
+        }}>{task.priority}</span>
       </div>
 
-      <p className="text-sm font-semibold text-white font-[family-name:var(--font-syne)] leading-snug mb-3">{task.title}</p>
+      {/* Title */}
+      <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.4, margin: "0 0 10px" }}>{task.title}</p>
 
+      {/* Progress */}
       {total > 0 && (
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-slate-600">{done}/{total} tasks</span>
-            <span className="text-[10px] text-slate-600">{Math.round(progress)}%</span>
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+            <span style={{ fontSize: 10, color: "#64748b" }}>{done}/{total} tasks</span>
+            <span style={{ fontSize: 10, color: "#64748b" }}>{Math.round(progress)}%</span>
           </div>
-          <div className="h-1 rounded-full bg-white/5">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
+          <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.05)" }}>
+            <div style={{ height: "100%", borderRadius: 99, background: "linear-gradient(to right, #00D4FF, #0080cc)", width: `${progress}%`, transition: "width 0.5s ease" }} />
           </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {task.dueDate && (
-            <span className="flex items-center gap-1 text-[10px] text-slate-500">
-              <Calendar size={10} />
-              {task.dueDate}
-            </span>
-          )}
-        </div>
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {columns
-            .filter(c => c.id !== task.stage)
-            .slice(0, 2)
-            .map(col => (
-              <button
-                key={col.id}
-                onClick={() => onMove(task.id, col.id)}
-                className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-500 hover:text-slate-300 hover:bg-white/10 transition-all"
-              >
-                → {col.label}
-              </button>
-            ))}
+      {/* Footer */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        {task.dueDate ? (
+          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "#94a3b8" }}>
+            <Calendar size={9} /> {task.dueDate}
+          </span>
+        ) : <span />}
+        <div style={{ display: "flex", gap: 4 }}>
+          {moveCols.map(col => (
+            <button key={col.id} onClick={() => onMove(task.id, col.id)} style={{
+              fontSize: 10, padding: "2px 8px", borderRadius: 6,
+              background: "rgba(255,255,255,0.04)", border: "none",
+              color: "#64748b", cursor: "pointer",
+            }}>→ {col.label}</button>
+          ))}
         </div>
       </div>
     </div>
@@ -175,26 +125,17 @@ function TaskCard({ task, onMove }: { task: Task; onMove: (id: string, stage: Ta
 }
 
 export default function ProductionPage() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [activeStage, setActiveStage] = useState<TaskStatus | "all">("all");
+  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
 
   useEffect(() => {
     const load = async () => {
       const supabase = createClient();
-      const { data } = await supabase
-        .from("production_tasks")
-        .select("*")
-        .order("position", { ascending: true });
+      const { data } = await supabase.from("production_tasks").select("*").order("position", { ascending: true });
       if (data && data.length > 0) {
-        setTasks(data.map((t) => ({
-          id: t.id,
-          title: t.title,
-          stage: t.stage as TaskStatus,
+        setTasks(data.map(t => ({
+          id: t.id, title: t.title, stage: t.stage as TaskStatus,
           priority: t.priority as "high" | "medium" | "low",
-          dueDate: t.due_date,
-          assignee: t.assignee,
-          tags: t.tags || [],
-          checklist: t.checklist || [],
+          dueDate: t.due_date, tags: t.tags || [], checklist: t.checklist || [],
         })));
       }
     };
@@ -207,58 +148,74 @@ export default function ProductionPage() {
     await supabase.from("production_tasks").update({ stage: newStage }).eq("id", id);
   };
 
-  const getColumnTasks = (stage: TaskStatus) => tasks.filter(t => t.stage === stage);
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <Topbar title="Production Board" action={{ label: "Add Video" }} />
+    <div style={{ minHeight: "100vh", background: "#080D1A", display: "flex", flexDirection: "column" }}>
+      <Topbar
+        title="Production Board"
+        subtitle="Track your videos from idea to publish"
+        action={{ label: "Add Video", icon: <Plus size={13} /> }}
+      />
 
-      <div className="p-6 flex-1 flex flex-col">
+      <div style={{ padding: "24px 28px", flex: 1, display: "flex", flexDirection: "column" }}>
 
         {/* Stats */}
-        <div className="flex gap-4 mb-6 flex-wrap">
+        <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
           {[
-            { label: "Total Videos", value: tasks.length, icon: Video },
-            { label: "In Production", value: tasks.filter(t => t.stage === "production" || t.stage === "scripting").length, icon: Mic2 },
-            { label: "Editing", value: tasks.filter(t => t.stage === "editing").length, icon: Eye },
-            { label: "Published", value: tasks.filter(t => t.stage === "published").length, icon: Upload },
-          ].map((s) => (
-            <div key={s.label} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/8 bg-white/2">
-              <s.icon size={14} className="text-cyan-400" />
-              <span className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">{s.value}</span>
-              <span className="text-xs text-slate-500">{s.label}</span>
+            { label: "Total Videos", value: tasks.length, color: "#00D4FF" },
+            { label: "In Progress", value: tasks.filter(t => t.stage === "production" || t.stage === "scripting").length, color: "#a78bfa" },
+            { label: "Editing", value: tasks.filter(t => t.stage === "editing").length, color: "#fb923c" },
+            { label: "Published", value: tasks.filter(t => t.stage === "published").length, color: "#34d399" },
+          ].map(s => (
+            <div key={s.label} style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "10px 18px", borderRadius: 12,
+              background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}>
+              <span style={{ fontSize: 20, fontWeight: 800, color: s.color, letterSpacing: "-1px" }}>{s.value}</span>
+              <span style={{ fontSize: 12, color: "#64748b" }}>{s.label}</span>
             </div>
           ))}
         </div>
 
         {/* Kanban Board */}
-        <div className="flex gap-4 overflow-x-auto pb-4 flex-1 min-h-0">
-          {columns.map((col) => {
-            const colTasks = getColumnTasks(col.id);
+        <div style={{ display: "flex", gap: 14, overflowX: "auto", flex: 1, paddingBottom: 16 }}>
+          {COLUMNS.map(col => {
+            const colTasks = tasks.filter(t => t.stage === col.id);
             return (
-              <div key={col.id} className="shrink-0 w-[260px] flex flex-col">
-                {/* Column header */}
-                <div className={`flex items-center justify-between p-3 rounded-xl border mb-3 ${col.color}`}>
-                  <div className="flex items-center gap-2">
-                    {col.icon}
-                    <span className="text-xs font-bold font-[family-name:var(--font-syne)] text-white">{col.label}</span>
-                    <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-slate-300">
-                      {colTasks.length}
-                    </span>
+              <div key={col.id} style={{ flexShrink: 0, width: 256, display: "flex", flexDirection: "column" }}>
+                {/* Header */}
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "10px 14px", borderRadius: 12, marginBottom: 12,
+                  background: col.headerBg, border: `1px solid ${col.headerBorder}`,
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 7, height: 7, borderRadius: "50%", background: col.dot, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0" }}>{col.label}</span>
+                    <div style={{
+                      fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, borderRadius: "50%",
+                      background: "rgba(255,255,255,0.07)", display: "flex", alignItems: "center",
+                      justifyContent: "center", color: "#94a3b8",
+                    }}>{colTasks.length}</div>
                   </div>
-                  <button className="w-6 h-6 rounded-md bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-300 transition-all">
-                    <Plus size={12} />
+                  <button style={{
+                    width: 22, height: 22, borderRadius: 6, background: "rgba(255,255,255,0.05)",
+                    border: "none", display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#94a3b8", cursor: "pointer",
+                  }}>
+                    <Plus size={11} />
                   </button>
                 </div>
 
-                {/* Tasks */}
-                <div className="flex-1 space-y-2.5 overflow-y-auto">
-                  {colTasks.map((task) => (
+                {/* Task list */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, overflowY: "auto" }}>
+                  {colTasks.map(task => (
                     <TaskCard key={task.id} task={task} onMove={moveTask} />
                   ))}
                   {colTasks.length === 0 && (
-                    <div className="border border-dashed border-white/8 rounded-xl p-4 text-center">
-                      <p className="text-xs text-slate-600">Drop here</p>
+                    <div style={{ border: "1px dashed rgba(255,255,255,0.07)", borderRadius: 12, padding: "24px", textAlign: "center" }}>
+                      <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>No videos here yet</p>
                     </div>
                   )}
                 </div>

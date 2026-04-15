@@ -50,7 +50,7 @@ export default function DashboardPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399", display: "inline-block", boxShadow: "0 0 8px #34d399" }} />
-            <span style={{ fontSize: 11, color: "#475569", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase" }}>Workspace</span>
+            <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase" }}>Workspace</span>
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px", margin: 0 }}>
             Dashboard
@@ -94,7 +94,7 @@ export default function DashboardPage() {
           <div style={{ fontSize: 20 }}>🚀</div>
           <div style={{ flex: 1 }}>
             <p style={{ fontSize: 13, fontWeight: 700, color: "#fdba74", margin: 0 }}>Finish setting up your workspace</p>
-            <p style={{ fontSize: 12, color: "#475569", margin: "2px 0 0" }}>Add competitor channels so Townshub can match your writing style.</p>
+            <p style={{ fontSize: 12, color: "#94a3b8", margin: "2px 0 0" }}>Add competitor channels so Townshub can match your writing style.</p>
           </div>
           <Link href="/dashboard/style" style={{
             padding: "8px 16px", borderRadius: 8,
@@ -123,13 +123,13 @@ export default function DashboardPage() {
                 pointerEvents: "none",
               }} />
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                <p style={{ fontSize: 11, color: "#475569", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>{s.label}</p>
+                <p style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>{s.label}</p>
                 <div style={{ width: 32, height: 32, borderRadius: 9, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <s.icon size={15} color={s.color} />
                 </div>
               </div>
               <p style={{ fontSize: 32, fontWeight: 800, color: "#fff", margin: "0 0 4px", letterSpacing: "-1px" }}>{s.value}</p>
-              <p style={{ fontSize: 11, color: "#334155", margin: 0 }}>{s.trend}</p>
+              <p style={{ fontSize: 11, color: "#64748b", margin: 0 }}>{s.trend}</p>
             </div>
           ))}
         </div>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
 
             {/* Tools grid */}
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: "#334155", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>AI Tools</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>AI Tools</p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
                 {tools.map((t) => (
                   <Link key={t.label} href={t.href} style={{ textDecoration: "none" }}>
@@ -177,7 +177,7 @@ export default function DashboardPage() {
                         <t.icon size={17} color={t.color} />
                       </div>
                       <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", margin: "0 0 5px", letterSpacing: "-0.1px" }}>{t.label}</p>
-                      <p style={{ fontSize: 11, color: "#334155", margin: 0, lineHeight: 1.45 }}>{t.desc}</p>
+                      <p style={{ fontSize: 11, color: "#64748b", margin: 0, lineHeight: 1.45 }}>{t.desc}</p>
                       <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 14 }}>
                         <span style={{ fontSize: 11, color: t.color, fontWeight: 600 }}>Open</span>
                         <ChevronRight size={11} color={t.color} />
@@ -197,7 +197,7 @@ export default function DashboardPage() {
             }}>
               <div style={{ padding: "18px 22px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", margin: "0 0 2px" }}>Getting Started</p>
-                <p style={{ fontSize: 11, color: "#334155", margin: 0 }}>Complete these steps to unlock your full potential.</p>
+                <p style={{ fontSize: 11, color: "#64748b", margin: 0 }}>Complete these steps to unlock your full potential.</p>
               </div>
               <div style={{ padding: "8px 12px" }}>
                 {checklist.map((item, i) => (
@@ -217,7 +217,7 @@ export default function DashboardPage() {
                         flexShrink: 0,
                       }} />
                       <span style={{ fontSize: 13, color: "#94a3b8", flex: 1 }}>{item.label}</span>
-                      <ArrowRight size={13} color="#1e293b" />
+                      <ArrowRight size={13} color="#334155" />
                     </div>
                   </Link>
                 ))}
@@ -245,7 +245,7 @@ export default function DashboardPage() {
                 <Star size={15} color="#facc15" fill="#facc15" />
                 <span style={{ fontSize: 13, fontWeight: 800, color: "#fde68a" }}>Unlock Pro</span>
               </div>
-              <p style={{ fontSize: 12, color: "#475569", lineHeight: 1.5, marginBottom: 14 }}>
+              <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5, marginBottom: 14 }}>
                 15 scripts/month, Niche Finder database, Similar Channels, AI Thumbnail generation, and more.
               </p>
               <Link href="/dashboard/billing" style={{
@@ -262,7 +262,7 @@ export default function DashboardPage() {
 
             {/* News & Updates */}
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: "#334155", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>What's New</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>What's New</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {updates.map((u, i) => (
                   <div key={i} style={{
@@ -281,12 +281,12 @@ export default function DashboardPage() {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
                           <p style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>{u.title}</p>
-                          <span style={{ fontSize: 10, color: "#1e293b", display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+                          <span style={{ fontSize: 10, color: "#94a3b8", display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
                             <Clock size={9} />
                             {u.time}
                           </span>
                         </div>
-                        <p style={{ fontSize: 11, color: "#334155", margin: 0, lineHeight: 1.45 }}>{u.desc}</p>
+                        <p style={{ fontSize: 11, color: "#64748b", margin: 0, lineHeight: 1.45 }}>{u.desc}</p>
                       </div>
                     </div>
                   </div>

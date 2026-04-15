@@ -110,7 +110,7 @@ export default function ScriptsPage() {
               border: "1px solid rgba(255,255,255,0.06)",
             }}>
               <p style={{ fontSize: 28, fontWeight: 800, color: s.color, margin: "0 0 4px", letterSpacing: "-1px" }}>{s.value}</p>
-              <p style={{ fontSize: 11, color: "#334155", margin: 0 }}>{s.label}</p>
+              <p style={{ fontSize: 11, color: "#64748b", margin: 0 }}>{s.label}</p>
             </div>
           ))}
         </div>
@@ -138,7 +138,7 @@ export default function ScriptsPage() {
           </div>
           <button onClick={() => setSortDesc(!sortDesc)} style={{
             marginLeft: "auto", display: "flex", alignItems: "center", gap: 6,
-            fontSize: 12, color: "#475569", background: "none", border: "none", cursor: "pointer",
+            fontSize: 12, color: "#94a3b8", background: "none", border: "none", cursor: "pointer",
           }}>
             <SortAsc size={13} style={{ transform: sortDesc ? "none" : "rotate(180deg)" }} />
             {sortDesc ? "Newest first" : "Oldest first"}
@@ -149,12 +149,12 @@ export default function ScriptsPage() {
         {!hydrated ? null : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "80px 20px" }}>
             <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-              <FileText size={26} color="#1e293b" />
+              <FileText size={26} color="#475569" />
             </div>
             <p style={{ fontSize: 15, fontWeight: 700, color: "#94a3b8", margin: "0 0 6px" }}>
               {scripts.length > 0 && filter !== "all" ? "No scripts match this filter" : "No scripts yet"}
             </p>
-            <p style={{ fontSize: 13, color: "#334155", margin: "0 0 20px" }}>
+            <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px" }}>
               {scripts.length > 0 ? "Try a different filter" : "Create your first AI-powered YouTube script."}
             </p>
             {scripts.length === 0 && (
@@ -193,9 +193,9 @@ export default function ScriptsPage() {
                       </div>
                       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                         {[script.format, `${script.words.toLocaleString()} words`, `${script.duration} min`].map((item, i) => (
-                          <span key={i} style={{ fontSize: 11, color: "#334155", textTransform: "capitalize" }}>{item}{i < 2 ? " ·" : ""}</span>
+                          <span key={i} style={{ fontSize: 11, color: "#64748b", textTransform: "capitalize" }}>{item}{i < 2 ? " ·" : ""}</span>
                         ))}
-                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#334155" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#64748b" }}>
                           <Clock size={9} /> {script.createdAt}
                         </span>
                       </div>
@@ -209,7 +209,7 @@ export default function ScriptsPage() {
                       ].map((btn, i) => (
                         <button key={i} title={btn.title} onClick={btn.onClick} style={{
                           width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
-                          borderRadius: 8, border: "none", background: "transparent", cursor: "pointer", color: "#334155",
+                          borderRadius: 8, border: "none", background: "transparent", cursor: "pointer", color: "#64748b",
                           transition: "all 0.15s",
                         }}
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.color = btn.hoverColor; }}
@@ -229,13 +229,13 @@ export default function ScriptsPage() {
                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                               <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(0,212,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#00D4FF", flexShrink: 0 }}>{i + 1}</div>
                               <p style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", margin: 0 }}>{section.title}</p>
-                              {section.wordCount > 0 && <span style={{ marginLeft: "auto", fontSize: 10, color: "#1e293b" }}>{section.wordCount}w</span>}
+                              {section.wordCount > 0 && <span style={{ marginLeft: "auto", fontSize: 10, color: "#94a3b8" }}>{section.wordCount}w</span>}
                             </div>
                             <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>{section.content}</p>
                           </div>
                         ))}
                       </div>
-                      <button onClick={() => setExpandedId(null)} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#334155", background: "none", border: "none", cursor: "pointer", marginTop: 12 }}>
+                      <button onClick={() => setExpandedId(null)} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#64748b", background: "none", border: "none", cursor: "pointer", marginTop: 12 }}>
                         <X size={11} /> Collapse
                       </button>
                     </div>

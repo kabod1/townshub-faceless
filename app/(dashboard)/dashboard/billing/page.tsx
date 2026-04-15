@@ -56,10 +56,10 @@ export default function BillingPage() {
                 background: "rgba(0,212,255,0.12)", border: "1px solid rgba(0,212,255,0.25)", color: "#00D4FF",
               }}>Current Plan</span>
             </div>
-            <p style={{ fontSize: 13, color: "#475569", margin: 0 }}>$9.99/month · Renews May 13, 2026</p>
+            <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>$9.99/month · Renews May 13, 2026</p>
             <div style={{ display: "flex", gap: 20, marginTop: 6 }}>
-              <span style={{ fontSize: 12, color: "#475569" }}>Scripts: <strong style={{ color: "#e2e8f0" }}>0 / 4 used</strong></span>
-              <span style={{ fontSize: 12, color: "#475569" }}>Thumbnails: <strong style={{ color: "#e2e8f0" }}>0 / 120 used</strong></span>
+              <span style={{ fontSize: 12, color: "#94a3b8" }}>Scripts: <strong style={{ color: "#e2e8f0" }}>0 / 4 used</strong></span>
+              <span style={{ fontSize: 12, color: "#94a3b8" }}>Thumbnails: <strong style={{ color: "#e2e8f0" }}>0 / 120 used</strong></span>
             </div>
           </div>
           <button style={{
@@ -134,7 +134,7 @@ export default function BillingPage() {
                   <span style={{ fontSize: 38, fontWeight: 800, color: "#fff", letterSpacing: "-1px" }}>
                     {billing === "annual" ? `$${(parseFloat(plan.price.slice(1)) * 0.8).toFixed(2)}` : plan.price}
                   </span>
-                  <span style={{ fontSize: 13, color: "#475569" }}>/mo</span>
+                  <span style={{ fontSize: 13, color: "#94a3b8" }}>/mo</span>
                 </div>
                 <p style={{ fontSize: 12, color: plan.accentColor, fontWeight: 600, marginBottom: 20 }}>
                   {plan.scripts} scripts/month
@@ -144,7 +144,7 @@ export default function BillingPage() {
                   <button disabled style={{
                     width: "100%", padding: "11px", borderRadius: 11,
                     background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-                    color: "#475569", fontSize: 13, fontWeight: 700, cursor: "not-allowed",
+                    color: "#94a3b8", fontSize: 13, fontWeight: 700, cursor: "not-allowed",
                   }}>Current Plan</button>
                 ) : (
                   <button style={{
@@ -189,9 +189,9 @@ export default function BillingPage() {
             <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Invoice History</span>
           </div>
           <div style={{ padding: "40px 22px", textAlign: "center" }}>
-            <CreditCard size={28} color="#1e293b" style={{ margin: "0 auto 12px" }} />
-            <p style={{ fontSize: 13, color: "#334155", margin: 0 }}>No invoices yet</p>
-            <p style={{ fontSize: 11, color: "#1e293b", marginTop: 4 }}>Your billing history will appear here</p>
+            <CreditCard size={28} color="#334155" style={{ margin: "0 auto 12px" }} />
+            <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>No invoices yet</p>
+            <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>Your billing history will appear here</p>
           </div>
         </div>
       </div>

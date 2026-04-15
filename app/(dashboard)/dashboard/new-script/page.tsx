@@ -4,14 +4,10 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input, Textarea, Select } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
-  PenLine, Sparkles, Link2, FileText, Plus,
-  Trash2, ChevronDown, ChevronUp, Copy, Download,
-  CheckCircle2, Clock, Zap, BookOpen, AlertCircle,
+  PenLine, Sparkles, Link2, FileText, Plus, Trash2,
+  ChevronDown, ChevronUp, Copy, Download, CheckCircle2,
+  Clock, Zap, BookOpen, AlertCircle,
 } from "lucide-react";
 
 const lengthOptions = [
@@ -32,40 +28,13 @@ const formatOptions = [
   { value: "opinion", label: "Opinion / Commentary" },
 ];
 
-interface ResearchNote {
-  id: string;
-  type: "url" | "text";
-  content: string;
-}
-
-interface ScriptSection {
-  id: string;
-  title: string;
-  content: string;
-  wordCount: number;
-  expanded: boolean;
-}
-
+interface ResearchNote { id: string; type: "url" | "text"; content: string; }
+interface ScriptSection { id: string; title: string; content: string; wordCount: number; expanded: boolean; }
 interface GeneratedScript {
-  title: string;
-  totalWords: number;
-  estimatedMinutes: number;
+  title: string; totalWords: number; estimatedMinutes: number;
   sections: Omit<ScriptSection, "expanded">[];
 }
 
-interface SavedScript {
-  id: string;
-  title: string;
-  niche: string;
-  format: string;
-  words: number;
-  duration: number;
-  createdAt: string;
-  status: "draft" | "final" | "published";
-  sections: Omit<ScriptSection, "expanded">[];
-}
-
-// Generating steps shown while waiting
 const STEPS = [
   "Analysing your topic…",
   "Researching competitor angles…",
@@ -75,14 +44,29 @@ const STEPS = [
   "Finalising your script…",
 ];
 
+const S = {
+  card: {
+    borderRadius: 16, overflow: "hidden" as const,
+    background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))",
+    border: "1px solid rgba(255,255,255,0.06)",
+    marginBottom: 16,
+  },
+  cardHeader: { padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.04)" },
+  cardBody: { padding: "18px 20px" },
+  input: {
+    width: "100%", boxSizing: "border-box" as const,
+    background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 10, padding: "10px 14px", color: "#e2e8f0", fontSize: 13, outline: "none",
+  },
+  label: { fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.1em", textTransform: "uppercase" as const, display: "block", marginBottom: 7 },
+};
+
 function NewScriptInner() {
   const searchParams = useSearchParams();
   const ideaParam = searchParams.get("idea") || "";
   const [videoIdea, setVideoIdea] = useState(ideaParam);
+  useEffect(() => { if (ideaParam) setVideoIdea(ideaParam); }, [ideaParam]);
 
-  useEffect(() => {
-    if (ideaParam) setVideoIdea(ideaParam);
-  }, [ideaParam]);
   const [targetLength, setTargetLength] = useState("10");
   const [format, setFormat] = useState("listicle");
   const [researchNotes, setResearchNotes] = useState<ResearchNote[]>([]);
@@ -98,63 +82,34 @@ function NewScriptInner() {
 
   const addNote = (type: "url" | "text") => {
     if (!newNote.trim()) return;
-    setResearchNotes((prev) => [...prev, { id: Date.now().toString(), type, content: newNote.trim() }]);
+    setResearchNotes(prev => [...prev, { id: Date.now().toString(), type, content: newNote.trim() }]);
     setNewNote("");
   };
 
-  const removeNote = (id: string) => setResearchNotes((prev) => prev.filter((n) => n.id !== id));
-
   const handleGenerate = async () => {
     if (!videoIdea.trim()) return;
-    setGenerating(true);
-    setError(null);
-    setGeneratingStep(0);
-
-    // Animate through steps while waiting
-    const interval = setInterval(() => {
-      setGeneratingStep((s) => Math.min(s + 1, STEPS.length - 1));
-    }, 2500);
-
+    setGenerating(true); setError(null); setGeneratingStep(0);
+    const interval = setInterval(() => setGeneratingStep(s => Math.min(s + 1, STEPS.length - 1)), 2500);
     try {
       const res = await fetch("/api/generate-script", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          videoIdea,
-          targetLength,
-          format,
-          researchNotes,
-          writingStyle: "educational",
-        }),
+        body: JSON.stringify({ videoIdea, targetLength, format, researchNotes, writingStyle: "educational" }),
       });
-
       clearInterval(interval);
-
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
         throw new Error(err.error || `Server error ${res.status}`);
       }
-
       const json = await res.json();
       const data: GeneratedScript = json.data || json;
-
-      if (!data?.sections?.length) {
-        throw new Error("No script sections returned. Please try again.");
-      }
-
+      if (!data?.sections?.length) throw new Error("No script sections returned. Please try again.");
       setScriptMeta({
         title: data.title || videoIdea,
         totalWords: data.totalWords || data.sections.reduce((a, s) => a + (s.wordCount || 0), 0),
         estimatedMinutes: data.estimatedMinutes || parseInt(targetLength),
       });
-
-      setSections(
-        data.sections.map((s, i) => ({
-          ...s,
-          expanded: i === 0,
-        }))
-      );
-
+      setSections(data.sections.map((s, i) => ({ ...s, expanded: i === 0 })));
       setStep("result");
     } catch (err: unknown) {
       clearInterval(interval);
@@ -164,19 +119,11 @@ function NewScriptInner() {
     }
   };
 
-  const toggleSection = (id: string) => {
-    setSections((prev) => prev.map((s) => (s.id === id ? { ...s, expanded: !s.expanded } : s)));
-  };
-
   const copyAll = () => {
-    const text = sections.map((s) => `## ${s.title}\n\n${s.content}`).join("\n\n---\n\n");
+    const text = sections.map(s => `## ${s.title}\n\n${s.content}`).join("\n\n---\n\n");
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const copySection = (content: string) => {
-    navigator.clipboard.writeText(content);
   };
 
   const saveScript = async () => {
@@ -185,359 +132,371 @@ function NewScriptInner() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     await supabase.from("scripts").insert({
-      user_id: user.id,
-      title: scriptMeta.title,
-      niche: "General",
-      format,
-      words: scriptMeta.totalWords,
-      duration: scriptMeta.estimatedMinutes,
-      status: "draft",
+      user_id: user.id, title: scriptMeta.title, niche: "General", format,
+      words: scriptMeta.totalWords, duration: scriptMeta.estimatedMinutes, status: "draft",
       sections: sections.map(({ id, title, content, wordCount }) => ({ id, title, content, wordCount })),
     });
     setScriptSaved(true);
     setTimeout(() => setScriptSaved(false), 2500);
   };
 
-  // ── Result view ────────────────────────────────────────────────────────────
+  // ── Result view ──────────────────────────────────────────────────────────────
   if (step === "result" && sections.length > 0 && scriptMeta) {
     return (
-      <div className="min-h-screen">
+      <div style={{ minHeight: "100vh", background: "#080D1A" }}>
         <Topbar title="New Script" />
-        <div className="p-6 max-w-4xl mx-auto space-y-6">
+        <div style={{ padding: "28px 32px", maxWidth: 860, margin: "0 auto" }}>
 
           {/* Success banner */}
-          <div className="rounded-xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/8 to-transparent p-5 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
-              <CheckCircle2 size={20} className="text-emerald-400" />
+          <div style={{
+            display: "flex", alignItems: "center", gap: 16, padding: "18px 22px",
+            borderRadius: 14, marginBottom: 24,
+            background: "linear-gradient(to right, rgba(52,211,153,0.07), transparent)",
+            border: "1px solid rgba(52,211,153,0.18)",
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(52,211,153,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <CheckCircle2 size={20} color="#34d399" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-emerald-300 font-[family-name:var(--font-syne)]">
-                Script Generated Successfully
-              </p>
-              <p className="text-xs text-slate-500 mt-0.5">
-                ~{scriptMeta.totalWords} words · {scriptMeta.estimatedMinutes} min · {sections.length} sections
-              </p>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "#34d399", margin: "0 0 2px" }}>Script Generated Successfully</p>
+              <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>~{scriptMeta.totalWords} words · {scriptMeta.estimatedMinutes} min · {sections.length} sections</p>
             </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" icon={<Copy size={12} />} onClick={copyAll}>
-                {copied ? "Copied!" : "Copy All"}
-              </Button>
-              <Button size="sm" icon={<Download size={12} />} onClick={() => {
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <button onClick={copyAll} style={{
+                display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9,
+                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+                color: "#94a3b8", fontSize: 12, fontWeight: 600, cursor: "pointer",
+              }}>
+                <Copy size={12} /> {copied ? "Copied!" : "Copy All"}
+              </button>
+              <button onClick={() => {
                 const text = sections.map(s => `## ${s.title}\n\n${s.content}`).join("\n\n---\n\n");
                 const blob = new Blob([text], { type: "text/plain" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
-                a.href = url;
-                a.download = `${scriptMeta.title.slice(0, 50)}.txt`;
-                a.click();
+                a.href = url; a.download = `${scriptMeta.title.slice(0, 50)}.txt`; a.click();
+              }} style={{
+                display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9,
+                background: "linear-gradient(135deg, #00D4FF, #0080cc)", border: "none",
+                color: "#04080F", fontSize: 12, fontWeight: 700, cursor: "pointer",
               }}>
-                Export
-              </Button>
+                <Download size={12} /> Export
+              </button>
             </div>
           </div>
 
-          {/* Title */}
-          <div>
-            <h2 className="text-xl font-bold text-white font-[family-name:var(--font-syne)] leading-snug">
-              {scriptMeta.title}
-            </h2>
-            <div className="flex gap-2 mt-2">
-              <Badge variant="cyan">{formatOptions.find((f) => f.value === format)?.label.split(" ")[0]}</Badge>
-              <Badge variant="neutral">{targetLength} min</Badge>
-              <Badge variant="green">{scriptMeta.totalWords} words</Badge>
+          {/* Title + badges */}
+          <div style={{ marginBottom: 20 }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", margin: "0 0 10px", lineHeight: 1.3 }}>{scriptMeta.title}</h2>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[
+                { label: formatOptions.find(f => f.value === format)?.label.split(" ")[0] || format, bg: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "rgba(0,212,255,0.2)" },
+                { label: `${targetLength} min`, bg: "rgba(255,255,255,0.05)", color: "#64748b", border: "rgba(255,255,255,0.08)" },
+                { label: `${scriptMeta.totalWords} words`, bg: "rgba(52,211,153,0.08)", color: "#34d399", border: "rgba(52,211,153,0.18)" },
+              ].map(b => (
+                <span key={b.label} style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: b.bg, color: b.color, border: `1px solid ${b.border}` }}>{b.label}</span>
+              ))}
             </div>
           </div>
 
-          {/* Script Sections */}
-          <div className="space-y-3">
+          {/* Sections */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
             {sections.map((section, i) => (
-              <Card key={section.id} glow={section.expanded}>
+              <div key={section.id} style={{
+                borderRadius: 14, overflow: "hidden",
+                background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))",
+                border: section.expanded ? "1px solid rgba(0,212,255,0.15)" : "1px solid rgba(255,255,255,0.06)",
+              }}>
                 <div
-                  className="flex items-center justify-between p-4 cursor-pointer select-none"
-                  onClick={() => toggleSection(section.id)}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", cursor: "pointer" }}
+                  onClick={() => setSections(prev => prev.map(s => s.id === section.id ? { ...s, expanded: !s.expanded } : s))}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-cyan-500/15 flex items-center justify-center text-cyan-400 text-xs font-bold font-[family-name:var(--font-syne)]">
-                      {i + 1}
-                    </div>
-                    <h3 className="text-sm font-semibold text-white font-[family-name:var(--font-syne)]">
-                      {section.title}
-                    </h3>
-                    {section.wordCount > 0 && <Badge variant="neutral">{section.wordCount}w</Badge>}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(0,212,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#00D4FF", flexShrink: 0 }}>{i + 1}</div>
+                    <h3 style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", margin: 0 }}>{section.title}</h3>
+                    {section.wordCount > 0 && (
+                      <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 99, background: "rgba(255,255,255,0.05)", color: "#64748b" }}>{section.wordCount}w</span>
+                    )}
                   </div>
-                  {section.expanded
-                    ? <ChevronUp size={16} className="text-slate-500" />
-                    : <ChevronDown size={16} className="text-slate-500" />}
+                  {section.expanded ? <ChevronUp size={15} color="#475569" /> : <ChevronDown size={15} color="#475569" />}
                 </div>
                 {section.expanded && (
-                  <div className="px-4 pb-4">
-                    <div className="bg-[#0A1020] rounded-lg p-4 border border-white/5">
-                      <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
-                        {section.content}
-                      </p>
+                  <div style={{ padding: "0 18px 16px" }}>
+                    <div style={{ borderRadius: 10, background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.05)", padding: "14px 16px" }}>
+                      <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap" }}>{section.content}</p>
                     </div>
-                    <div className="flex gap-4 mt-3">
-                      <button
-                        onClick={() => copySection(section.content)}
-                        className="text-xs text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1"
-                      >
-                        <Copy size={11} /> Copy Section
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(section.content)}
+                      style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b", background: "none", border: "none", cursor: "pointer", marginTop: 10 }}
+                    >
+                      <Copy size={11} /> Copy Section
+                    </button>
                   </div>
                 )}
-              </Card>
+              </div>
             ))}
           </div>
 
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => { setStep("setup"); setSections([]); setScriptMeta(null); setScriptSaved(false); }}>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              onClick={() => { setStep("setup"); setSections([]); setScriptMeta(null); setScriptSaved(false); }}
+              style={{ padding: "10px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "#64748b", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+            >
               ← Edit Inputs
-            </Button>
-            <Button
-              icon={scriptSaved ? <CheckCircle2 size={14} /> : <Zap size={14} />}
-              variant={scriptSaved ? "outline" : "primary"}
+            </button>
+            <button
               onClick={saveScript}
               disabled={scriptSaved}
+              style={{
+                display: "flex", alignItems: "center", gap: 8, padding: "10px 22px", borderRadius: 10, border: "none",
+                background: scriptSaved ? "rgba(52,211,153,0.1)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
+                color: scriptSaved ? "#34d399" : "#04080F", fontSize: 13, fontWeight: 700,
+                cursor: scriptSaved ? "not-allowed" : "pointer",
+                outline: scriptSaved ? "1px solid rgba(52,211,153,0.3)" : "none",
+              }}
             >
-              {scriptSaved ? "Saved to My Scripts!" : "Save to My Scripts"}
-            </Button>
+              {scriptSaved ? <><CheckCircle2 size={14} /> Saved!</> : <><Zap size={14} /> Save to My Scripts</>}
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── Setup view ─────────────────────────────────────────────────────────────
+  // ── Setup view ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen">
+    <div style={{ minHeight: "100vh", background: "#080D1A" }}>
       <Topbar title="New Script" />
 
-      <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div style={{ padding: "28px 32px", maxWidth: 940, margin: "0 auto" }}>
 
-        {/* Header */}
-        <div className="rounded-xl border border-cyan-500/15 bg-gradient-to-br from-[#162035] to-[#0F1829] p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-            <PenLine size={20} className="text-cyan-400" />
+        {/* Header banner */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 16, padding: "18px 22px",
+          borderRadius: 14, marginBottom: 24,
+          background: "linear-gradient(135deg, rgba(15,24,42,0.97), rgba(8,13,26,0.99))",
+          border: "1px solid rgba(0,212,255,0.12)",
+        }}>
+          <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <PenLine size={20} color="#00D4FF" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white font-[family-name:var(--font-syne)]">Write a New Script</h2>
-            <p className="text-sm text-slate-400">Tell us your video idea and we&apos;ll handle all the research.</p>
+            <h2 style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>Write a New Script</h2>
+            <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Tell us your video idea and we&apos;ll handle all the research and writing.</p>
           </div>
         </div>
 
         {/* Error */}
         {error && (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-4 flex items-start gap-3">
-            <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 18px", borderRadius: 12, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.18)", marginBottom: 20 }}>
+            <AlertCircle size={15} color="#f87171" style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
-              <p className="text-sm font-semibold text-red-300 font-[family-name:var(--font-syne)]">Generation Failed</p>
-              <p className="text-xs text-slate-400 mt-0.5">{error}</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "#f87171", margin: "0 0 2px" }}>Generation Failed</p>
+              <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{error}</p>
             </div>
           </div>
         )}
 
-        {/* Generating progress overlay */}
+        {/* Generating overlay */}
         {generating && (
-          <div className="rounded-xl border border-cyan-500/20 bg-gradient-to-br from-[#162035] to-[#0F1829] p-6 text-center space-y-4">
-            <div className="flex justify-center gap-1">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="w-2 h-2 rounded-full bg-cyan-400"
-                  style={{ animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite` }}
-                />
+          <div style={{
+            borderRadius: 16, border: "1px solid rgba(0,212,255,0.18)",
+            background: "linear-gradient(135deg, rgba(15,24,42,0.97), rgba(8,13,26,0.99))",
+            padding: "36px", textAlign: "center", marginBottom: 24,
+          }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 18 }}>
+              {[0, 1, 2].map(i => (
+                <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: "#00D4FF", animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite` }} />
               ))}
             </div>
-            <p className="text-sm font-semibold text-cyan-300 font-[family-name:var(--font-syne)]">
-              {STEPS[generatingStep]}
-            </p>
-            <p className="text-xs text-slate-500">Using GPT-4o · This takes 15–30 seconds</p>
-            <div className="w-full bg-white/5 rounded-full h-1.5 mx-auto max-w-xs">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 transition-all duration-[2400ms] ease-out"
-                style={{ width: `${((generatingStep + 1) / STEPS.length) * 100}%` }}
-              />
+            <p style={{ fontSize: 14, fontWeight: 700, color: "#00D4FF", margin: "0 0 6px" }}>{STEPS[generatingStep]}</p>
+            <p style={{ fontSize: 12, color: "#64748b", margin: "0 0 20px" }}>Using GPT-4o · This takes 15–30 seconds</p>
+            <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.05)", maxWidth: 300, margin: "0 auto" }}>
+              <div style={{ height: "100%", borderRadius: 99, background: "linear-gradient(to right, #00D4FF, #0080cc)", width: `${((generatingStep + 1) / STEPS.length) * 100}%`, transition: "width 2.4s ease-out" }} />
             </div>
           </div>
         )}
 
-        <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${generating ? "opacity-50 pointer-events-none" : ""}`}>
-          <div className="lg:col-span-2 space-y-5">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 20, opacity: generating ? 0.5 : 1, pointerEvents: generating ? "none" : undefined }}>
 
+          {/* Left: main inputs */}
+          <div>
             {/* Video Idea */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Zap size={14} className="text-yellow-400" />
-                  <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">Video Idea</h3>
+            <div style={S.card}>
+              <div style={S.cardHeader}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Zap size={14} color="#facc15" />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Video Idea</span>
                 </div>
-              </CardHeader>
-              <CardBody className="space-y-4">
-                <Textarea
-                  label="What is this video about?"
+              </div>
+              <div style={S.cardBody}>
+                <label style={S.label}>What is this video about?</label>
+                <textarea
                   value={videoIdea}
-                  onChange={(e) => setVideoIdea(e.target.value)}
+                  onChange={e => setVideoIdea(e.target.value)}
                   rows={3}
                   placeholder="e.g. Why most people fail at budgeting and what actually works instead."
+                  style={{ ...S.input, resize: "vertical", lineHeight: 1.6, marginBottom: 14 }}
+                  onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.3)"}
+                  onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
                 />
-                <div className="grid grid-cols-2 gap-4">
-                  <Select
-                    label="Target Length"
-                    value={targetLength}
-                    onChange={(e) => setTargetLength(e.target.value)}
-                    options={lengthOptions}
-                  />
-                  <Select
-                    label="Script Format"
-                    value={format}
-                    onChange={(e) => setFormat(e.target.value)}
-                    options={formatOptions}
-                  />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={S.label}>Target Length</label>
+                    <select value={targetLength} onChange={e => setTargetLength(e.target.value)} style={S.input}>
+                      {lengthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={S.label}>Script Format</label>
+                    <select value={format} onChange={e => setFormat(e.target.value)} style={S.input}>
+                      {formatOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </div>
                 </div>
-              </CardBody>
-            </Card>
+              </div>
+            </div>
 
             {/* Research Notes */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <BookOpen size={14} className="text-cyan-400" />
-                    <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">Research Notes</h3>
+            <div style={S.card}>
+              <div style={S.cardHeader}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <BookOpen size={14} color="#00D4FF" />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Research Notes</span>
                   </div>
-                  <Badge variant="neutral">{researchNotes.length} items</Badge>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "rgba(255,255,255,0.05)", color: "#64748b" }}>{researchNotes.length} items</span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Add URLs, documents, or paste notes for the AI to use.
-                </p>
-              </CardHeader>
-              <CardBody className="space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    placeholder="Paste a URL, article, or YouTube video link…"
-                    onKeyDown={(e) => e.key === "Enter" && addNote("url")}
-                    className="flex-1"
-                    icon={<Link2 size={13} />}
-                  />
-                  <Button size="sm" onClick={() => addNote("url")} icon={<Plus size={12} />}>Add</Button>
+                <p style={{ fontSize: 11, color: "#64748b", margin: "4px 0 0" }}>Add URLs or paste notes for the AI to use.</p>
+              </div>
+              <div style={S.cardBody}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                  <div style={{ position: "relative", flex: 1 }}>
+                    <Link2 size={13} color="#475569" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+                    <input
+                      value={newNote}
+                      onChange={e => setNewNote(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && addNote("url")}
+                      placeholder="Paste a URL or YouTube video link…"
+                      style={{ ...S.input, paddingLeft: 34 }}
+                    />
+                  </div>
+                  <button onClick={() => addNote("url")} style={{
+                    display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10,
+                    background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)",
+                    color: "#00D4FF", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0,
+                  }}>
+                    <Plus size={12} /> Add
+                  </button>
                 </div>
                 <button
                   onClick={() => {
                     const note = prompt("Paste your research notes:");
                     if (note) setResearchNotes(prev => [...prev, { id: Date.now().toString(), type: "text", content: note }]);
                   }}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/8 text-slate-500 text-xs hover:border-white/15 hover:text-slate-400 transition-all"
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9,
+                    border: "1px solid rgba(255,255,255,0.08)", background: "transparent",
+                    color: "#94a3b8", fontSize: 12, cursor: "pointer", marginBottom: researchNotes.length ? 12 : 0,
+                  }}
                 >
-                  <FileText size={13} />
-                  Add Text Notes
+                  <FileText size={13} /> Add Text Notes
                 </button>
                 {researchNotes.length > 0 && (
-                  <div className="space-y-2 mt-1">
-                    {researchNotes.map((note) => (
-                      <div key={note.id} className="flex items-center gap-2 p-2.5 rounded-lg bg-white/3 border border-white/6">
-                        {note.type === "url"
-                          ? <Link2 size={12} className="text-cyan-500 shrink-0" />
-                          : <FileText size={12} className="text-slate-500 shrink-0" />}
-                        <p className="text-xs text-slate-400 flex-1 truncate">{note.content}</p>
-                        <button onClick={() => removeNote(note.id)} className="text-slate-600 hover:text-red-400 transition-colors">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {researchNotes.map(note => (
+                      <div key={note.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 9, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        {note.type === "url" ? <Link2 size={12} color="#00D4FF" style={{ flexShrink: 0 }} /> : <FileText size={12} color="#475569" style={{ flexShrink: 0 }} />}
+                        <p style={{ fontSize: 12, color: "#64748b", flex: 1, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{note.content}</p>
+                        <button onClick={() => setResearchNotes(prev => prev.filter(n => n.id !== note.id))} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: 0 }}
+                          onMouseEnter={e => e.currentTarget.style.color = "#f87171"}
+                          onMouseLeave={e => e.currentTarget.style.color = "#475569"}
+                        >
                           <Trash2 size={12} />
                         </button>
                       </div>
                     ))}
                   </div>
                 )}
-              </CardBody>
-            </Card>
+              </div>
+            </div>
 
-            <Button
-              size="lg"
+            <button
               onClick={handleGenerate}
-              loading={generating}
-              disabled={!videoIdea.trim()}
-              icon={generating ? undefined : <Sparkles size={16} />}
-              className="w-full justify-center"
+              disabled={!videoIdea.trim() || generating}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                padding: "14px", borderRadius: 12, border: "none",
+                background: !videoIdea.trim() ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
+                color: !videoIdea.trim() ? "#64748b" : "#04080F",
+                fontSize: 14, fontWeight: 800, cursor: !videoIdea.trim() ? "not-allowed" : "pointer",
+              }}
             >
+              <Sparkles size={16} />
               {generating ? STEPS[generatingStep] : "Generate Script with AI"}
-            </Button>
+            </button>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest font-[family-name:var(--font-syne)]">
-                  Script Settings
-                </p>
-              </CardHeader>
-              <CardBody className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Writing Style</p>
-                  <Badge variant="cyan">Educational</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">AI Model</p>
-                  <Badge variant="neutral">GPT-4o</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Research Notes</p>
-                  <Badge variant={researchNotes.length > 0 ? "green" : "neutral"}>
-                    {researchNotes.length} added
-                  </Badge>
-                </div>
-              </CardBody>
-            </Card>
+          {/* Right: sidebar */}
+          <div>
+            <div style={S.card}>
+              <div style={S.cardHeader}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0 }}>Script Settings</p>
+              </div>
+              <div style={S.cardBody}>
+                {[
+                  { label: "Writing Style", value: "Educational", color: "#00D4FF" },
+                  { label: "AI Model", value: "GPT-4o", color: "#94a3b8" },
+                  { label: "Research Notes", value: `${researchNotes.length} added`, color: researchNotes.length > 0 ? "#34d399" : "#64748b" },
+                ].map(item => (
+                  <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>{item.label}</p>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: item.color }}>{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Clock size={13} className="text-cyan-400" />
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest font-[family-name:var(--font-syne)]">
-                    Estimated Output
-                  </p>
+            <div style={S.card}>
+              <div style={S.cardHeader}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Clock size={13} color="#00D4FF" />
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0 }}>Estimated Output</p>
                 </div>
-              </CardHeader>
-              <CardBody className="space-y-2">
+              </div>
+              <div style={S.cardBody}>
                 {[
                   { label: "Word Count", value: `~${parseInt(targetLength) * 150} words` },
                   { label: "Sections", value: "5–7 sections" },
                   { label: "Read Time", value: `${targetLength} min` },
                   { label: "Scripts Left", value: "4 / 4" },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between">
-                    <p className="text-xs text-slate-500">{item.label}</p>
-                    <p className="text-xs text-white font-medium font-[family-name:var(--font-syne)]">{item.value}</p>
+                ].map(item => (
+                  <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>{item.label}</p>
+                    <p style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 600, margin: 0 }}>{item.value}</p>
                   </div>
                 ))}
-              </CardBody>
-            </Card>
+              </div>
+            </div>
 
-            <div className="rounded-xl border border-cyan-500/10 bg-gradient-to-br from-cyan-500/5 to-transparent p-4">
-              <p className="text-xs font-bold text-cyan-400 font-[family-name:var(--font-syne)] mb-2">Pro Tip</p>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                The more specific your idea, the better the script. Instead of &ldquo;budgeting tips&rdquo; try
-                &ldquo;Why the 50/30/20 rule fails for people earning under $40k.&rdquo;
+            <div style={{ borderRadius: 14, border: "1px solid rgba(0,212,255,0.1)", background: "linear-gradient(135deg, rgba(0,212,255,0.04), transparent)", padding: "14px 16px" }}>
+              <p style={{ fontSize: 11, fontWeight: 800, color: "#00D4FF", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 8px" }}>Pro Tip</p>
+              <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
+                The more specific your idea, the better the script. Instead of &ldquo;budgeting tips&rdquo; try &ldquo;Why the 50/30/20 rule fails for people earning under $40k.&rdquo;
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <style>{`
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-6px); }
-        }
-      `}</style>
+      <style>{`@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }`}</style>
     </div>
   );
 }
 
 export default function NewScriptPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#080D1A]" />}>
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#080D1A" }} />}>
       <NewScriptInner />
     </Suspense>
   );

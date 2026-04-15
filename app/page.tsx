@@ -351,7 +351,7 @@ export default function LandingPage() {
                   <div key={item.name} className="px-3 py-2 rounded-lg text-xs"
                     style={item.active
                       ? { background: "rgba(6,182,212,0.1)", color: "#06B6D4", border: "1px solid rgba(6,182,212,0.18)", fontFamily: "var(--font-syne)", fontWeight: 600 }
-                      : { color: "#334155", fontFamily: "var(--font-syne)" }}>
+                      : { color: "#64748b", fontFamily: "var(--font-syne)" }}>
                     {item.name}
                   </div>
                 ))}
@@ -371,7 +371,7 @@ export default function LandingPage() {
                     <div key={s.l} className="rounded-xl p-3"
                       style={{ background: "#0F1829", border: "1px solid rgba(255,255,255,0.05)" }}>
                       <p className="text-lg font-bold" style={{ color: s.c, fontFamily: "var(--font-syne)" }}>{s.v}</p>
-                      <p className="text-[10px] mt-0.5" style={{ color: "#334155" }}>{s.l}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: "#64748b" }}>{s.l}</p>
                     </div>
                   ))}
                 </div>

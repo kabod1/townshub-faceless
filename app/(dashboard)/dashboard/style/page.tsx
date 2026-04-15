@@ -101,7 +101,7 @@ export default function StylePage() {
 
   const sectionLabel: React.CSSProperties = {
     fontSize: 10, fontWeight: 700, letterSpacing: "0.14em",
-    textTransform: "uppercase", color: "#475569", marginBottom: 10,
+    textTransform: "uppercase", color: "#94a3b8", marginBottom: 10,
   };
 
   const inputStyle: React.CSSProperties = {
@@ -152,7 +152,7 @@ export default function StylePage() {
                 </div>
                 <div>
                   <p style={{ fontSize: 15, fontWeight: 800, color: "#e2e8f0", margin: 0 }}>My Style</p>
-                  <p style={{ fontSize: 12, color: "#475569", margin: "2px 0 0" }}>Customize how the AI writes for you across all channels</p>
+                  <p style={{ fontSize: 12, color: "#94a3b8", margin: "2px 0 0" }}>Customize how the AI writes for you across all channels</p>
                 </div>
               </div>
 
@@ -233,7 +233,7 @@ export default function StylePage() {
                     placeholder="e.g. Always start with a counterintuitive insight. Use short punchy sentences. Avoid corporate jargon. Reference real examples whenever possible..."
                     style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
                   />
-                  <p style={{ fontSize: 11, color: "#334155", marginTop: 6 }}>These instructions are applied to every script you generate.</p>
+                  <p style={{ fontSize: 11, color: "#64748b", marginTop: 6 }}>These instructions are applied to every script you generate.</p>
                 </div>
 
                 <button
@@ -269,11 +269,11 @@ export default function StylePage() {
                     <div key={item.label} style={{ textAlign: "center", padding: "16px 12px", borderRadius: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
                       <item.icon size={18} color={item.color} style={{ margin: "0 auto 10px", display: "block" }} />
                       <p style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: "0 0 4px" }}>{item.value}</p>
-                      <p style={{ fontSize: 11, color: "#334155", margin: 0 }}>{item.label}</p>
+                      <p style={{ fontSize: 11, color: "#64748b", margin: 0 }}>{item.label}</p>
                     </div>
                   ))}
                 </div>
-                <p style={{ fontSize: 12, color: "#1e293b", textAlign: "center", marginTop: 16 }}>Generate scripts to see your writing patterns.</p>
+                <p style={{ fontSize: 12, color: "#94a3b8", textAlign: "center", marginTop: 16 }}>Generate scripts to see your writing patterns.</p>
               </div>
             </div>
           </div>
@@ -285,7 +285,7 @@ export default function StylePage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 800, color: "#e2e8f0", margin: "0 0 2px" }}>Channel Profiles</p>
-                <p style={{ fontSize: 12, color: "#475569", margin: 0 }}>Switch between YouTube channels</p>
+                <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Switch between YouTube channels</p>
               </div>
               <button
                 onClick={() => setShowAddChannel(true)}
@@ -312,7 +312,7 @@ export default function StylePage() {
                     { label: "Competitor Channel URL", key: "competitor", placeholder: "youtube.com/@competitor" },
                   ].map(({ label, key, placeholder }) => (
                     <div key={key}>
-                      <p style={{ fontSize: 11, color: "#475569", marginBottom: 4 }}>{label}</p>
+                      <p style={{ fontSize: 11, color: "#94a3b8", marginBottom: 4 }}>{label}</p>
                       <input
                         value={newChannel[key as keyof typeof newChannel]}
                         onChange={(e) => setNewChannel({ ...newChannel, [key]: e.target.value })}
@@ -343,10 +343,10 @@ export default function StylePage() {
             {channels.length === 0 && !showAddChannel && (
               <div style={{ ...card, padding: "40px 20px", textAlign: "center" }}>
                 <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
-                  <Play size={20} color="#334155" />
+                  <Play size={20} color="#475569" />
                 </div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: "#475569", margin: "0 0 6px" }}>No channels yet</p>
-                <p style={{ fontSize: 12, color: "#334155", margin: "0 0 16px", lineHeight: 1.5 }}>Add a channel profile to get personalized scripts.</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8", margin: "0 0 6px" }}>No channels yet</p>
+                <p style={{ fontSize: 12, color: "#64748b", margin: "0 0 16px", lineHeight: 1.5 }}>Add a channel profile to get personalized scripts.</p>
                 <button
                   onClick={() => setShowAddChannel(true)}
                   style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#94a3b8", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
@@ -365,25 +365,25 @@ export default function StylePage() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", margin: "0 0 2px" }}>{ch.name}</p>
-                    <p style={{ fontSize: 11, color: "#475569", margin: 0 }}>{ch.niche}</p>
+                    <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>{ch.niche}</p>
                     {ch.handle && <p style={{ fontSize: 11, color: "#00D4FF", margin: "2px 0 0" }}>{ch.handle}</p>}
                   </div>
                   <button
                     onClick={() => setChannels((p: ChannelProfile[]) => p.filter((c) => c.id !== ch.id))}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "#334155", padding: 4 }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: 4 }}
                     onMouseEnter={(e) => e.currentTarget.style.color = "#f87171"}
-                    onMouseLeave={(e) => e.currentTarget.style.color = "#334155"}
+                    onMouseLeave={(e) => e.currentTarget.style.color = "#475569"}
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
                 {ch.competitors.length > 0 && (
                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                    <p style={{ fontSize: 10, color: "#334155", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.1em" }}>Competitors</p>
+                    <p style={{ fontSize: 10, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.1em" }}>Competitors</p>
                     {ch.competitors.map((c, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <Globe size={11} color="#334155" />
-                        <p style={{ fontSize: 11, color: "#475569", margin: 0, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c}</p>
+                        <Globe size={11} color="#475569" />
+                        <p style={{ fontSize: 11, color: "#94a3b8", margin: 0, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c}</p>
                         <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "rgba(52,211,153,0.1)", color: "#34d399", border: "1px solid rgba(52,211,153,0.2)" }}>Analyzed</span>
                       </div>
                     ))}
@@ -396,7 +396,7 @@ export default function StylePage() {
             <div style={{ ...card, padding: "14px 16px" }}>
               <div style={{ display: "flex", gap: 10 }}>
                 <Lightbulb size={14} color="#facc15" style={{ flexShrink: 0, marginTop: 2 }} />
-                <p style={{ fontSize: 12, color: "#475569", lineHeight: 1.6, margin: 0 }}>
+                <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
                   Add 3+ competitor channels to enable <span style={{ color: "#00D4FF", fontWeight: 600 }}>Writing DNA</span> analysis — we&apos;ll reverse-engineer what makes their scripts work.
                 </p>
               </div>
