@@ -4,7 +4,6 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Zap, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -13,7 +12,7 @@ function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -39,136 +38,201 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: "#080D1A" }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "#060B14",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "24px 16px",
+      position: "relative",
+      overflow: "hidden",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    }}>
+      {/* Background glow */}
+      <div style={{
+        position: "absolute", top: "-80px", left: "50%", transform: "translateX(-50%)",
+        width: "480px", height: "280px", borderRadius: "50%",
+        background: "radial-gradient(ellipse, rgba(0,212,255,0.18), transparent)",
+        filter: "blur(60px)", pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", bottom: "-60px", right: "15%",
+        width: "260px", height: "160px", borderRadius: "50%",
+        background: "radial-gradient(ellipse, rgba(120,80,220,0.12), transparent)",
+        filter: "blur(50px)", pointerEvents: "none",
+      }} />
 
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full opacity-15"
-          style={{ background: "radial-gradient(ellipse,#00D4FF,transparent)", filter: "blur(80px)" }} />
-        <div className="absolute bottom-0 right-1/4 w-[300px] h-[200px] rounded-full opacity-10"
-          style={{ background: "radial-gradient(ellipse,#A78BFA,transparent)", filter: "blur(60px)" }} />
-        <div className="absolute inset-0 opacity-[0.025]"
-          style={{ backgroundImage: "radial-gradient(rgba(0,212,255,1) 1px,transparent 1px)", backgroundSize: "28px 28px" }} />
-      </div>
+      <div style={{ position: "relative", width: "100%", maxWidth: "400px" }}>
 
-      <div className="relative w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: "linear-gradient(135deg,#00D4FF,#0090cc)", boxShadow: "0 0 30px rgba(0,212,255,0.5)" }}>
-            <Zap size={22} fill="#04080F" className="text-[#04080F]" />
-          </div>
-          <p className="text-xl font-bold text-white" style={{ fontFamily: "var(--font-syne)" }}>
+        {/* Logo */}
+        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <div style={{
+            width: "52px", height: "52px", borderRadius: "14px",
+            background: "linear-gradient(135deg, #00D4FF, #0070BB)",
+            boxShadow: "0 0 32px rgba(0,212,255,0.45)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 14px", fontSize: "22px",
+          }}>⚡</div>
+          <div style={{ fontSize: "22px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
             Townshub <span style={{ color: "#00D4FF" }}>Faceless</span>
-          </p>
-          <p className="text-sm text-slate-500 mt-1">Sign in to your workspace</p>
+          </div>
+          <div style={{ fontSize: "13px", color: "#64748b", marginTop: "4px" }}>
+            Sign in to your workspace
+          </div>
         </div>
 
-        <div className="rounded-2xl p-8"
-          style={{
-            background: "linear-gradient(135deg,rgba(22,32,53,0.95),rgba(15,24,41,1))",
-            border: "1px solid rgba(0,212,255,0.15)",
-            boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
-          }}>
+        {/* Card */}
+        <div style={{
+          background: "linear-gradient(135deg, rgba(20,30,50,0.98), rgba(10,18,34,1))",
+          border: "1px solid rgba(0,212,255,0.14)",
+          borderRadius: "20px",
+          padding: "32px",
+          boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03)",
+        }}>
 
+          {/* Error */}
           {error && (
-            <div className="flex items-center gap-2.5 p-3 rounded-xl mb-5"
-              style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
-              <AlertCircle size={14} style={{ color: "#F87171", flexShrink: 0 }} />
-              <p className="text-sm" style={{ color: "#F87171" }}>{error}</p>
+            <div style={{
+              display: "flex", alignItems: "flex-start", gap: "10px",
+              padding: "12px 14px", borderRadius: "12px", marginBottom: "20px",
+              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)",
+            }}>
+              <span style={{ color: "#F87171", flexShrink: 0, fontSize: "15px" }}>✕</span>
+              <p style={{ fontSize: "13px", color: "#F87171", margin: 0, lineHeight: 1.4 }}>{error}</p>
             </div>
           )}
 
+          {/* Success */}
           {success && (
-            <div className="flex items-center gap-2.5 p-3 rounded-xl mb-5"
-              style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)" }}>
-              <CheckCircle2 size={14} style={{ color: "#34D399", flexShrink: 0 }} />
-              <p className="text-sm" style={{ color: "#34D399" }}>Signing you in…</p>
+            <div style={{
+              display: "flex", alignItems: "center", gap: "10px",
+              padding: "12px 14px", borderRadius: "12px", marginBottom: "20px",
+              background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.22)",
+            }}>
+              <span style={{ color: "#34D399", fontSize: "15px" }}>✓</span>
+              <p style={{ fontSize: "13px", color: "#34D399", margin: 0 }}>Signing you in…</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-widest"
-                style={{ color: "#94A3B8", fontFamily: "var(--font-syne)" }}>
-                Email
-              </label>
+          <form onSubmit={handleSubmit}>
+            {/* Email */}
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{
+                display: "block", fontSize: "11px", fontWeight: 700,
+                color: "#475569", letterSpacing: "0.12em", textTransform: "uppercase",
+                marginBottom: "8px",
+              }}>Email</label>
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 autoComplete="email"
                 required
-                className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
-                style={{ background: "rgba(15,24,41,0.8)", border: "1px solid rgba(0,212,255,0.15)", color: "#E8F0FF" }}
-                onFocus={(e) => e.currentTarget.style.borderColor = "rgba(0,212,255,0.5)"}
-                onBlur={(e) => e.currentTarget.style.borderColor = "rgba(0,212,255,0.15)"}
+                style={{
+                  width: "100%", boxSizing: "border-box",
+                  background: "rgba(8,13,26,0.9)",
+                  border: `1px solid ${email ? "rgba(0,212,255,0.35)" : "rgba(255,255,255,0.1)"}`,
+                  borderRadius: "12px", padding: "13px 16px",
+                  fontSize: "14px", color: "#E8F4FF",
+                  outline: "none", transition: "border-color 0.2s",
+                }}
+                onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.55)"}
+                onBlur={e => e.currentTarget.style.borderColor = email ? "rgba(0,212,255,0.35)" : "rgba(255,255,255,0.1)"}
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-widest"
-                style={{ color: "#94A3B8", fontFamily: "var(--font-syne)" }}>
-                Password
-              </label>
-              <div className="relative">
+            {/* Password */}
+            <div style={{ marginBottom: "24px" }}>
+              <label style={{
+                display: "block", fontSize: "11px", fontWeight: 700,
+                color: "#475569", letterSpacing: "0.12em", textTransform: "uppercase",
+                marginBottom: "8px",
+              }}>Password</label>
+              <div style={{ position: "relative" }}>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPw ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••"
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Your password"
                   autoComplete="current-password"
                   required
-                  className="w-full rounded-xl px-4 py-3 pr-11 text-sm outline-none transition-all"
-                  style={{ background: "rgba(15,24,41,0.8)", border: "1px solid rgba(0,212,255,0.15)", color: "#E8F0FF" }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = "rgba(0,212,255,0.5)"}
-                  onBlur={(e) => e.currentTarget.style.borderColor = "rgba(0,212,255,0.15)"}
+                  style={{
+                    width: "100%", boxSizing: "border-box",
+                    background: "rgba(8,13,26,0.9)",
+                    border: `1px solid ${password ? "rgba(0,212,255,0.35)" : "rgba(255,255,255,0.1)"}`,
+                    borderRadius: "12px", padding: "13px 44px 13px 16px",
+                    fontSize: "14px", color: "#E8F4FF",
+                    outline: "none", transition: "border-color 0.2s",
+                  }}
+                  onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.55)"}
+                  onBlur={e => e.currentTarget.style.borderColor = password ? "rgba(0,212,255,0.35)" : "rgba(255,255,255,0.1)"}
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: "#475569" }}>
-                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPw(!showPw)}
+                  style={{
+                    position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)",
+                    background: "none", border: "none", cursor: "pointer",
+                    fontSize: "16px", color: "#475569", padding: "2px",
+                  }}
+                >{showPw ? "🙈" : "👁"}</button>
               </div>
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading || success || !email || !password}
-              className="w-full py-3 rounded-xl text-sm font-bold mt-2 transition-all flex items-center justify-center gap-2"
               style={{
-                background: loading || success ? "rgba(0,212,255,0.4)" : "linear-gradient(135deg,#00D4FF,#0090cc)",
-                color: "#04080F",
-                fontFamily: "var(--font-syne)",
-                boxShadow: "0 0 20px rgba(0,212,255,0.3)",
-                opacity: (!email || !password) ? 0.5 : 1,
-              }}>
+                width: "100%", padding: "14px",
+                background: loading || success ? "rgba(0,212,255,0.35)"
+                  : "linear-gradient(135deg, #00D4FF, #0070BB)",
+                border: "none", borderRadius: "12px",
+                fontSize: "14px", fontWeight: 700, color: "#04080F",
+                cursor: loading || success || !email || !password ? "not-allowed" : "pointer",
+                opacity: !email || !password ? 0.55 : 1,
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                boxShadow: "0 0 24px rgba(0,212,255,0.28)",
+                transition: "opacity 0.2s",
+              }}
+            >
               {loading ? (
-                <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                </svg>Signing in…</>
+                <>
+                  <span style={{
+                    width: "14px", height: "14px", border: "2px solid rgba(4,8,15,0.3)",
+                    borderTop: "2px solid #04080F", borderRadius: "50%",
+                    animation: "th-spin 0.7s linear infinite", display: "inline-block",
+                  }} />
+                  Signing in…
+                </>
               ) : success ? "Redirecting…" : "Sign In"}
             </button>
           </form>
 
-          <p className="text-center text-xs text-slate-600 mt-5">
+          {/* Footer */}
+          <p style={{ textAlign: "center", fontSize: "13px", color: "#475569", marginTop: "20px" }}>
             No account?{" "}
-            <Link href="/signup" className="text-cyan-400 hover:text-cyan-300 transition-colors font-semibold">
+            <Link href="/signup" style={{ color: "#00D4FF", fontWeight: 600, textDecoration: "none" }}>
               Create one free
             </Link>
           </p>
         </div>
 
-        <p className="text-center text-xs text-slate-700 mt-6">© 2026 Townshub. All rights reserved.</p>
+        <p style={{ textAlign: "center", fontSize: "11px", color: "#1e293b", marginTop: "20px" }}>
+          © 2026 Townshub. All rights reserved.
+        </p>
       </div>
+
+      <style>{`@keyframes th-spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen" style={{ background: "#080D1A" }} />}>
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#060B14" }} />}>
       <LoginForm />
     </Suspense>
   );
