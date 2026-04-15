@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate Townshub Icons</title></head>
+<body>
+<script>
+function makeIcon(size) {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  // Background gradient
+  const grad = ctx.createLinearGradient(0, 0, size, size);
+  grad.addColorStop(0, "#00D4FF");
+  grad.addColorStop(1, "#0060AA");
+  ctx.fillStyle = grad;
+  const r = size * 0.18;
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(size - r, 0);
+  ctx.arcTo(size, 0, size, r, r);
+  ctx.lineTo(size, size - r);
+  ctx.arcTo(size, size, size - r, size, r);
+  ctx.lineTo(r, size);
+  ctx.arcTo(0, size, 0, size - r, r);
+  ctx.lineTo(0, r);
+  ctx.arcTo(0, 0, r, 0, r);
+  ctx.closePath();
+  ctx.fill();
+
+  // Lightning bolt ⚡
+  ctx.fillStyle = "#04080F";
+  ctx.font = `bold ${Math.round(size * 0.6)}px serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("⚡", size / 2, size / 2 + size * 0.02);
+
+  return canvas.toDataURL("image/png");
+}
+
+[16, 48, 128].forEach(size => {
+  const dataUrl = makeIcon(size);
+  const a = document.createElement("a");
+  a.href = dataUrl;
+  a.download = `icon${size}.png`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+});
+
+document.body.innerHTML = "<p style='font-family:sans-serif;padding:20px'>✅ Icons downloaded! Move them into <code>chrome-extension/icons/</code></p>";
+</script>
+</body>
+</html>

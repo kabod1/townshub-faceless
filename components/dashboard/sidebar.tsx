@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
   Sparkles,
@@ -143,7 +144,8 @@ export function Sidebar() {
       <div className={cn("px-2 pb-3 border-t border-white/5 pt-2", collapsed && "flex justify-center")}>
         <button
           onClick={async () => {
-            await fetch("/api/auth/logout", { method: "POST" });
+            const supabase = createClient();
+            await supabase.auth.signOut();
             window.location.href = "/login";
           }}
           title={collapsed ? "Sign Out" : undefined}

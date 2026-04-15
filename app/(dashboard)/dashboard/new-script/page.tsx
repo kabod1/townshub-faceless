@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useLocalStorage } from "@/lib/use-local-storage";
+import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -94,7 +94,6 @@ function NewScriptInner() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [step, setStep] = useState<"setup" | "result">("setup");
-  const [savedScripts, setSavedScripts] = useLocalStorage<SavedScript[]>("th_scripts", []);
   const [scriptSaved, setScriptSaved] = useState(false);
 
   const addNote = (type: "url" | "text") => {
@@ -180,20 +179,21 @@ function NewScriptInner() {
     navigator.clipboard.writeText(content);
   };
 
-  const saveScript = () => {
+  const saveScript = async () => {
     if (!scriptMeta || sections.length === 0) return;
-    const newScript: SavedScript = {
-      id: Date.now().toString(),
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("scripts").insert({
+      user_id: user.id,
       title: scriptMeta.title,
       niche: "General",
       format,
       words: scriptMeta.totalWords,
       duration: scriptMeta.estimatedMinutes,
-      createdAt: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
       status: "draft",
       sections: sections.map(({ id, title, content, wordCount }) => ({ id, title, content, wordCount })),
-    };
-    setSavedScripts((prev) => [newScript, ...prev]);
+    });
     setScriptSaved(true);
     setTimeout(() => setScriptSaved(false), 2500);
   };

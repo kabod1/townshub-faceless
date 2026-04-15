@@ -1,11 +1,8 @@
+import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function POST() {
-  const res = NextResponse.json({ ok: true });
-  res.cookies.set("th_auth", "", {
-    httpOnly: true,
-    maxAge: 0,
-    path: "/",
-  });
-  return res;
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  return NextResponse.redirect(new URL("/login", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"));
 }

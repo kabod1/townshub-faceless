@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useLocalStorage } from "@/lib/use-local-storage";
+import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
 import { Card, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,12 +46,38 @@ const statusCycle: Record<string, "draft" | "final" | "published"> = {
 };
 
 export default function ScriptsPage() {
-  const [scripts, setScripts, hydrated] = useLocalStorage<SavedScript[]>("th_scripts", []);
+  const [scripts, setScripts] = useState<SavedScript[]>([]);
+  const [hydrated, setHydrated] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [sortDesc, setSortDesc] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("scripts")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (data) {
+        setScripts(data.map((s) => ({
+          id: s.id,
+          title: s.title,
+          niche: s.niche || "General",
+          format: s.format || "listicle",
+          words: s.words || 0,
+          duration: s.duration || 10,
+          createdAt: new Date(s.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+          status: s.status as "draft" | "final" | "published",
+          sections: s.sections || [],
+        })));
+      }
+      setHydrated(true);
+    };
+    load();
+  }, []);
 
   const filtered = scripts
     .filter((s) => {
@@ -61,20 +87,22 @@ export default function ScriptsPage() {
       const matchFilter = filter === "all" || s.status === filter;
       return matchSearch && matchFilter;
     })
-    .sort((a, b) => sortDesc
-      ? parseInt(b.id) - parseInt(a.id)
-      : parseInt(a.id) - parseInt(b.id)
-    );
+    .sort((a, b) => sortDesc ? 1 : -1);
 
-  const deleteScript = (id: string) => {
+  const deleteScript = async (id: string) => {
+    const supabase = createClient();
+    await supabase.from("scripts").delete().eq("id", id);
     setScripts((prev) => prev.filter((s) => s.id !== id));
     if (expandedId === id) setExpandedId(null);
   };
 
-  const cycleStatus = (id: string) => {
-    setScripts((prev) =>
-      prev.map((s) => s.id === id ? { ...s, status: statusCycle[s.status] } : s)
-    );
+  const cycleStatus = async (id: string) => {
+    const script = scripts.find((s) => s.id === id);
+    if (!script) return;
+    const newStatus = statusCycle[script.status];
+    const supabase = createClient();
+    await supabase.from("scripts").update({ status: newStatus }).eq("id", id);
+    setScripts((prev) => prev.map((s) => s.id === id ? { ...s, status: newStatus } : s));
   };
 
   const copyScript = (script: SavedScript) => {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -177,8 +178,33 @@ export default function ProductionPage() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [activeStage, setActiveStage] = useState<TaskStatus | "all">("all");
 
-  const moveTask = (id: string, newStage: TaskStatus) => {
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("production_tasks")
+        .select("*")
+        .order("position", { ascending: true });
+      if (data && data.length > 0) {
+        setTasks(data.map((t) => ({
+          id: t.id,
+          title: t.title,
+          stage: t.stage as TaskStatus,
+          priority: t.priority as "high" | "medium" | "low",
+          dueDate: t.due_date,
+          assignee: t.assignee,
+          tags: t.tags || [],
+          checklist: t.checklist || [],
+        })));
+      }
+    };
+    load();
+  }, []);
+
+  const moveTask = async (id: string, newStage: TaskStatus) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, stage: newStage } : t));
+    const supabase = createClient();
+    await supabase.from("production_tasks").update({ stage: newStage }).eq("id", id);
   };
 
   const getColumnTasks = (stage: TaskStatus) => tasks.filter(t => t.stage === stage);

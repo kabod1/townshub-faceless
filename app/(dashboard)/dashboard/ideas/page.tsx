@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
 import { Card, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -113,8 +114,29 @@ export default function IdeasPage() {
     }
   };
 
-  const toggleSave = (id: string) =>
-    setIdeas((prev) => prev.map((idea) => idea.id === id ? { ...idea, saved: !idea.saved } : idea));
+  const toggleSave = async (id: string) => {
+    const idea = ideas.find((i) => i.id === id);
+    if (!idea) return;
+    const saving = !idea.saved;
+    setIdeas((prev) => prev.map((i) => i.id === id ? { ...i, saved: saving } : i));
+    if (saving) {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("video_ideas").insert({
+          user_id: user.id,
+          title: idea.title,
+          hook: idea.hook,
+          virality: idea.virality,
+          estimated_views: idea.estimatedViews,
+          niche: idea.niche,
+          format: idea.format,
+          difficulty: idea.difficulty,
+          why_it_works: idea.whyItWorks,
+        });
+      }
+    }
+  };
 
   const filtered = ideas.filter((idea) => {
     const matchSearch = !search || idea.title.toLowerCase().includes(search.toLowerCase()) || idea.niche?.toLowerCase().includes(search.toLowerCase());

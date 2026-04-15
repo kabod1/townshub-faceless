@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Townshub Analyzer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 300px;
+      background: #080D1A;
+      color: #E8F0FF;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      background: rgba(0,212,255,0.06);
+      border-bottom: 1px solid rgba(0,212,255,0.12);
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg,#00D4FF,#0090cc);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 900;
+      color: #04080F;
+      flex-shrink: 0;
+      box-shadow: 0 0 16px rgba(0,212,255,0.4);
+    }
+
+    .logo-text { font-size: 14px; font-weight: 700; color: #fff; }
+    .logo-sub  { font-size: 9px;  color: #00D4FF; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 1px; }
+
+    .body { padding: 16px; }
+
+    .status-card {
+      background: rgba(22,32,53,0.8);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    #status-icon { font-size: 24px; text-align: center; margin-bottom: 8px; }
+
+    #status-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    #status-desc {
+      font-size: 11px;
+      color: #64748b;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      text-decoration: none;
+      margin-bottom: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg,#00D4FF,#0090cc);
+      color: #04080F;
+      box-shadow: 0 0 16px rgba(0,212,255,0.3);
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.04);
+      color: #94a3b8;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.15); color: #fff; }
+
+    .tips {
+      font-size: 10px;
+      color: #334155;
+      text-align: center;
+      padding: 8px 0 4px;
+    }
+
+    .footer {
+      padding: 10px 16px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 9px;
+      color: #1e293b;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="logo-text">Townshub</div>
+      <div class="logo-sub">Channel Analyzer</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="status-card">
+      <div id="status-icon">📊</div>
+      <div id="status-title">Ready to Analyze</div>
+      <div id="status-desc">Navigate to any YouTube channel page, then click the ⚡ button to see outlier scores, video tags, monetization status, and analytics.</div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-analyze">⚡ Analyze This Channel</button>
+    <a class="btn btn-secondary" id="btn-dashboard" href="#" target="_blank">Open Dashboard →</a>
+
+    <p class="tips">Works on channel pages: /@handle, /channel/, /user/, /c/</p>
+  </div>
+
+  <div class="footer">Townshub Faceless · YouTube Growth Studio</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
