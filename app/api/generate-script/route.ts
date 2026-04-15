@@ -26,12 +26,23 @@ export async function POST(req: NextRequest) {
       }),
     });
 
+    const text = await response.text();
+
     if (!response.ok) {
-      const errorText = await response.text();
-      return NextResponse.json({ error: `n8n webhook failed: ${errorText}` }, { status: 502 });
+      return NextResponse.json({ error: `n8n webhook failed: ${text || `HTTP ${response.status}`}` }, { status: 502 });
     }
 
-    const data = await response.json();
+    if (!text || text.trim() === "") {
+      return NextResponse.json({ error: "n8n returned an empty response. Check the workflow is active and configured to return data." }, { status: 502 });
+    }
+
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return NextResponse.json({ error: `n8n returned invalid JSON: ${text.slice(0, 200)}` }, { status: 502 });
+    }
+
     return NextResponse.json(data);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
