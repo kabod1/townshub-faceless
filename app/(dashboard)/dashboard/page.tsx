@@ -1,229 +1,299 @@
 "use client";
 
 import Link from "next/link";
-import { Topbar } from "@/components/dashboard/topbar";
-import { Card, CardBody } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   PenLine, Kanban, ScrollText, Image, Compass, Zap,
-  TrendingUp, PlayCircle, ArrowRight, Star, Clock, CheckCircle2, AlertCircle
+  ArrowRight, Star, Clock, CheckCircle2,
+  Lightbulb, BarChart2, ChevronRight, Flame, Sparkles, TrendingUp
 } from "lucide-react";
 
 const stats = [
-  { label: "Scripts Left", value: "4", sub: "0 written · resets monthly", icon: PenLine, color: "cyan" },
-  { label: "Thumbnail Assets", value: "120", sub: "0 / 120 used", icon: Image, color: "coral" },
-  { label: "Video Ideas", value: "∞", sub: "AI generated daily", icon: Zap, color: "gold" },
-  { label: "Production Tasks", value: "0", sub: "Active workflows", icon: Kanban, color: "green" },
+  { label: "Scripts Remaining", value: "4", trend: "+0 this week", icon: PenLine, glow: "rgba(0,212,255,0.25)", color: "#00D4FF", bg: "rgba(0,212,255,0.08)" },
+  { label: "Video Ideas", value: "∞", trend: "AI-generated daily", icon: Lightbulb, glow: "rgba(250,204,21,0.25)", color: "#facc15", bg: "rgba(250,204,21,0.08)" },
+  { label: "Active Tasks", value: "0", trend: "Production board", icon: Kanban, glow: "rgba(167,139,250,0.25)", color: "#a78bfa", bg: "rgba(167,139,250,0.08)" },
+  { label: "Avg Outlier Score", value: "—", trend: "Connect a channel", icon: BarChart2, glow: "rgba(52,211,153,0.25)", color: "#34d399", bg: "rgba(52,211,153,0.08)" },
 ];
 
-const quickActions = [
-  { label: "Write Script", desc: "Generate research-backed scripts", href: "/dashboard/new-script", icon: PenLine, color: "from-cyan-500/20 to-cyan-600/10 border-cyan-500/20", iconColor: "text-cyan-400" },
-  { label: "Production Board", desc: "Manage your video pipeline", href: "/dashboard/production", icon: Kanban, color: "from-violet-500/20 to-violet-600/10 border-violet-500/20", iconColor: "text-violet-400" },
-  { label: "My Scripts", desc: "View and manage saved scripts", href: "/dashboard/scripts", icon: ScrollText, color: "from-orange-500/20 to-orange-600/10 border-orange-500/20", iconColor: "text-orange-400" },
-  { label: "Thumbnails", desc: "Design with AI assistance", href: "/dashboard/thumbnails", icon: Image, color: "from-pink-500/20 to-pink-600/10 border-pink-500/20", iconColor: "text-pink-400" },
-  { label: "Niche Finder", desc: "Discover high-performing niches", href: "/dashboard/niche-finder", icon: Compass, color: "from-emerald-500/20 to-emerald-600/10 border-emerald-500/20", iconColor: "text-emerald-400" },
-  { label: "Video Ideas", desc: "AI-generated viral concepts", href: "/dashboard/ideas", icon: Zap, color: "from-yellow-500/20 to-yellow-600/10 border-yellow-500/20", iconColor: "text-yellow-400" },
+const tools = [
+  { label: "Write Script", desc: "AI-powered, research-backed scripts", href: "/dashboard/new-script", icon: PenLine, color: "#00D4FF", glow: "rgba(0,212,255,0.15)" },
+  { label: "Video Ideas", desc: "Viral concepts generated for your niche", href: "/dashboard/ideas", icon: Zap, color: "#facc15", glow: "rgba(250,204,21,0.15)" },
+  { label: "Niche Finder", desc: "Discover high-performing niches", href: "/dashboard/niche-finder", icon: Compass, color: "#34d399", glow: "rgba(52,211,153,0.15)" },
+  { label: "Production Board", desc: "Manage your full video pipeline", href: "/dashboard/production", icon: Kanban, color: "#a78bfa", glow: "rgba(167,139,250,0.15)" },
+  { label: "My Scripts", desc: "View and manage saved scripts", href: "/dashboard/scripts", icon: ScrollText, color: "#fb923c", glow: "rgba(251,146,60,0.15)" },
+  { label: "Thumbnails", desc: "Design with AI assistance", href: "/dashboard/thumbnails", icon: Image, color: "#f472b6", glow: "rgba(244,114,182,0.15)" },
 ];
 
 const updates = [
-  {
-    id: 1,
-    title: "Thumbnail Studio V3 Released",
-    desc: "Introducing the all-new Thumbnail Studio with Flux.1 image generation, Analyze, Intuitive, and more.",
-    time: "3w ago",
-    tag: "New Feature",
-    tagColor: "cyan" as const,
-  },
-  {
-    id: 2,
-    title: "Chrome Extension Now Live",
-    desc: "Analyze any channel while you browse. Get outlier scores, channel analytics, video tags directly on YouTube.",
-    time: "3w ago",
-    tag: "Extension",
-    tagColor: "green" as const,
-  },
-  {
-    id: 3,
-    title: "YouTube SEO Keyword Tool",
-    desc: "Search anything on YouTube and instantly see SEO scores, search volume, competition, and related keyword opportunities.",
-    time: "3w ago",
-    tag: "Tool",
-    tagColor: "coral" as const,
-  },
+  { title: "Thumbnail Studio V3", desc: "Flux.1 image generation + intuitive canvas editor.", time: "3w ago", icon: Sparkles, color: "#00D4FF" },
+  { title: "Chrome Extension Live", desc: "Outlier scores & analytics directly on YouTube.", time: "3w ago", icon: Flame, color: "#34d399" },
+  { title: "YouTube SEO Tool", desc: "Instant SEO scores, search volume & competition data.", time: "3w ago", icon: TrendingUp, color: "#a78bfa" },
 ];
 
-const setupChecklist = [
-  { label: "Complete your style profile", done: false, href: "/dashboard/style" },
-  { label: "Add a channel profile", done: false, href: "/dashboard/style" },
-  { label: "Generate your first video idea", done: false, href: "/dashboard/ideas" },
-  { label: "Write your first script", done: false, href: "/dashboard/new-script" },
+const checklist = [
+  { label: "Complete your style profile", href: "/dashboard/style" },
+  { label: "Add a channel profile", href: "/dashboard/style" },
+  { label: "Generate your first video idea", href: "/dashboard/ideas" },
+  { label: "Write your first script", href: "/dashboard/new-script" },
 ];
 
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen">
-      <Topbar title="Dashboard" action={{ label: "Add Channel" }} />
+    <div style={{ minHeight: "100vh", background: "#080D1A", color: "#E8F4FF" }}>
 
-      <div className="p-6 max-w-7xl mx-auto space-y-8">
+      {/* ── Header ── */}
+      <div style={{
+        padding: "28px 32px 0",
+        borderBottom: "1px solid rgba(255,255,255,0.04)",
+        paddingBottom: "20px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399", display: "inline-block", boxShadow: "0 0 8px #34d399" }} />
+            <span style={{ fontSize: 11, color: "#475569", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase" }}>Workspace</span>
+          </div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px", margin: 0 }}>
+            Dashboard
+          </h1>
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <Link href="/dashboard/ideas" style={{
+            display: "flex", alignItems: "center", gap: 7,
+            padding: "9px 18px", borderRadius: 10,
+            border: "1px solid rgba(255,255,255,0.08)",
+            background: "rgba(255,255,255,0.03)",
+            color: "#94a3b8", fontSize: 13, fontWeight: 600, textDecoration: "none",
+            transition: "all 0.2s",
+          }}>
+            <Zap size={14} color="#facc15" />
+            Get Ideas
+          </Link>
+          <Link href="/dashboard/new-script" style={{
+            display: "flex", alignItems: "center", gap: 7,
+            padding: "9px 18px", borderRadius: 10,
+            background: "linear-gradient(135deg, #00D4FF, #0080cc)",
+            color: "#04080F", fontSize: 13, fontWeight: 700, textDecoration: "none",
+            boxShadow: "0 0 20px rgba(0,212,255,0.3)",
+          }}>
+            <PenLine size={14} />
+            Write Script
+          </Link>
+        </div>
+      </div>
 
-        {/* Setup Banner */}
-        <div className="rounded-xl border border-orange-500/20 bg-gradient-to-r from-orange-500/8 to-orange-600/4 p-4 flex items-center gap-4">
-          <div className="w-9 h-9 rounded-lg bg-orange-500/15 flex items-center justify-center shrink-0">
-            <AlertCircle size={18} className="text-orange-400" />
+      <div style={{ padding: "28px 32px", maxWidth: 1280, margin: "0 auto" }}>
+
+        {/* ── Setup banner ── */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 16,
+          padding: "14px 20px", borderRadius: 14,
+          background: "linear-gradient(135deg, rgba(251,146,60,0.08), rgba(251,146,60,0.04))",
+          border: "1px solid rgba(251,146,60,0.18)",
+          marginBottom: 28,
+        }}>
+          <div style={{ fontSize: 20 }}>🚀</div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: "#fdba74", margin: 0 }}>Finish setting up your workspace</p>
+            <p style={{ fontSize: 12, color: "#475569", margin: "2px 0 0" }}>Add competitor channels so Townshub can match your writing style.</p>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-orange-300 font-[family-name:var(--font-syne)]">Complete your profile to unlock all features</p>
-            <p className="text-xs text-slate-500 mt-0.5">Add competitor channels in My Style so Townshub can learn your writing style.</p>
-          </div>
-          <Link href="/dashboard/style" className="shrink-0 px-4 py-2 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-300 text-xs font-bold font-[family-name:var(--font-syne)] hover:bg-orange-500/30 transition-all">
-            Set Up My Style
+          <Link href="/dashboard/style" style={{
+            padding: "8px 16px", borderRadius: 8,
+            background: "rgba(251,146,60,0.15)", border: "1px solid rgba(251,146,60,0.25)",
+            color: "#fdba74", fontSize: 12, fontWeight: 700, textDecoration: "none",
+            whiteSpace: "nowrap",
+          }}>
+            Set Up Style →
           </Link>
         </div>
 
-        {/* Welcome Banner */}
-        <div className="rounded-2xl overflow-hidden relative border border-cyan-500/12"
-          style={{ background: "linear-gradient(135deg,rgba(22,32,53,0.98) 0%,rgba(10,16,32,1) 60%,rgba(0,20,40,1) 100%)" }}>
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/18 via-violet-600/10 to-transparent" />
-          <div className="absolute top-0 right-0 w-72 h-full opacity-25 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at 100% 50%,#00D4FF,transparent)" }} />
-          <div className="absolute inset-0 opacity-[0.025] pointer-events-none"
-            style={{ backgroundImage: "linear-gradient(rgba(0,212,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,1) 1px,transparent 1px)", backgroundSize: "40px 40px" }} />
-          <div className="relative p-6 flex items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <p className="text-xs font-bold text-slate-400 tracking-[0.15em] uppercase font-[family-name:var(--font-syne)]">Welcome back</p>
-              </div>
-              <h2 className="text-2xl font-bold text-white font-[family-name:var(--font-syne)] mb-1">
-                Towns <span style={{ color: "#00D4FF" }}>Hub</span>
-              </h2>
-              <p className="text-sm text-slate-400">Ready to create something great today?</p>
-            </div>
-            <div className="hidden sm:flex items-center gap-2 shrink-0">
-              <Link href="/dashboard/new-script"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all font-[family-name:var(--font-syne)]"
-                style={{ background: "linear-gradient(135deg,#00D4FF,#0090cc)", color: "#04080F", boxShadow: "0 0 20px rgba(0,212,255,0.25)" }}>
-                <PenLine size={14} />
-                Write Script
-              </Link>
-              <Link href="/dashboard/ideas"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border border-white/10 text-slate-300 hover:border-cyan-500/30 hover:text-white transition-all font-[family-name:var(--font-syne)]"
-                style={{ background: "rgba(255,255,255,0.03)" }}>
-                <Zap size={14} className="text-yellow-400" />
-                Get Ideas
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* ── Stats ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
           {stats.map((s) => (
-            <div key={s.label} className="rounded-xl border border-cyan-500/10 bg-gradient-to-br from-[#162035]/90 to-[#0F1829]/95 p-4 hover:border-cyan-500/20 transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-[family-name:var(--font-syne)]">{s.label}</p>
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                  s.color === "cyan" ? "bg-cyan-500/15 text-cyan-400" :
-                  s.color === "coral" ? "bg-orange-500/15 text-orange-400" :
-                  s.color === "gold" ? "bg-yellow-500/15 text-yellow-400" :
-                  "bg-emerald-500/15 text-emerald-400"
-                }`}>
-                  <s.icon size={14} />
+            <div key={s.label} style={{
+              padding: "20px", borderRadius: 16,
+              background: "linear-gradient(135deg, rgba(20,30,50,0.9), rgba(10,16,32,0.95))",
+              border: "1px solid rgba(255,255,255,0.06)",
+              position: "relative", overflow: "hidden",
+              transition: "border-color 0.2s, transform 0.2s",
+            }}>
+              <div style={{
+                position: "absolute", top: -20, right: -20,
+                width: 80, height: 80, borderRadius: "50%",
+                background: s.glow, filter: "blur(24px)",
+                pointerEvents: "none",
+              }} />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <p style={{ fontSize: 11, color: "#475569", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>{s.label}</p>
+                <div style={{ width: 32, height: 32, borderRadius: 9, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <s.icon size={15} color={s.color} />
                 </div>
               </div>
-              <p className="text-3xl font-bold text-white font-[family-name:var(--font-syne)]">{s.value}</p>
-              <p className="text-xs text-slate-500 mt-1">{s.sub}</p>
+              <p style={{ fontSize: 32, fontWeight: 800, color: "#fff", margin: "0 0 4px", letterSpacing: "-1px" }}>{s.value}</p>
+              <p style={{ fontSize: 11, color: "#334155", margin: 0 }}>{s.trend}</p>
             </div>
           ))}
         </div>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ── Main Grid ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24 }}>
 
-          {/* Getting Started + Quick Actions */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Left column */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-            {/* Getting Started */}
-            <Card>
-              <div className="p-5 border-b border-cyan-500/10">
-                <div className="flex items-center gap-2 mb-1">
-                  <PlayCircle size={16} className="text-cyan-400" />
-                  <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">Getting Started</h3>
-                </div>
-                <p className="text-xs text-slate-500">Complete these steps to get the most out of your workspace.</p>
-              </div>
-              <CardBody className="space-y-2">
-                {setupChecklist.map((item) => (
-                  <Link key={item.label} href={item.href}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/3 transition-all group">
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
-                      item.done ? "border-emerald-500 bg-emerald-500/20" : "border-slate-600 group-hover:border-cyan-500/50"
-                    }`}>
-                      {item.done && <CheckCircle2 size={12} className="text-emerald-400" />}
+            {/* Tools grid */}
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: "#334155", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>AI Tools</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                {tools.map((t) => (
+                  <Link key={t.label} href={t.href} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "20px", borderRadius: 14,
+                      background: "linear-gradient(135deg, rgba(20,30,50,0.95), rgba(10,16,32,0.98))",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      cursor: "pointer", transition: "all 0.2s",
+                      position: "relative", overflow: "hidden",
+                    }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLDivElement).style.borderColor = t.color + "44";
+                        (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)";
+                        (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                      }}
+                    >
+                      <div style={{
+                        position: "absolute", bottom: -16, right: -16,
+                        width: 60, height: 60, borderRadius: "50%",
+                        background: t.glow, filter: "blur(20px)",
+                        pointerEvents: "none",
+                      }} />
+                      <div style={{
+                        width: 36, height: 36, borderRadius: 10,
+                        background: t.glow, border: `1px solid ${t.color}30`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        marginBottom: 14,
+                      }}>
+                        <t.icon size={17} color={t.color} />
+                      </div>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", margin: "0 0 5px", letterSpacing: "-0.1px" }}>{t.label}</p>
+                      <p style={{ fontSize: 11, color: "#334155", margin: 0, lineHeight: 1.45 }}>{t.desc}</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 14 }}>
+                        <span style={{ fontSize: 11, color: t.color, fontWeight: 600 }}>Open</span>
+                        <ChevronRight size={11} color={t.color} />
+                      </div>
                     </div>
-                    <span className={`text-sm transition-colors ${item.done ? "line-through text-slate-600" : "text-slate-300 group-hover:text-white"}`}>
-                      {item.label}
-                    </span>
-                    <ArrowRight size={12} className="text-slate-600 ml-auto group-hover:text-cyan-400 transition-colors" />
                   </Link>
                 ))}
-              </CardBody>
-            </Card>
+              </div>
+            </div>
 
-            {/* Quick Actions */}
-            <div>
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 font-[family-name:var(--font-syne)]">Quick Actions</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {quickActions.map((qa) => (
-                  <Link
-                    key={qa.label}
-                    href={qa.href}
-                    className={`rounded-xl border bg-gradient-to-br ${qa.color} p-4 hover:-translate-y-0.5 transition-all group`}
-                  >
-                    <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mb-3 ${qa.iconColor}`}>
-                      <qa.icon size={16} />
+            {/* Setup checklist */}
+            <div style={{
+              borderRadius: 16,
+              background: "linear-gradient(135deg, rgba(20,30,50,0.95), rgba(10,16,32,0.98))",
+              border: "1px solid rgba(255,255,255,0.06)",
+              overflow: "hidden",
+            }}>
+              <div style={{ padding: "18px 22px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", margin: "0 0 2px" }}>Getting Started</p>
+                <p style={{ fontSize: 11, color: "#334155", margin: 0 }}>Complete these steps to unlock your full potential.</p>
+              </div>
+              <div style={{ padding: "8px 12px" }}>
+                {checklist.map((item, i) => (
+                  <Link key={i} href={item.href} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 12,
+                      padding: "12px 10px", borderRadius: 10,
+                      transition: "background 0.15s",
+                    }}
+                      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.03)"}
+                      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "transparent"}
+                    >
+                      <div style={{
+                        width: 20, height: 20, borderRadius: "50%",
+                        border: "1.5px solid rgba(255,255,255,0.12)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0,
+                      }} />
+                      <span style={{ fontSize: 13, color: "#94a3b8", flex: 1 }}>{item.label}</span>
+                      <ArrowRight size={13} color="#1e293b" />
                     </div>
-                    <p className="text-sm font-semibold text-white font-[family-name:var(--font-syne)] group-hover:text-cyan-300 transition-colors leading-tight">{qa.label}</p>
-                    <p className="text-[11px] text-slate-500 mt-1 leading-tight">{qa.desc}</p>
                   </Link>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* News & Updates */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest font-[family-name:var(--font-syne)]">News & Updates</h3>
-            <div className="space-y-3">
-              {updates.map((u) => (
-                <Card key={u.id} hover>
-                  <CardBody className="space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <Badge variant={u.tagColor}>{u.tag}</Badge>
-                      <span className="text-[11px] text-slate-600 flex items-center gap-1 shrink-0">
-                        <Clock size={10} />
-                        {u.time}
-                      </span>
-                    </div>
-                    <p className="text-sm font-semibold text-white font-[family-name:var(--font-syne)] leading-snug">{u.title}</p>
-                    <p className="text-xs text-slate-500 leading-relaxed">{u.desc}</p>
-                  </CardBody>
-                </Card>
-              ))}
-            </div>
+          {/* Right column */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
             {/* Upgrade card */}
-            <div className="rounded-xl border border-yellow-500/15 bg-gradient-to-br from-yellow-500/8 to-orange-500/5 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Star size={14} className="text-yellow-400" fill="currentColor" />
-                <p className="text-sm font-bold text-yellow-300 font-[family-name:var(--font-syne)]">Unlock Pro Features</p>
+            <div style={{
+              borderRadius: 16, padding: "22px",
+              background: "linear-gradient(135deg, rgba(250,204,21,0.07), rgba(251,146,60,0.05))",
+              border: "1px solid rgba(250,204,21,0.15)",
+              position: "relative", overflow: "hidden",
+            }}>
+              <div style={{
+                position: "absolute", top: -30, right: -30,
+                width: 100, height: 100, borderRadius: "50%",
+                background: "rgba(250,204,21,0.12)", filter: "blur(30px)",
+                pointerEvents: "none",
+              }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <Star size={15} color="#facc15" fill="#facc15" />
+                <span style={{ fontSize: 13, fontWeight: 800, color: "#fde68a" }}>Unlock Pro</span>
               </div>
-              <p className="text-xs text-slate-400 mb-3">Get 15 scripts/month, Niche Finder database, Similar Channels, and more.</p>
-              <Link href="/dashboard/billing" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold font-[family-name:var(--font-syne)] hover:shadow-[0_0_16px_rgba(255,193,7,0.35)] transition-all">
+              <p style={{ fontSize: 12, color: "#475569", lineHeight: 1.5, marginBottom: 14 }}>
+                15 scripts/month, Niche Finder database, Similar Channels, AI Thumbnail generation, and more.
+              </p>
+              <Link href="/dashboard/billing" style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "9px 18px", borderRadius: 9,
+                background: "linear-gradient(135deg, #facc15, #f59e0b)",
+                color: "#1a0a00", fontSize: 12, fontWeight: 800, textDecoration: "none",
+                boxShadow: "0 0 20px rgba(250,204,21,0.25)",
+              }}>
                 Upgrade to Pro
                 <ArrowRight size={12} />
               </Link>
             </div>
+
+            {/* News & Updates */}
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: "#334155", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>What's New</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {updates.map((u, i) => (
+                  <div key={i} style={{
+                    padding: "16px", borderRadius: 14,
+                    background: "linear-gradient(135deg, rgba(20,30,50,0.95), rgba(10,16,32,0.98))",
+                    border: "1px solid rgba(255,255,255,0.05)",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                      <div style={{
+                        width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+                        background: u.color + "18", border: `1px solid ${u.color}28`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        <u.icon size={13} color={u.color} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>{u.title}</p>
+                          <span style={{ fontSize: 10, color: "#1e293b", display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+                            <Clock size={9} />
+                            {u.time}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: 11, color: "#334155", margin: 0, lineHeight: 1.45 }}>{u.desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
