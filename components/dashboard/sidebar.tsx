@@ -2,34 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import {
-  LayoutDashboard,
-  Sparkles,
-  Lightbulb,
-  PenLine,
-  ScrollText,
-  Kanban,
-  Image,
-  Compass,
-  Users,
-  CreditCard,
-  HelpCircle,
-  Settings,
-  ChevronLeft,
-  Plus,
-  Zap,
-  LogOut,
+  LayoutDashboard, Sparkles, Lightbulb, PenLine, ScrollText,
+  Kanban, Image, Compass, Users, CreditCard, Settings,
+  Zap, LogOut, ChevronLeft,
 } from "lucide-react";
 import { useState } from "react";
 
-const navItems = [
+const nav = [
   {
     section: "WORKSPACE",
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/dashboard/style", label: "My Style & Profiles", icon: Sparkles },
+      { href: "/dashboard/style", label: "My Style", icon: Sparkles },
       { href: "/dashboard/ideas", label: "Video Ideas", icon: Lightbulb },
       { href: "/dashboard/new-script", label: "New Script", icon: PenLine },
       { href: "/dashboard/scripts", label: "My Scripts", icon: ScrollText },
@@ -48,7 +34,6 @@ const navItems = [
     items: [
       { href: "/dashboard/team", label: "Team", icon: Users },
       { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
-      { href: "/dashboard/support", label: "Support", icon: HelpCircle },
       { href: "/dashboard/settings", label: "Settings", icon: Settings },
     ],
   },
@@ -58,63 +43,95 @@ export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
+  const w = collapsed ? 64 : 220;
+
   return (
-    <aside
-      className={cn(
-        "relative flex flex-col h-screen bg-[#0A1020] border-r border-cyan-500/10 transition-all duration-300 shrink-0",
-        collapsed ? "w-[64px]" : "w-[220px]"
-      )}
-    >
+    <aside style={{
+      width: w, minWidth: w, height: "100vh",
+      background: "#070C18",
+      borderRight: "1px solid rgba(255,255,255,0.05)",
+      display: "flex", flexDirection: "column",
+      transition: "width 0.25s ease, min-width 0.25s ease",
+      position: "relative", flexShrink: 0,
+      overflow: "hidden",
+    }}>
+
       {/* Logo */}
-      <div className={cn("flex items-center gap-3 px-4 py-5 border-b border-cyan-500/10", collapsed && "justify-center px-0")}>
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(0,212,255,0.4)]">
-          <Zap size={16} className="text-[#04080F]" fill="currentColor" />
+      <div style={{
+        display: "flex", alignItems: "center",
+        gap: collapsed ? 0 : 12,
+        padding: collapsed ? "18px 0" : "18px 16px",
+        justifyContent: collapsed ? "center" : "flex-start",
+        borderBottom: "1px solid rgba(255,255,255,0.04)",
+      }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+          background: "linear-gradient(135deg, #00D4FF, #0080cc)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 0 16px rgba(0,212,255,0.4)",
+        }}>
+          <Zap size={16} color="#04080F" fill="#04080F" />
         </div>
         {!collapsed && (
           <div>
-            <p className="text-sm font-bold text-white font-[family-name:var(--font-syne)] leading-none">Townshub</p>
-            <p className="text-[10px] text-cyan-400 font-semibold tracking-widest uppercase mt-0.5">Faceless</p>
+            <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0, lineHeight: 1, letterSpacing: "-0.2px" }}>Townshub</p>
+            <p style={{ fontSize: 9, color: "#00D4FF", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", marginTop: 2 }}>FACELESS</p>
           </div>
         )}
       </div>
 
-      {/* Add Channel */}
-      {!collapsed && (
-        <div className="px-3 pt-4">
-          <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-cyan-500/20 text-cyan-500/60 hover:border-cyan-500/40 hover:text-cyan-400 text-xs font-medium transition-all">
-            <Plus size={14} />
-            Add Channel
-          </button>
-        </div>
-      )}
-
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2">
-        {navItems.map((section) => (
-          <div key={section.section} className="mb-5">
+      <nav style={{ flex: 1, overflowY: "auto", padding: "12px 8px" }}>
+        {nav.map((section) => (
+          <div key={section.section} style={{ marginBottom: 20 }}>
             {!collapsed && (
-              <p className="text-[10px] font-bold text-slate-600 tracking-[0.12em] px-3 mb-1.5 font-[family-name:var(--font-syne)]">
-                {section.section}
-              </p>
+              <p style={{
+                fontSize: 9, fontWeight: 800, color: "#1e293b",
+                letterSpacing: "0.16em", textTransform: "uppercase",
+                padding: "0 10px", marginBottom: 6, margin: "0 0 6px",
+              }}>{section.section}</p>
             )}
-            <ul className="space-y-0.5">
+            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 2 }}>
               {section.items.map(({ href, label, icon: Icon }) => {
                 const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
                 return (
                   <li key={href}>
-                    <Link
-                      href={href}
-                      title={collapsed ? label : undefined}
-                      className={cn(
-                        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150",
-                        collapsed ? "justify-center" : "",
-                        active
-                          ? "bg-cyan-500/12 text-cyan-400 border border-cyan-500/18 font-medium"
-                          : "text-slate-500 hover:bg-white/4 hover:text-slate-300"
-                      )}
-                    >
-                      <Icon size={16} className="shrink-0" />
-                      {!collapsed && <span>{label}</span>}
+                    <Link href={href} title={collapsed ? label : undefined} style={{ textDecoration: "none" }}>
+                      <div style={{
+                        display: "flex", alignItems: "center",
+                        gap: collapsed ? 0 : 9,
+                        justifyContent: collapsed ? "center" : "flex-start",
+                        padding: collapsed ? "9px 0" : "8px 10px",
+                        borderRadius: 9,
+                        background: active ? "rgba(0,212,255,0.1)" : "transparent",
+                        border: active ? "1px solid rgba(0,212,255,0.16)" : "1px solid transparent",
+                        color: active ? "#00D4FF" : "#475569",
+                        transition: "all 0.15s",
+                        cursor: "pointer",
+                      }}
+                        onMouseEnter={e => {
+                          if (!active) {
+                            (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.04)";
+                            (e.currentTarget as HTMLDivElement).style.color = "#94a3b8";
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          if (!active) {
+                            (e.currentTarget as HTMLDivElement).style.background = "transparent";
+                            (e.currentTarget as HTMLDivElement).style.color = "#475569";
+                          }
+                        }}
+                      >
+                        <Icon size={15} style={{ flexShrink: 0, color: "inherit" }} />
+                        {!collapsed && (
+                          <span style={{ fontSize: 13, fontWeight: active ? 600 : 400, color: "inherit", letterSpacing: "-0.1px" }}>
+                            {label}
+                          </span>
+                        )}
+                        {active && !collapsed && (
+                          <div style={{ marginLeft: "auto", width: 5, height: 5, borderRadius: "50%", background: "#00D4FF", flexShrink: 0 }} />
+                        )}
+                      </div>
                     </Link>
                   </li>
                 );
@@ -126,22 +143,30 @@ export function Sidebar() {
 
       {/* Plan badge */}
       {!collapsed && (
-        <div className="px-3 pb-4">
-          <div className="rounded-lg bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 border border-cyan-500/15 p-3">
-            <p className="text-xs font-bold text-cyan-400 font-[family-name:var(--font-syne)] mb-1">Starter Plan</p>
-            <div className="w-full bg-cyan-500/10 rounded-full h-1.5 mb-1.5">
-              <div className="h-full bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full" style={{ width: "20%" }} />
+        <div style={{ padding: "0 10px 12px" }}>
+          <div style={{
+            borderRadius: 12, padding: "12px 14px",
+            background: "linear-gradient(135deg, rgba(0,212,255,0.07), rgba(0,212,255,0.03))",
+            border: "1px solid rgba(0,212,255,0.12)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#00D4FF" }}>Starter Plan</span>
+              <Link href="/dashboard/billing" style={{
+                fontSize: 10, fontWeight: 700, color: "#fb923c", textDecoration: "none",
+                padding: "2px 8px", borderRadius: 5,
+                background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.2)",
+              }}>Upgrade</Link>
             </div>
-            <p className="text-[10px] text-slate-500">4 scripts remaining</p>
-            <button className="mt-2 text-[11px] font-semibold text-orange-400 hover:text-orange-300 transition-colors font-[family-name:var(--font-syne)]">
-              Upgrade →
-            </button>
+            <div style={{ width: "100%", height: 3, borderRadius: 99, background: "rgba(0,212,255,0.08)", overflow: "hidden" }}>
+              <div style={{ width: "20%", height: "100%", background: "linear-gradient(90deg, #00D4FF, #0080cc)", borderRadius: 99 }} />
+            </div>
+            <p style={{ fontSize: 10, color: "#334155", marginTop: 6 }}>4 of 5 scripts remaining</p>
           </div>
         </div>
       )}
 
       {/* Logout */}
-      <div className={cn("px-2 pb-3 border-t border-white/5 pt-2", collapsed && "flex justify-center")}>
+      <div style={{ padding: "0 8px 12px", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 8 }}>
         <button
           onClick={async () => {
             const supabase = createClient();
@@ -149,25 +174,43 @@ export function Sidebar() {
             window.location.href = "/login";
           }}
           title={collapsed ? "Sign Out" : undefined}
-          className={cn(
-            "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm w-full transition-all duration-150 text-slate-500 hover:bg-red-500/8 hover:text-red-400",
-            collapsed && "justify-center w-auto"
-          )}
+          style={{
+            display: "flex", alignItems: "center",
+            gap: collapsed ? 0 : 9,
+            justifyContent: collapsed ? "center" : "flex-start",
+            width: "100%", padding: collapsed ? "9px 0" : "8px 10px",
+            borderRadius: 9, border: "none",
+            background: "transparent", color: "#334155",
+            cursor: "pointer", transition: "all 0.15s",
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.07)";
+            (e.currentTarget as HTMLButtonElement).style.color = "#f87171";
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+            (e.currentTarget as HTMLButtonElement).style.color = "#334155";
+          }}
         >
-          <LogOut size={15} className="shrink-0" />
-          {!collapsed && <span>Sign Out</span>}
+          <LogOut size={15} style={{ flexShrink: 0 }} />
+          {!collapsed && <span style={{ fontSize: 13 }}>Sign Out</span>}
         </button>
       </div>
 
       {/* Collapse toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-[#0A1020] border border-cyan-500/20 flex items-center justify-center hover:border-cyan-500/40 transition-all"
+        style={{
+          position: "absolute", right: -12, top: 72,
+          width: 24, height: 24, borderRadius: "50%",
+          background: "#0A1020", border: "1px solid rgba(0,212,255,0.2)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: "pointer", zIndex: 10, transition: "border-color 0.2s",
+        }}
+        onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,212,255,0.4)"}
+        onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,212,255,0.2)"}
       >
-        <ChevronLeft
-          size={12}
-          className={cn("text-slate-500 transition-transform duration-300", collapsed && "rotate-180")}
-        />
+        <ChevronLeft size={11} color="#475569" style={{ transform: collapsed ? "rotate(180deg)" : "none", transition: "transform 0.25s" }} />
       </button>
     </aside>
   );

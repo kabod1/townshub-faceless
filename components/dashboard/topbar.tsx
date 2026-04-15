@@ -1,43 +1,79 @@
 "use client";
 
-import { Bell, Search, Plus } from "lucide-react";
+import { Bell } from "lucide-react";
 
 interface TopbarProps {
   title: string;
-  action?: { label: string; href?: string; onClick?: () => void };
+  subtitle?: string;
+  action?: { label: string; href?: string; onClick?: () => void; icon?: React.ReactNode };
 }
 
-export function Topbar({ title, action }: TopbarProps) {
+export function Topbar({ title, subtitle, action }: TopbarProps) {
   return (
-    <header className="h-14 flex items-center justify-between px-6 border-b border-cyan-500/10 bg-[#080D1A]/80 backdrop-blur-sm sticky top-0 z-20">
-      <h1 className="text-lg font-bold text-white font-[family-name:var(--font-syne)]">{title}</h1>
+    <header style={{
+      height: 60, display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "0 28px",
+      borderBottom: "1px solid rgba(255,255,255,0.04)",
+      background: "rgba(7,12,24,0.9)",
+      backdropFilter: "blur(12px)",
+      position: "sticky", top: 0, zIndex: 20,
+      flexShrink: 0,
+    }}>
+      <div>
+        <h1 style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.3px" }}>{title}</h1>
+        {subtitle && <p style={{ fontSize: 11, color: "#334155", margin: "2px 0 0" }}>{subtitle}</p>}
+      </div>
 
-      <div className="flex items-center gap-3">
-        {/* Search */}
-        <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/4 border border-white/8 text-slate-500 text-xs hover:border-cyan-500/20 hover:text-slate-400 transition-all">
-          <Search size={13} />
-          <span className="hidden sm:inline">Search...</span>
-          <kbd className="hidden sm:inline text-[10px] bg-white/5 px-1.5 py-0.5 rounded border border-white/10">⌘K</kbd>
-        </button>
-
-        {/* Notifications */}
-        <button className="relative w-8 h-8 flex items-center justify-center rounded-lg border border-white/8 text-slate-500 hover:border-cyan-500/20 hover:text-slate-400 transition-all">
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <button style={{
+          position: "relative", width: 34, height: 34,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          borderRadius: 9, border: "1px solid rgba(255,255,255,0.06)",
+          background: "transparent", cursor: "pointer", color: "#475569",
+          transition: "all 0.2s",
+        }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,212,255,0.2)";
+            (e.currentTarget as HTMLButtonElement).style.color = "#94a3b8";
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.06)";
+            (e.currentTarget as HTMLButtonElement).style.color = "#475569";
+          }}
+        >
           <Bell size={15} />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-orange-400 rounded-full" />
+          <span style={{
+            position: "absolute", top: 8, right: 8,
+            width: 6, height: 6, borderRadius: "50%",
+            background: "#f97316", border: "1px solid #070C18",
+          }} />
         </button>
 
-        {/* Avatar */}
-        <button className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold font-[family-name:var(--font-syne)] shadow-[0_0_12px_rgba(255,107,53,0.3)]">
-          T
-        </button>
+        <div style={{
+          width: 34, height: 34, borderRadius: "50%",
+          background: "linear-gradient(135deg, #f97316, #dc2626)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 13, fontWeight: 800, color: "#fff",
+          boxShadow: "0 0 12px rgba(249,115,22,0.3)",
+          cursor: "pointer",
+        }}>T</div>
 
-        {/* Action */}
         {action && (
           <button
             onClick={action.onClick}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-cyan-600 text-[#04080F] text-xs font-bold font-[family-name:var(--font-syne)] hover:shadow-[0_0_16px_rgba(0,212,255,0.35)] transition-all"
+            style={{
+              display: "flex", alignItems: "center", gap: 7,
+              padding: "8px 16px", borderRadius: 9,
+              background: "linear-gradient(135deg, #00D4FF, #0080cc)",
+              border: "none", color: "#04080F", fontSize: 12,
+              fontWeight: 700, cursor: "pointer",
+              boxShadow: "0 0 16px rgba(0,212,255,0.25)",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 24px rgba(0,212,255,0.4)"}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 16px rgba(0,212,255,0.25)"}
           >
-            <Plus size={13} />
+            {action.icon}
             {action.label}
           </button>
         )}
