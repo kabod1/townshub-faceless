@@ -50,10 +50,8 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#080D1A" }}>
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full opacity-15"
-          style={{ background: "radial-gradient(ellipse,#00D4FF,transparent)", filter: "blur(80px)" }} />
-        <div className="absolute bottom-0 right-1/4 w-[300px] h-[200px] rounded-full opacity-10"
-          style={{ background: "radial-gradient(ellipse,#A78BFA,transparent)", filter: "blur(60px)" }} />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[250px] rounded-full opacity-8"
+          style={{ background: "radial-gradient(ellipse,#00D4FF,transparent)", filter: "blur(100px)" }} />
       </div>
 
       <div className="relative w-full max-w-sm">
