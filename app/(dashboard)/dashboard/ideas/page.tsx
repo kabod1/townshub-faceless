@@ -1,17 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
-import { Card, CardBody } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Lightbulb, Zap, TrendingUp, Eye, BookmarkPlus,
-  ArrowRight, RefreshCw, Search, Flame, Clock, Star, AlertCircle
+  ArrowRight, RefreshCw, Search, Flame, Star, AlertCircle, PenLine,
 } from "lucide-react";
-import Link from "next/link";
 
 interface VideoIdea {
   id: string;
@@ -34,30 +30,30 @@ const GENERATE_STEPS = [
   "Finalising ideas…",
 ];
 
+const diffColor: Record<string, string> = {
+  Easy: "#34d399", Medium: "#facc15", Hard: "#f87171",
+};
+const diffBg: Record<string, string> = {
+  Easy: "rgba(52,211,153,0.1)", Medium: "rgba(250,204,21,0.1)", Hard: "rgba(248,113,113,0.1)",
+};
+const diffBorder: Record<string, string> = {
+  Easy: "rgba(52,211,153,0.2)", Medium: "rgba(250,204,21,0.2)", Hard: "rgba(248,113,113,0.2)",
+};
+
 function ViralityBar({ score }: { score: number }) {
   const color =
-    score >= 90 ? "from-emerald-400 to-emerald-500"
-    : score >= 80 ? "from-cyan-400 to-cyan-500"
-    : "from-yellow-400 to-yellow-500";
+    score >= 90 ? "linear-gradient(90deg, #34d399, #10b981)"
+    : score >= 80 ? "linear-gradient(90deg, #00D4FF, #0080cc)"
+    : "linear-gradient(90deg, #facc15, #f59e0b)";
   const textColor =
-    score >= 90 ? "text-emerald-400"
-    : score >= 80 ? "text-cyan-400"
-    : "text-yellow-400";
+    score >= 90 ? "#34d399" : score >= 80 ? "#00D4FF" : "#facc15";
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
-        <div className={`h-full bg-gradient-to-r ${color}`} style={{ width: `${score}%` }} />
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ flex: 1, height: 5, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+        <div style={{ height: "100%", borderRadius: 99, width: `${score}%`, background: color }} />
       </div>
-      <span className={`text-xs font-bold font-[family-name:var(--font-syne)] ${textColor}`}>{score}</span>
+      <span style={{ fontSize: 12, fontWeight: 800, color: textColor, minWidth: 24, textAlign: "right" }}>{score}</span>
     </div>
-  );
-}
-
-function PenLine({ size, className }: { size: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-    </svg>
   );
 }
 
@@ -72,46 +68,29 @@ export default function IdeasPage() {
   const [hasGenerated, setHasGenerated] = useState(false);
 
   const handleGenerate = async () => {
-    setGenerating(true);
-    setError(null);
-    setGeneratingStep(0);
-
-    const interval = setInterval(() => {
-      setGeneratingStep((s) => Math.min(s + 1, GENERATE_STEPS.length - 1));
-    }, 2000);
-
+    setGenerating(true); setError(null); setGeneratingStep(0);
+    const interval = setInterval(() => setGeneratingStep((s) => Math.min(s + 1, GENERATE_STEPS.length - 1)), 2000);
     try {
       const res = await fetch("/api/generate-ideas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ niche: niche || "faceless YouTube content creation", count: 6 }),
       });
-
       clearInterval(interval);
-
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
         throw new Error(err.error || `Server error ${res.status}`);
       }
-
       const json = await res.json();
       const data = json.data || json;
       const rawIdeas: VideoIdea[] = (data.ideas || []).map((idea: VideoIdea, i: number) => ({
-        ...idea,
-        id: idea.id || String(i + 1),
-        saved: false,
+        ...idea, id: idea.id || String(i + 1), saved: false,
       }));
-
       if (!rawIdeas.length) throw new Error("No ideas returned. Please try again.");
-
-      setIdeas(rawIdeas);
-      setHasGenerated(true);
+      setIdeas(rawIdeas); setHasGenerated(true);
     } catch (err: unknown) {
       clearInterval(interval);
       setError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setGenerating(false);
-    }
+    } finally { setGenerating(false); }
   };
 
   const toggleSave = async (id: string) => {
@@ -124,14 +103,9 @@ export default function IdeasPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from("video_ideas").insert({
-          user_id: user.id,
-          title: idea.title,
-          hook: idea.hook,
-          virality: idea.virality,
-          estimated_views: idea.estimatedViews,
-          niche: idea.niche,
-          format: idea.format,
-          difficulty: idea.difficulty,
+          user_id: user.id, title: idea.title, hook: idea.hook,
+          virality: idea.virality, estimated_views: idea.estimatedViews,
+          niche: idea.niche, format: idea.format, difficulty: idea.difficulty,
           why_it_works: idea.whyItWorks,
         });
       }
@@ -140,10 +114,7 @@ export default function IdeasPage() {
 
   const filtered = ideas.filter((idea) => {
     const matchSearch = !search || idea.title.toLowerCase().includes(search.toLowerCase()) || idea.niche?.toLowerCase().includes(search.toLowerCase());
-    const matchFilter =
-      filter === "all" ||
-      (filter === "saved" && idea.saved) ||
-      (filter === "easy" && idea.difficulty === "Easy");
+    const matchFilter = filter === "all" || (filter === "saved" && idea.saved) || (filter === "easy" && idea.difficulty === "Easy");
     return matchSearch && matchFilter;
   });
 
@@ -151,73 +122,90 @@ export default function IdeasPage() {
     ? Math.round(ideas.reduce((a, i) => a + i.virality, 0) / ideas.length * 10) / 10
     : null;
 
+  const card: React.CSSProperties = {
+    background: "linear-gradient(135deg, rgba(15,24,42,0.97), rgba(8,13,26,0.99))",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: 16,
+  };
+
   return (
-    <div className="min-h-screen">
-      <Topbar title="Video Ideas" />
+    <div style={{ minHeight: "100vh", background: "#080D1A" }}>
+      <Topbar title="Video Ideas" subtitle="AI-ranked ideas based on your niche and competitor channels" />
 
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div style={{ padding: "28px 32px", maxWidth: 1100, margin: "0 auto" }}>
 
-        {/* Hero / Generator card */}
-        <div className="rounded-xl relative overflow-hidden border border-cyan-500/15 bg-gradient-to-br from-[#162035] to-[#0F1829] p-6">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400/20 to-yellow-600/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
-              <Lightbulb size={22} className="text-yellow-400" />
+        {/* Generator card */}
+        <div style={{
+          ...card, padding: "24px 28px", marginBottom: 24,
+          border: "1px solid rgba(250,204,21,0.12)", position: "relative", overflow: "hidden",
+        }}>
+          <div style={{ position: "absolute", top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", background: "rgba(250,204,21,0.05)", filter: "blur(50px)", pointerEvents: "none" }} />
+
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 13, background: "rgba(250,204,21,0.1)", border: "1px solid rgba(250,204,21,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Lightbulb size={22} color="#facc15" />
             </div>
-            <div className="flex-1">
-              <h2 className="text-lg font-bold text-white font-[family-name:var(--font-syne)]">AI Video Ideas</h2>
-              <p className="text-sm text-slate-400 mt-0.5">
+            <div>
+              <p style={{ fontSize: 16, fontWeight: 800, color: "#e2e8f0", margin: 0 }}>AI Video Ideas</p>
+              <p style={{ fontSize: 12, color: "#475569", margin: "3px 0 0" }}>
                 Enter your niche and our AI analyses competitor channels and trending content to generate ideas ranked by viral potential.
               </p>
             </div>
           </div>
 
-          <div className="relative flex flex-col sm:flex-row gap-3 mt-5">
+          <div style={{ display: "flex", gap: 10 }}>
             <input
               value={niche}
               onChange={(e) => setNiche(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !generating && handleGenerate()}
               placeholder="e.g. personal finance, AI tools, stoicism, faceless YouTube…"
-              className="flex-1 bg-[#0A1020]/80 border border-cyan-500/15 rounded-lg px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500/45 transition-all"
+              style={{
+                flex: 1, background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 10, padding: "11px 16px", color: "#e2e8f0", fontSize: 13, outline: "none",
+              }}
+              onFocus={(e) => e.currentTarget.style.borderColor = "rgba(250,204,21,0.35)"}
+              onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
             />
-            <Button
-              size="lg"
-              loading={generating}
+            <button
               onClick={handleGenerate}
-              icon={generating ? undefined : <Zap size={16} fill="currentColor" />}
-              className="shrink-0"
+              disabled={generating}
+              style={{
+                display: "flex", alignItems: "center", gap: 8, padding: "11px 22px",
+                borderRadius: 10, border: "none", cursor: generating ? "not-allowed" : "pointer",
+                background: generating ? "rgba(0,212,255,0.3)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
+                color: "#04080F", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap",
+                boxShadow: generating ? "none" : "0 0 20px rgba(0,212,255,0.25)",
+              }}
             >
-              {generating ? GENERATE_STEPS[generatingStep] : "Generate Video Ideas"}
-            </Button>
+              {generating
+                ? <><RefreshCw size={13} style={{ animation: "spin 0.7s linear infinite" }} /> {GENERATE_STEPS[generatingStep]}</>
+                : <><Zap size={13} fill="#04080F" /> Generate Video Ideas</>
+              }
+            </button>
           </div>
 
-          {/* Progress bar when generating */}
           {generating && (
-            <div className="relative mt-3">
-              <div className="w-full bg-white/5 rounded-full h-1">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 transition-all duration-[2000ms] ease-out"
-                  style={{ width: `${((generatingStep + 1) / GENERATE_STEPS.length) * 100}%` }}
-                />
+            <div style={{ marginTop: 14 }}>
+              <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+                <div style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #facc15, #00D4FF)", transition: "width 2000ms ease-out", width: `${((generatingStep + 1) / GENERATE_STEPS.length) * 100}%` }} />
               </div>
-              <p className="text-[11px] text-slate-500 mt-1.5">Using GPT-4o · Usually 10–20 seconds</p>
+              <p style={{ fontSize: 11, color: "#334155", marginTop: 6 }}>Using GPT-4o · Usually 10–20 seconds</p>
             </div>
           )}
 
-          {/* Stats row — shown after generation */}
           {hasGenerated && ideas.length > 0 && (
-            <div className="relative flex gap-6 mt-5 pt-4 border-t border-white/5">
+            <div style={{ display: "flex", gap: 28, marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
               {[
-                { label: "Ideas Generated", value: ideas.length.toString(), icon: Lightbulb, color: "text-yellow-400" },
-                { label: "Avg. Virality Score", value: avgVirality?.toString() ?? "—", icon: Flame, color: "text-orange-400" },
-                { label: "Saved Ideas", value: ideas.filter((i) => i.saved).length.toString(), icon: Star, color: "text-cyan-400" },
-                { label: "High Potential (90+)", value: ideas.filter((i) => i.virality >= 90).length.toString(), icon: TrendingUp, color: "text-emerald-400" },
+                { label: "Ideas Generated", value: String(ideas.length), icon: Lightbulb, color: "#facc15" },
+                { label: "Avg. Virality Score", value: String(avgVirality ?? "—"), icon: Flame, color: "#fb923c" },
+                { label: "Saved Ideas", value: String(ideas.filter((i) => i.saved).length), icon: Star, color: "#00D4FF" },
+                { label: "High Potential (90+)", value: String(ideas.filter((i) => i.virality >= 90).length), icon: TrendingUp, color: "#34d399" },
               ].map((s) => (
-                <div key={s.label} className="flex items-center gap-2">
-                  <s.icon size={13} className={s.color} />
+                <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <s.icon size={13} color={s.color} />
                   <div>
-                    <p className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">{s.value}</p>
-                    <p className="text-[10px] text-slate-500">{s.label}</p>
+                    <p style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0 }}>{s.value}</p>
+                    <p style={{ fontSize: 10, color: "#334155", margin: 0 }}>{s.label}</p>
                   </div>
                 </div>
               ))}
@@ -227,48 +215,55 @@ export default function IdeasPage() {
 
         {/* Error */}
         {error && (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-4 flex items-start gap-3">
-            <AlertCircle size={15} className="text-red-400 shrink-0 mt-0.5" />
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 18px", borderRadius: 12, background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", marginBottom: 20 }}>
+            <AlertCircle size={15} color="#f87171" style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
-              <p className="text-sm font-semibold text-red-300 font-[family-name:var(--font-syne)]">Generation Failed</p>
-              <p className="text-xs text-slate-400 mt-0.5">{error}</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "#fca5a5", margin: 0 }}>Generation Failed</p>
+              <p style={{ fontSize: 12, color: "#94a3b8", margin: "3px 0 0" }}>{error}</p>
             </div>
           </div>
         )}
 
-        {/* Empty state before first generation */}
+        {/* Empty state */}
         {!hasGenerated && !generating && (
-          <Card>
-            <CardBody className="py-16 text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center mx-auto">
-                <Lightbulb size={24} className="text-yellow-400" />
-              </div>
-              <div>
-                <p className="text-base font-bold text-slate-300 font-[family-name:var(--font-syne)]">Generate Viral Video Ideas</p>
-                <p className="text-sm text-slate-500 mt-1.5 max-w-sm mx-auto leading-relaxed">
-                  The AI will analyse your niche, competitor channels, and their top-performing videos to generate ideas ranked by viral potential.
-                </p>
-              </div>
-              <Button onClick={handleGenerate} icon={<Zap size={14} fill="currentColor" />}>
-                Generate Video Ideas
-              </Button>
-            </CardBody>
-          </Card>
+          <div style={{ ...card, padding: "80px 20px", textAlign: "center" }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(250,204,21,0.08)", border: "1px solid rgba(250,204,21,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <Lightbulb size={24} color="#facc15" />
+            </div>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "#94a3b8", margin: "0 0 8px" }}>Generate Viral Video Ideas</p>
+            <p style={{ fontSize: 13, color: "#334155", margin: "0 0 24px", maxWidth: 420, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
+              The AI will analyse your niche, competitor channels, and their top-performing videos to generate ideas ranked by viral potential.
+            </p>
+            <button
+              onClick={handleGenerate}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #00D4FF, #0080cc)", color: "#04080F", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+            >
+              <Zap size={14} fill="#04080F" /> Generate Video Ideas
+            </button>
+          </div>
         )}
 
         {/* Results */}
         {hasGenerated && ideas.length > 0 && (
           <>
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Input
-                placeholder="Search ideas…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                icon={<Search size={14} />}
-                className="sm:w-64"
-              />
-              <div className="flex gap-2">
+            <div style={{ display: "flex", gap: 10, marginBottom: 20, alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ position: "relative" }}>
+                <Search size={13} color="#475569" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search ideas…"
+                  style={{
+                    background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 10, padding: "9px 14px 9px 34px", color: "#e2e8f0", fontSize: 13,
+                    outline: "none", width: 240,
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = "rgba(0,212,255,0.3)"}
+                  onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
+                />
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
                 {[
                   { id: "all", label: "All Ideas" },
                   { id: "saved", label: "Saved" },
@@ -277,11 +272,13 @@ export default function IdeasPage() {
                   <button
                     key={f.id}
                     onClick={() => setFilter(f.id)}
-                    className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all font-[family-name:var(--font-syne)] ${
-                      filter === f.id
-                        ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/25"
-                        : "bg-white/3 text-slate-500 border border-white/8 hover:border-white/15"
-                    }`}
+                    style={{
+                      padding: "8px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600,
+                      cursor: "pointer", border: "none", transition: "all 0.15s",
+                      background: filter === f.id ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.03)",
+                      color: filter === f.id ? "#00D4FF" : "#475569",
+                      outline: filter === f.id ? "1px solid rgba(0,212,255,0.2)" : "1px solid rgba(255,255,255,0.06)",
+                    }}
                   >
                     {f.label}
                   </button>
@@ -289,72 +286,79 @@ export default function IdeasPage() {
               </div>
             </div>
 
-            {/* Ideas Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Ideas grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 24 }}>
               {filtered.map((idea) => (
-                <div
-                  key={idea.id}
-                  className="rounded-xl border border-cyan-500/10 bg-gradient-to-br from-[#162035]/90 to-[#0F1829]/95 overflow-hidden transition-all duration-300 hover:border-cyan-500/25 hover:-translate-y-0.5"
-                >
-                  <div className="p-5">
-                    <div className="flex items-start gap-2 mb-3">
-                      <div className="flex-1 flex flex-wrap gap-1.5">
-                        <Badge variant={idea.virality >= 90 ? "green" : "cyan"}>{idea.format || "Video"}</Badge>
-                        {idea.niche && <Badge variant="neutral">{idea.niche}</Badge>}
-                        <Badge variant={idea.difficulty === "Easy" ? "green" : idea.difficulty === "Medium" ? "coral" : "purple"}>
-                          {idea.difficulty}
-                        </Badge>
-                      </div>
+                <div key={idea.id} style={{ ...card, overflow: "hidden" }}>
+                  <div style={{ padding: "20px" }}>
+
+                    {/* Badges row */}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+                      <span style={{ fontSize: 10, padding: "3px 10px", borderRadius: 99, background: "rgba(0,212,255,0.1)", color: "#7dd3fc", border: "1px solid rgba(0,212,255,0.2)" }}>
+                        {idea.format || "Video"}
+                      </span>
+                      {idea.niche && (
+                        <span style={{ fontSize: 10, padding: "3px 10px", borderRadius: 99, background: "rgba(255,255,255,0.04)", color: "#64748b", border: "1px solid rgba(255,255,255,0.07)" }}>
+                          {idea.niche}
+                        </span>
+                      )}
+                      <span style={{ fontSize: 10, padding: "3px 10px", borderRadius: 99, background: diffBg[idea.difficulty], color: diffColor[idea.difficulty], border: `1px solid ${diffBorder[idea.difficulty]}` }}>
+                        {idea.difficulty}
+                      </span>
                     </div>
 
-                    <h3 className="text-sm font-bold text-white leading-snug mb-2 font-[family-name:var(--font-syne)]">
-                      {idea.title}
-                    </h3>
+                    {/* Title */}
+                    <p style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", margin: "0 0 10px", lineHeight: 1.4 }}>{idea.title}</p>
 
+                    {/* Hook */}
                     {idea.hook && (
-                      <p className="text-xs text-slate-400 leading-relaxed mb-3">
-                        <span className="text-cyan-500 font-medium">Hook: </span>{idea.hook}
+                      <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5, margin: "0 0 10px" }}>
+                        <span style={{ color: "#00D4FF", fontWeight: 600 }}>Hook: </span>{idea.hook}
                       </p>
                     )}
 
+                    {/* Why it works */}
                     {idea.whyItWorks && (
-                      <p className="text-xs text-slate-500 italic leading-relaxed mb-3">
-                        {idea.whyItWorks}
-                      </p>
+                      <p style={{ fontSize: 11, color: "#475569", fontStyle: "italic", lineHeight: 1.5, margin: "0 0 12px" }}>{idea.whyItWorks}</p>
                     )}
 
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[11px] text-slate-500 font-[family-name:var(--font-syne)] font-semibold uppercase tracking-widest">
-                          Viral Potential
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <Eye size={11} className="text-slate-600" />
-                          <span className="text-xs text-slate-400">{idea.estimatedViews} views</span>
+                    {/* Virality */}
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: "#334155", letterSpacing: "0.12em", textTransform: "uppercase" }}>Viral Potential</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <Eye size={11} color="#334155" />
+                          <span style={{ fontSize: 11, color: "#475569" }}>{idea.estimatedViews} views</span>
                         </div>
                       </div>
                       <ViralityBar score={idea.virality} />
                     </div>
 
-                    <div className="flex gap-2">
+                    {/* Actions */}
+                    <div style={{ display: "flex", gap: 8 }}>
                       <button
                         onClick={() => toggleSave(idea.id)}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all border ${
-                          idea.saved
-                            ? "bg-cyan-500/15 border-cyan-500/30 text-cyan-300"
-                            : "border-white/8 text-slate-500 hover:border-white/15 hover:text-slate-300"
-                        }`}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 6, padding: "8px 14px",
+                          borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: "pointer", border: "none",
+                          background: idea.saved ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.04)",
+                          color: idea.saved ? "#00D4FF" : "#475569",
+                          outline: idea.saved ? "1px solid rgba(0,212,255,0.2)" : "1px solid rgba(255,255,255,0.06)",
+                          transition: "all 0.15s",
+                        }}
                       >
-                        <BookmarkPlus size={12} />
-                        {idea.saved ? "Saved" : "Save"}
+                        <BookmarkPlus size={12} /> {idea.saved ? "Saved" : "Save"}
                       </button>
                       <Link
                         href={`/dashboard/new-script?idea=${encodeURIComponent(idea.title)}`}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-cyan-500/15 to-cyan-600/10 border border-cyan-500/25 text-cyan-300 text-xs font-bold font-[family-name:var(--font-syne)] hover:from-cyan-500/20 transition-all"
+                        style={{
+                          flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+                          gap: 6, padding: "8px 14px", borderRadius: 9, textDecoration: "none",
+                          background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.18)",
+                          color: "#7dd3fc", fontSize: 12, fontWeight: 700,
+                        }}
                       >
-                        <PenLine size={12} />
-                        Write Script
-                        <ArrowRight size={11} className="ml-auto" />
+                        <PenLine size={12} /> Write Script <ArrowRight size={11} style={{ marginLeft: "auto" }} />
                       </Link>
                     </div>
                   </div>
@@ -363,19 +367,20 @@ export default function IdeasPage() {
             </div>
 
             {/* Regenerate */}
-            <div className="text-center">
+            <div style={{ textAlign: "center" }}>
               <button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-cyan-400 transition-colors disabled:opacity-50"
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: "#334155", background: "none", border: "none", cursor: generating ? "not-allowed" : "pointer", opacity: generating ? 0.5 : 1 }}
               >
-                <RefreshCw size={14} className={generating ? "animate-spin" : ""} />
+                <RefreshCw size={14} style={generating ? { animation: "spin 0.7s linear infinite" } : {}} />
                 {generating ? "Generating…" : "Generate a new batch of ideas"}
               </button>
             </div>
           </>
         )}
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
