@@ -3,598 +3,540 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
-  Zap, PenLine, Kanban, Image as Img, Compass, Puzzle,
-  CheckCircle2, ArrowRight, Star, Crown, TrendingUp, Play,
-  Lightbulb, Sparkles, Users, Shield, Clock, ChevronRight,
-  BarChart3, X, Check, Flame,
+  Zap, PenLine, Kanban, ImageIcon, Compass, Puzzle,
+  ArrowRight, Star, Crown, TrendingUp, Play,
+  Lightbulb, Sparkles, Users, Shield, Clock, Check,
+  ChevronRight, BarChart3, FileText, Flame,
 } from "lucide-react";
 
 /* ─── Data ───────────────────────────────────────────────────────────────── */
 
-const TICKER = [
-  "AI Script Writer","Viral Ideas Engine","Niche Finder","Thumbnail Studio",
-  "Production Board","Chrome Extension","Style Profiles","Team Collaboration","Channel Analytics",
-];
-
-const STATS = [
-  { value: "2,400+", label: "Active Creators",           color: "#00D4FF" },
-  { value: "$2M+",   label: "Earned by Our Community",   color: "#34D399" },
-  { value: "4.9★",   label: "Average Rating",             color: "#FACC15" },
-  { value: "< 30s",  label: "Script Generation",          color: "#A78BFA" },
-];
-
-const COMPARISON = [
-  { before: "6+ hours writing scripts manually",           after: "Full script ready in under 30 seconds" },
-  { before: "Guessing what topics will actually go viral", after: "AI-ranked ideas sorted by viral score" },
-  { before: "Generic thumbnails that get ignored",         after: "AI-generated thumbnails with Flux.1" },
-  { before: "Chaos — spreadsheets, notes, no system",     after: "One production board for every video" },
-  { before: "Months researching niches with no data",      after: "Niche database: RPM + competition scores" },
+const TICKER_ITEMS = [
+  "AI Script Writer", "Viral Ideas Engine", "Niche Finder",
+  "Thumbnail Studio", "Production Board", "Chrome Extension",
+  "Style Profiles", "Team Collaboration", "Channel Analytics",
+  "AI Script Writer", "Viral Ideas Engine", "Niche Finder",
+  "Thumbnail Studio", "Production Board", "Chrome Extension",
+  "Style Profiles", "Team Collaboration", "Channel Analytics",
 ];
 
 const FEATURES = [
   {
-    id:"script", icon: PenLine, title:"AI Script Writer",
-    desc:"Research-backed scripts section by section. Hooks, body, CTAs — optimised for maximum watch time.",
-    accent:"#00D4FF", glow:"rgba(0,212,255,0.1)", border:"rgba(0,212,255,0.2)", tag:"Most Used",
+    icon: PenLine,
+    title: "AI Script Writer",
+    desc: "Research-backed scripts with retention-optimised hooks, body, and CTAs — in under 30 seconds.",
+    tag: "Most Used",
   },
   {
-    id:"ideas", icon: Lightbulb, title:"Viral Video Ideas",
-    desc:"AI analyses your niche and competitors to rank every idea by viral potential before you start.",
-    accent:"#FACC15", glow:"rgba(250,204,21,0.08)", border:"rgba(250,204,21,0.18)", tag:null,
+    icon: Lightbulb,
+    title: "Viral Video Ideas",
+    desc: "AI ranks every idea by viral potential using real competitor data before you invest a single hour.",
   },
   {
-    id:"thumbs", icon: Img, title:"Thumbnail Studio",
-    desc:"Canva-style editor with Flux.1 AI generation. Style presets trained on your niche.",
-    accent:"#EC4899", glow:"rgba(236,72,153,0.08)", border:"rgba(236,72,153,0.18)", tag:null,
+    icon: ImageIcon,
+    title: "Thumbnail Studio",
+    desc: "Canva-style editor + Flux.1 AI generation. Style presets trained on your niche and competitors.",
   },
   {
-    id:"niche", icon: Compass, title:"Niche Finder",
-    desc:"Discover untapped niches with RPM data, competition scores, and 12-month growth trends.",
-    accent:"#34D399", glow:"rgba(52,211,153,0.08)", border:"rgba(52,211,153,0.18)", tag:null,
+    icon: Compass,
+    title: "Niche Finder",
+    desc: "Discover untapped niches with RPM data, competition scores, and 12-month growth trend analysis.",
   },
   {
-    id:"board", icon: Kanban, title:"Production Board",
-    desc:"Kanban pipeline from idea to upload. Deadlines, tasks, team — every video tracked.",
-    accent:"#A78BFA", glow:"rgba(167,139,250,0.08)", border:"rgba(167,139,250,0.18)", tag:null,
+    icon: Kanban,
+    title: "Production Board",
+    desc: "Kanban pipeline from idea to upload. Set deadlines, assign tasks, and ship every week.",
   },
   {
-    id:"ext", icon: Puzzle, title:"Chrome Extension",
-    desc:"Outlier scores, tags, and analytics overlaid on YouTube as you browse — no tab switching.",
-    accent:"#FB923C", glow:"rgba(251,146,60,0.08)", border:"rgba(251,146,60,0.18)", tag:null,
+    icon: Puzzle,
+    title: "Chrome Extension",
+    desc: "Outlier scores, tags, and channel analytics overlaid directly on YouTube as you browse.",
+  },
+];
+
+const STEPS = [
+  {
+    n: "01",
+    title: "Set Up Your Style",
+    desc: "Add competitor channels and we'll analyse their scripts to build your unique writing voice and DNA.",
+  },
+  {
+    n: "02",
+    title: "Generate & Refine",
+    desc: "Write scripts in seconds. Design thumbnails. Use the niche finder to lock in the right audience.",
+  },
+  {
+    n: "03",
+    title: "Produce & Ship",
+    desc: "Track every video on your board. Set deadlines, collaborate, and publish consistently every week.",
   },
 ];
 
 const TESTIMONIALS = [
   {
-    quote:"I went from 0 to 8,200 subs in 3 months. The script quality blows every other tool out of the water.",
-    name:"Alex M.", handle:"@AlexFinance", role:"Finance · 8.2K subs",
-    metric:"+8.2K in 90 days", avatar:"A", from:"#00D4FF", to:"#0284C7", accent:"#00D4FF",
+    quote: "I went from 0 to 8,200 subscribers in 3 months. The script quality blows every other tool out of the water. I tried 3 competitors before switching.",
+    name: "Alex M.",
+    role: "Finance Niche · 8.2K subs",
+    avatar: "A",
+    result: "+8.2K in 90 days",
   },
   {
-    quote:"Niche finder saved me months. Found a $12 RPM niche in 10 minutes. First video hit 40K views.",
-    name:"Sarah K.", handle:"@SarahTech", role:"Tech · 22K subs",
-    metric:"40K views, 1st video", avatar:"S", from:"#8B5CF6", to:"#6D28D9", accent:"#A78BFA",
+    quote: "The niche finder saved me months of research. Found a $12 RPM niche in under 10 minutes. My first Townshub script hit 40K views.",
+    name: "Sarah K.",
+    role: "Tech Explainer · 22K subs",
+    avatar: "S",
+    result: "40K views, 1st video",
   },
   {
-    quote:"Production board changed everything. We ship 3 videos a week now. Before: couldn't even do 1.",
-    name:"James T.", handle:"@JamesMotivates", role:"Motivation · 41K subs",
-    metric:"3 videos/week shipped", avatar:"J", from:"#34D399", to:"#059669", accent:"#34D399",
+    quote: "Production board changed everything for my team. We now ship 3 videos a week without chaos. Before Townshub we struggled to do even one.",
+    name: "James T.",
+    role: "Motivation Niche · 41K subs",
+    avatar: "J",
+    result: "3 videos/week",
   },
   {
-    quote:"Cut script writing from 6 hours to under 1. It literally sounds like me. Game-changer.",
-    name:"Maya R.", handle:"@MayaCreates", role:"Lifestyle · 18K subs",
-    metric:"6h → under 1h", avatar:"M", from:"#EC4899", to:"#BE185D", accent:"#EC4899",
+    quote: "Cut my script writing time from 6 hours to under 1. It actually sounds like me. Best $30/month I spend on my channel by far.",
+    name: "Maya R.",
+    role: "Lifestyle · 18K subs",
+    avatar: "M",
+    result: "6h → under 1h",
   },
   {
-    quote:"Skeptical at first. Then my first Townshub script hit 120K views. Upgraded to Pro same day.",
-    name:"David L.", handle:"@DavidExplains", role:"History · 55K subs",
-    metric:"120K views, 1st script", avatar:"D", from:"#FB923C", to:"#EA580C", accent:"#FB923C",
+    quote: "Was skeptical at first. Then my first script hit 120K views. Upgraded to Pro the same day. The ROI is genuinely insane.",
+    name: "David L.",
+    role: "History Niche · 55K subs",
+    avatar: "D",
+    result: "120K views, 1st script",
   },
   {
-    quote:"Built by people who actually DO faceless YouTube. Every feature solves a real problem I had.",
-    name:"Priya S.", handle:"@PriyaTalks", role:"Self-Improvement · 33K subs",
-    metric:"33K subs in 6 months", avatar:"P", from:"#2DD4BF", to:"#0891B2", accent:"#2DD4BF",
+    quote: "Built by people who actually do faceless YouTube. Every single feature solves a real problem I had. Nothing bloated, nothing useless.",
+    name: "Priya S.",
+    role: "Self-Improvement · 33K subs",
+    avatar: "P",
+    result: "33K subs in 6 months",
   },
 ];
 
 const PLANS = [
   {
-    id:"starter", name:"Starter", price:"$9.99", annual:"$7.19",
-    desc:"Start your channel today", icon: Zap, accent:"#00D4FF", popular:false, elite:false,
-    cta:"Start Free Trial",
-    features:["4 full AI scripts/month","120 AI thumbnail assets","Chrome Extension","Unlimited video ideas","Production board","1 style profile"],
+    id: "starter",
+    name: "Starter",
+    price: "$9.99",
+    annual: "$7.19",
+    icon: Zap,
+    popular: false,
+    elite: false,
+    cta: "Start Free Trial",
+    features: [
+      "4 AI scripts per month",
+      "120 AI thumbnail assets",
+      "Chrome Extension",
+      "Unlimited video ideas",
+      "Production board",
+      "1 channel profile",
+    ],
   },
   {
-    id:"pro", name:"Pro", price:"$29.99", annual:"$21.59",
-    desc:"For serious channel growth", icon: Star, accent:"#00D4FF", popular:true, elite:false,
-    cta:"Start Pro Trial",
-    features:["15 full AI scripts/month","300 AI thumbnail assets","Everything in Starter","Full niche database","Similar Channels finder","Team collab (5 seats)","Multiple channel profiles"],
+    id: "pro",
+    name: "Pro",
+    price: "$29.99",
+    annual: "$21.59",
+    icon: Star,
+    popular: true,
+    elite: false,
+    cta: "Start Pro Trial",
+    features: [
+      "15 AI scripts per month",
+      "300 AI thumbnail assets",
+      "Everything in Starter",
+      "Full niche database access",
+      "Similar Channels finder",
+      "Team collaboration (5 seats)",
+      "Multiple channel profiles",
+    ],
   },
   {
-    id:"elite", name:"Elite AI", price:"$99.99", annual:"$71.99",
-    desc:"1-on-1 mentorship included", icon: Crown, accent:"#FACC15", popular:false, elite:true,
-    cta:"Go Elite",
-    features:["30 full AI scripts/month","600 AI thumbnail assets","Everything in Pro","AI growth consulting","Personal YouTube mentor","Channel strategy & audits","Priority 24/7 support"],
+    id: "elite",
+    name: "Elite AI",
+    price: "$99.99",
+    annual: "$71.99",
+    icon: Crown,
+    popular: false,
+    elite: true,
+    cta: "Go Elite",
+    features: [
+      "30 AI scripts per month",
+      "600 AI thumbnail assets",
+      "Everything in Pro",
+      "1-on-1 AI growth consulting",
+      "Personal YouTube mentor",
+      "Channel strategy & audits",
+      "Priority 24/7 support",
+    ],
   },
 ];
 
-/* ─── Component ──────────────────────────────────────────────────────────── */
+const STATS = [
+  { value: "2,400+", label: "Active creators" },
+  { value: "$2M+",   label: "Earned by our community" },
+  { value: "4.9/5",  label: "Average rating" },
+  { value: "30s",    label: "Average script time" },
+];
+
+/* ─── Page ───────────────────────────────────────────────────────────────── */
 
 export default function Home() {
   const [annual, setAnnual] = useState(false);
 
   return (
-    <div className="min-h-screen text-[#E2EAFF] overflow-x-hidden"
-      style={{ background: "linear-gradient(180deg, #080F1E 0%, #060C18 100%)" }}>
+    <div className="min-h-screen" style={{ background: "var(--bg)", color: "var(--text)" }}>
 
-      {/* ── Promo bar ────────────────────────────────────────────────────── */}
-      <div className="relative z-50 text-center py-2.5 text-xs font-semibold"
-        style={{ background: "linear-gradient(90deg,rgba(0,212,255,0.05),rgba(0,212,255,0.12),rgba(0,212,255,0.05))", borderBottom:"1px solid rgba(0,212,255,0.15)" }}>
-        <span style={{ color:"#00D4FF" }}>🎉 Limited offer:</span>
-        <span className="text-slate-300"> Save 39% on any annual plan — </span>
-        <a href="#pricing" className="underline underline-offset-2 font-bold" style={{ color:"#00D4FF" }}>See pricing →</a>
+      {/* ── Promo bar ─────────────────────────────────────────────────────── */}
+      <div className="text-center py-2.5 text-sm"
+        style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
+        <span style={{ color: "var(--muted)" }}>🎉 Save 39% with annual billing — </span>
+        <a href="#pricing" className="font-semibold underline underline-offset-2"
+          style={{ color: "var(--accent)" }}>
+          See all plans →
+        </a>
       </div>
 
-      {/* ── Nav ──────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-40 backdrop-blur-2xl"
-        style={{ background:"rgba(8,15,30,0.9)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-        <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ background:"linear-gradient(135deg,#00D4FF,#0284C7)", boxShadow:"0 0 18px rgba(0,212,255,0.5)" }}>
-              <Zap size={14} fill="#020818" />
+      {/* ── Nav ───────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50"
+        style={{ background: "rgba(12,18,32,0.92)", backdropFilter: "blur(16px)", borderBottom: "1px solid var(--border-light)" }}>
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: "var(--accent)" }}>
+              <Zap size={15} fill="#050D1A" color="#050D1A" />
             </div>
-            <span className="font-bold text-white tracking-tight"
-              style={{ fontFamily:"var(--font-syne)", fontSize:"15px" }}>
-              Townshub <span style={{ color:"#00D4FF" }}>Faceless</span>
+            <span className="font-bold text-white" style={{ fontFamily: "var(--font-heading)", fontSize: "15px" }}>
+              Townshub <span style={{ color: "var(--accent)" }}>Faceless</span>
             </span>
-          </div>
-          {/* Links */}
-          <div className="hidden md:flex items-center gap-7">
-            {[["#features","Features"],["#comparison","Results"],["#how","Process"],["#pricing","Pricing"]].map(([h,l])=>(
-              <a key={h} href={h} className="text-sm text-slate-400 hover:text-white transition-colors"
-                style={{ fontFamily:"var(--font-syne)", fontWeight:500 }}>{l}</a>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-8">
+            {[["#features","Features"],["#how-it-works","How it works"],["#testimonials","Stories"],["#pricing","Pricing"]].map(([h,l]) => (
+              <a key={h} href={h} className="text-sm transition-colors"
+                style={{ color: "var(--muted)", fontFamily: "var(--font-heading)", fontWeight: 500 }}
+                onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "var(--muted)")}>
+                {l}
+              </a>
             ))}
-          </div>
-          {/* CTAs */}
+          </nav>
+
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-slate-400 hover:text-white transition-colors hidden sm:block"
-              style={{ fontFamily:"var(--font-syne)", fontWeight:500 }}>Log in</Link>
-            <Link href="/login"
-              className="group flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:shadow-[0_0_28px_rgba(0,212,255,0.5)]"
-              style={{ background:"linear-gradient(135deg,#00D4FF,#0284C7)", color:"#020818", fontFamily:"var(--font-syne)" }}>
-              Get Started Free
-              <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+            <Link href="/login" className="text-sm hidden sm:block transition-colors"
+              style={{ color: "var(--muted)", fontFamily: "var(--font-heading)", fontWeight: 500 }}
+              onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--muted)")}>
+              Log in
+            </Link>
+            <Link href="/login" className="btn-primary" style={{ padding: "9px 20px", fontSize: "13px" }}>
+              Get started free <ChevronRight size={13} />
             </Link>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* ════════════════════════════════ HERO ═══════════════════════════════ */}
-      <section className="relative overflow-hidden"
-        style={{ background:"linear-gradient(180deg,#0A1428 0%,#080F1E 100%)", paddingTop:"96px", paddingBottom:"0" }}>
+      {/* ══════════════════════════════ HERO ═════════════════════════════════ */}
+      <section className="pt-28 pb-20 px-6 text-center relative overflow-hidden">
 
-        {/* BG texture */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Radial glow top-center */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px]"
-            style={{ background:"radial-gradient(ellipse,rgba(0,212,255,0.08) 0%,transparent 65%)", filter:"blur(1px)" }} />
-          {/* Purple right */}
-          <div className="absolute top-20 right-0 w-[600px] h-[600px]"
-            style={{ background:"radial-gradient(circle,rgba(139,92,246,0.07),transparent 70%)", filter:"blur(40px)" }} />
-          {/* Orange left */}
-          <div className="absolute bottom-0 left-0 w-[500px] h-[400px]"
-            style={{ background:"radial-gradient(circle,rgba(251,146,60,0.05),transparent 70%)", filter:"blur(40px)" }} />
-          {/* Fine dot grid */}
-          <div className="absolute inset-0"
+        {/* Subtle top glow — one, centered, restrained */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, rgba(34,211,238,0.06) 0%, transparent 70%)" }} />
+
+        <div className="relative max-w-4xl mx-auto">
+
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-8"
+            style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--accent)", fontFamily: "var(--font-heading)", letterSpacing: "0.04em" }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--accent)" }} />
+            The #1 AI Studio for Faceless YouTube Creators
+          </div>
+
+          {/* Headline */}
+          <h1 className="font-bold tracking-tight mb-6"
             style={{
-              backgroundImage:"radial-gradient(rgba(0,212,255,0.15) 1px,transparent 1px)",
-              backgroundSize:"32px 32px",
-              opacity:0.25,
-            }} />
-          {/* Vignette */}
-          <div className="absolute inset-0"
-            style={{ background:"radial-gradient(ellipse 90% 90% at 50% 40%,transparent 50%,rgba(8,15,30,0.8))" }} />
+              fontFamily: "var(--font-heading)",
+              fontSize: "clamp(44px, 6.5vw, 80px)",
+              lineHeight: 1.05,
+              letterSpacing: "-0.02em",
+              color: "#FFFFFF",
+            }}>
+            Build a faceless YouTube
+            <br />
+            <span style={{ color: "var(--accent)" }}>business with AI</span>
+          </h1>
+
+          {/* Subheading */}
+          <p className="text-xl mb-10 mx-auto"
+            style={{ color: "var(--muted)", maxWidth: "560px", lineHeight: 1.6, fontWeight: 400 }}>
+            Stop spending 6 hours writing scripts. Townshub generates research-backed scripts,
+            viral ideas, and professional thumbnails — in seconds.
+          </p>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+            <Link href="/login" className="btn-primary">
+              Start your free 7-day trial
+              <ArrowRight size={16} />
+            </Link>
+            <button className="btn-ghost flex items-center gap-3">
+              <span className="relative flex items-center justify-center w-8 h-8 rounded-full"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                <span className="pulse-ring absolute w-8 h-8 rounded-full" style={{ border: "1px solid rgba(255,255,255,0.15)" }} />
+                <Play size={11} fill="currentColor" className="ml-0.5" />
+              </span>
+              Watch 2-min demo
+            </button>
+          </div>
+
+          {/* Trust */}
+          <p className="text-sm mb-8" style={{ color: "var(--muted)" }}>
+            No charge until day 8 · No credit card required · Cancel anytime
+          </p>
+
+          {/* Social proof row */}
+          <div className="flex items-center justify-center gap-3">
+            <div className="flex -space-x-2.5">
+              {[
+                ["A","#22D3EE","#0E7490"],
+                ["S","#A78BFA","#6D28D9"],
+                ["J","#34D399","#059669"],
+                ["M","#FB923C","#C2410C"],
+                ["D","#F472B6","#9D174D"],
+              ].map(([l,a,b], i) => (
+                <div key={i} className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border-2"
+                  style={{ background: `linear-gradient(135deg,${a},${b})`, borderColor: "var(--bg)", zIndex: 5 - i, fontFamily: "var(--font-heading)" }}>
+                  {l}
+                </div>
+              ))}
+            </div>
+            <div className="text-left">
+              <div className="flex gap-0.5 mb-0.5">
+                {[...Array(5)].map((_,i) => <Star key={i} size={10} fill="#FACC15" color="#FACC15" />)}
+              </div>
+              <p className="text-xs" style={{ color: "var(--muted)" }}>Loved by 2,400+ creators</p>
+            </div>
+          </div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-5">
-          {/* ── TOP: copy + mockup ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20 items-center pb-16">
+        {/* Dashboard screenshot */}
+        <div className="relative max-w-5xl mx-auto mt-20 fade-up delay-3 op-0">
+          {/* Glow under the screenshot */}
+          <div className="absolute inset-x-20 bottom-0 h-20 pointer-events-none"
+            style={{ background: "radial-gradient(ellipse, rgba(34,211,238,0.08), transparent)", filter: "blur(20px)" }} />
 
-            {/* Left */}
-            <div className="animate-fade-up text-center lg:text-left">
+          <div className="rounded-2xl overflow-hidden relative"
+            style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
 
-              {/* Social proof pill */}
-              <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-full mb-8"
-                style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)" }}>
-                <div className="flex -space-x-2">
-                  {[["#00D4FF","#0284C7"],["#8B5CF6","#6D28D9"],["#34D399","#059669"],["#FB923C","#EA580C"],["#EC4899","#BE185D"]].map(([a,b],i)=>(
-                    <div key={i} className="w-7 h-7 rounded-full border-2 flex items-center justify-center text-white text-[10px] font-bold"
-                      style={{ background:`linear-gradient(135deg,${a},${b})`, borderColor:"#0A1428", zIndex:5-i }}>
-                      {["A","S","J","M","D"][i]}
-                    </div>
-                  ))}
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex gap-0.5">{[...Array(5)].map((_,i)=><Star key={i} size={9} fill="#FACC15" style={{color:"#FACC15"}}/>)}</div>
-                  <span className="text-[11px] text-slate-400">Loved by 2,400+ creators</span>
-                </div>
-              </div>
-
-              {/* Headline */}
-              <h1 className="font-bold tracking-tight mb-6 leading-[1.04]"
-                style={{ fontFamily:"var(--font-syne)", fontSize:"clamp(40px,6vw,76px)" }}>
-                <span className="text-white">The #1 Studio for</span>
-                <br />
-                <span className="gradient-text-cyan">Faceless YouTube</span>
-                <br />
-                <span className="text-white">Creators</span>
-              </h1>
-
-              <p className="text-lg text-slate-400 leading-relaxed mb-10 max-w-lg mx-auto lg:mx-0">
-                Stop spending 6 hours on scripts. Generate research-backed scripts, viral ideas, and
-                professional thumbnails — in seconds.
-              </p>
-
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-7">
-                <Link href="/login"
-                  className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base font-bold transition-all hover:shadow-[0_0_50px_rgba(0,212,255,0.5)]"
-                  style={{ background:"linear-gradient(135deg,#00D4FF,#0284C7)", color:"#020818", fontFamily:"var(--font-syne)" }}>
-                  Start Your Free 7-Day Trial
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                </Link>
-                <button className="flex items-center gap-3 text-slate-300 hover:text-white transition-colors group">
-                  <div className="relative w-12 h-12 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.12)" }}>
-                    <div className="absolute w-12 h-12 rounded-full border border-white/15 animate-pulse-ring" />
-                    <Play size={13} fill="currentColor" className="ml-0.5" />
-                  </div>
-                  <span className="text-sm" style={{ fontFamily:"var(--font-syne)", fontWeight:500 }}>Watch 2-min demo</span>
-                </button>
-              </div>
-
-              {/* Trust line */}
-              <p className="text-xs text-slate-600 mb-2" style={{ fontFamily:"var(--font-syne)" }}>
-                No charge until day 8 · No credit card required
-              </p>
-              <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-slate-500 justify-center lg:justify-start">
-                {["No tech skills needed","Works for any niche","Cancel anytime"].map(t=>(
-                  <span key={t} className="flex items-center gap-1.5">
-                    <CheckCircle2 size={12} style={{ color:"#34D399" }} />{t}
-                  </span>
+            {/* Browser bar */}
+            <div className="flex items-center gap-2 px-5 py-3.5"
+              style={{ background: "#0A0F1E", borderBottom: "1px solid var(--border)" }}>
+              <div className="flex gap-1.5">
+                {["#EF4444","#EAB308","#22C55E"].map((c,i) => (
+                  <div key={i} className="w-3 h-3 rounded-full" style={{ background: c, opacity: 0.7 }} />
                 ))}
+              </div>
+              <div className="flex-1 flex justify-center">
+                <div className="px-10 py-1.5 rounded-md text-xs text-center"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", color: "var(--muted)" }}>
+                  townshub.ai/dashboard
+                </div>
               </div>
             </div>
 
-            {/* Right — Dashboard mockup */}
-            <div className="relative animate-fade-up delay-2 opacity-0-init">
+            {/* App shell */}
+            <div className="flex" style={{ minHeight: "420px" }}>
 
-              {/* Floating cards */}
-              <div className="absolute -top-5 -left-4 md:-left-10 z-20 glass rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 shadow-2xl animate-float"
-                style={{ border:"1px solid rgba(0,212,255,0.25)", animationDelay:"0s" }}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background:"rgba(0,212,255,0.18)" }}>
-                  <PenLine size={14} style={{ color:"#00D4FF" }} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-white leading-none" style={{ fontFamily:"var(--font-syne)" }}>Script Generated ✓</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Finance · 1,380 words · 28s</p>
-                </div>
-              </div>
-
-              <div className="absolute bottom-8 -left-4 md:-left-8 z-20 glass rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 shadow-2xl animate-float"
-                style={{ border:"1px solid rgba(52,211,153,0.25)", animationDelay:"1.4s" }}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background:"rgba(52,211,153,0.18)" }}>
-                  <TrendingUp size={14} style={{ color:"#34D399" }} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-white leading-none" style={{ fontFamily:"var(--font-syne)" }}>Niche Found ✓</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">$14 RPM · Low competition</p>
-                </div>
-              </div>
-
-              <div className="absolute top-1/3 -right-4 md:-right-8 z-20 glass rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 shadow-2xl animate-float"
-                style={{ border:"1px solid rgba(250,204,21,0.25)", animationDelay:"0.7s" }}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background:"rgba(250,204,21,0.18)" }}>
-                  <BarChart3 size={14} style={{ color:"#FACC15" }} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-white leading-none" style={{ fontFamily:"var(--font-syne)" }}>12 Ideas Ranked</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">By viral score · Ready</p>
-                </div>
-              </div>
-
-              {/* Main mockup */}
-              <div className="rounded-2xl p-[1px] animate-glow-border"
-                style={{ background:"linear-gradient(135deg,rgba(0,212,255,0.45),rgba(139,92,246,0.25),rgba(0,212,255,0.1))" }}>
-                <div className="rounded-[15px] overflow-hidden" style={{ background:"#07091C" }}>
-                  {/* Browser bar */}
-                  <div className="flex items-center gap-2 px-4 py-3"
-                    style={{ background:"#090C20", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-                    <div className="flex gap-1.5">
-                      {["rgba(239,68,68,.7)","rgba(234,179,8,.7)","rgba(34,197,94,.7)"].map((c,i)=>(
-                        <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ background:c }} />
-                      ))}
-                    </div>
-                    <div className="flex-1 mx-3">
-                      <div className="px-4 py-1 rounded text-[11px] text-center text-slate-600"
-                        style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)" }}>
-                        townshub.ai/dashboard
-                      </div>
-                    </div>
+              {/* Sidebar */}
+              <div className="hidden sm:block shrink-0 py-6 px-4" style={{ width: "200px", background: "#090E1C", borderRight: "1px solid var(--border-light)" }}>
+                <div className="flex items-center gap-2 mb-6 pb-4" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: "var(--accent)" }}>
+                    <Zap size={12} fill="#050D1A" color="#050D1A" />
                   </div>
-                  {/* App UI */}
-                  <div className="flex" style={{ minHeight:"360px" }}>
-                    {/* Sidebar */}
-                    <div className="shrink-0 py-5 px-2.5 space-y-0.5" style={{ width:"160px", background:"#07091A", borderRight:"1px solid rgba(255,255,255,0.05)" }}>
-                      <div className="flex items-center gap-2 px-2.5 pb-4 mb-2.5" style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                        <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ background:"linear-gradient(135deg,#00D4FF,#0284C7)" }}>
-                          <Zap size={11} fill="#020818" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-white leading-none" style={{ fontFamily:"var(--font-syne)" }}>Townshub</p>
-                          <p className="text-[8px] font-bold tracking-widest uppercase mt-0.5" style={{ color:"#00D4FF" }}>Faceless</p>
-                        </div>
-                      </div>
-                      {["Dashboard","My Style","Video Ideas","New Script","Thumbnails","Production","Analytics"].map((name,i)=>(
-                        <div key={name} className="px-2.5 py-2 rounded-lg text-[11px] font-medium"
-                          style={i===0
-                            ? { background:"rgba(0,212,255,0.1)", color:"#00D4FF", border:"1px solid rgba(0,212,255,0.2)", fontFamily:"var(--font-syne)" }
-                            : { color:"#2E3A55", fontFamily:"var(--font-syne)" }}>
-                          {name}
-                        </div>
-                      ))}
+                  <div>
+                    <p className="text-xs font-bold text-white leading-none" style={{ fontFamily: "var(--font-heading)" }}>Townshub</p>
+                    <p className="text-[9px] font-semibold mt-0.5 tracking-widest uppercase" style={{ color: "var(--accent)" }}>Faceless</p>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  {[
+                    { name: "Dashboard",   active: true },
+                    { name: "My Style",    active: false },
+                    { name: "Video Ideas", active: false },
+                    { name: "New Script",  active: false },
+                    { name: "Thumbnails",  active: false },
+                    { name: "Production",  active: false },
+                    { name: "Analytics",   active: false },
+                  ].map(item => (
+                    <div key={item.name} className="px-3 py-2 rounded-lg text-xs font-medium"
+                      style={item.active
+                        ? { background: "rgba(34,211,238,0.1)", color: "var(--accent)", fontFamily: "var(--font-heading)" }
+                        : { color: "#2D3D55", fontFamily: "var(--font-heading)" }}>
+                      {item.name}
                     </div>
-                    {/* Content */}
-                    <div className="flex-1 p-5 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-bold text-white" style={{ fontFamily:"var(--font-syne)" }}>Good morning 👋</p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">4 scripts remaining this month</p>
-                        </div>
-                        <div className="w-7 h-7 rounded-full" style={{ background:"linear-gradient(135deg,#FB923C,#EA580C)" }} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          {l:"Scripts",v:"4",c:"#00D4FF"},
-                          {l:"Thumbnails",v:"120",c:"#FB923C"},
-                          {l:"Video Ideas",v:"∞",c:"#FACC15"},
-                          {l:"Tasks",v:"7",c:"#34D399"},
-                        ].map(s=>(
-                          <div key={s.l} className="rounded-xl p-3"
-                            style={{ background:`${s.c}12`, border:`1px solid ${s.c}22` }}>
-                            <p className="text-xl font-bold" style={{ color:s.c, fontFamily:"var(--font-syne)" }}>{s.v}</p>
-                            <p className="text-[9px] text-slate-500 mt-0.5">{s.l}</p>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="rounded-xl p-3.5" style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.05)" }}>
-                        <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-2.5" style={{ fontFamily:"var(--font-syne)" }}>Latest Scripts</p>
-                        {[
-                          {t:"5 Finance Mistakes Nobody Tells You",s:96,c:"#34D399"},
-                          {t:"The Passive Income Lie",s:88,c:"#FACC15"},
-                        ].map(s=>(
-                          <div key={s.t} className="flex items-center justify-between mb-1.5 last:mb-0">
-                            <p className="text-[10px] text-slate-400 truncate flex-1 pr-2">{s.t}</p>
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0"
-                              style={{ background:`${s.c}18`, color:s.c, fontFamily:"var(--font-syne)" }}>{s.s}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2 p-3 rounded-xl cursor-pointer"
-                        style={{ background:"rgba(0,212,255,0.08)", border:"1px solid rgba(0,212,255,0.2)" }}>
-                        <Sparkles size={12} style={{ color:"#00D4FF" }} />
-                        <span className="text-[11px] font-semibold" style={{ color:"#00D4FF", fontFamily:"var(--font-syne)" }}>
-                          Generate new script →
-                        </span>
-                      </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Main content */}
+              <div className="flex-1 p-7" style={{ background: "#0C1220" }}>
+                <div className="flex items-start justify-between mb-7">
+                  <div>
+                    <h2 className="text-base font-bold text-white mb-1" style={{ fontFamily: "var(--font-heading)" }}>
+                      Good morning, Creator 👋
+                    </h2>
+                    <p className="text-xs" style={{ color: "var(--muted)" }}>You have 4 scripts remaining this month</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+                      style={{ background: "rgba(34,211,238,0.1)", color: "var(--accent)", border: "1px solid rgba(34,211,238,0.2)", fontFamily: "var(--font-heading)" }}>
+                      + New Script
                     </div>
+                    <div className="w-8 h-8 rounded-full" style={{ background: "linear-gradient(135deg,#FB923C,#DC2626)" }} />
+                  </div>
+                </div>
+
+                {/* Stats row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                  {[
+                    { label: "Scripts left",  value: "4",   color: "#22D3EE" },
+                    { label: "Thumbnails",    value: "120",  color: "#FB923C" },
+                    { label: "Video ideas",   value: "∞",    color: "#FACC15" },
+                    { label: "Open tasks",    value: "7",    color: "#34D399" },
+                  ].map(s => (
+                    <div key={s.label} className="rounded-xl p-4"
+                      style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                      <p className="text-2xl font-bold mb-1" style={{ color: s.color, fontFamily: "var(--font-heading)" }}>{s.value}</p>
+                      <p className="text-xs" style={{ color: "var(--muted)" }}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Recent scripts table */}
+                <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+                  <div className="flex items-center justify-between px-5 py-3.5"
+                    style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
+                    <p className="text-xs font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>Recent Scripts</p>
+                    <span className="text-xs" style={{ color: "var(--accent)" }}>View all →</span>
+                  </div>
+                  <div style={{ background: "var(--surface)" }}>
+                    {[
+                      { title: "5 Finance Mistakes Nobody Tells You", niche: "Finance",  score: 96, status: "Published" },
+                      { title: "The Passive Income Lie Exposed",       niche: "Finance",  score: 88, status: "In Review" },
+                      { title: "How I'd Build $10K/Month From Zero",   niche: "Finance",  score: 91, status: "Draft" },
+                    ].map((row, i) => (
+                      <div key={i} className="flex items-center gap-4 px-5 py-3.5"
+                        style={{ borderBottom: i < 2 ? "1px solid var(--border-light)" : "none" }}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ background: "rgba(34,211,238,0.08)", border: "1px solid rgba(34,211,238,0.15)" }}>
+                          <FileText size={13} style={{ color: "var(--accent)" }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-white truncate">{row.title}</p>
+                          <p className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>{row.niche}</p>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-md"
+                            style={{
+                              background: row.score >= 90 ? "rgba(52,211,153,0.1)" : "rgba(250,204,21,0.1)",
+                              color: row.score >= 90 ? "#34D399" : "#FACC15",
+                              fontFamily: "var(--font-heading)",
+                            }}>
+                            {row.score}
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-md hidden md:block"
+                            style={{
+                              background: row.status === "Published" ? "rgba(52,211,153,0.08)" : "rgba(255,255,255,0.05)",
+                              color: row.status === "Published" ? "#34D399" : "var(--muted)",
+                              border: "1px solid " + (row.status === "Published" ? "rgba(52,211,153,0.15)" : "var(--border)"),
+                            }}>
+                            {row.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ── Stats strip (above fold, no scroll needed) ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pb-16 animate-fade-up delay-3 opacity-0-init">
-            {STATS.map(s=>(
-              <div key={s.label} className="rounded-2xl p-5 text-center"
-                style={{ background:`${s.color}08`, border:`1px solid ${s.color}20` }}>
-                <p className="text-3xl font-bold mb-1" style={{ fontFamily:"var(--font-syne)", color:s.color }}>{s.value}</p>
-                <p className="text-xs text-slate-500">{s.label}</p>
+          {/* Fade bottom */}
+          <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
+            style={{ background: "linear-gradient(to top, var(--bg), transparent)" }} />
+        </div>
+      </section>
+
+      {/* ── Stats bar ─────────────────────────────────────────────────────── */}
+      <section className="py-12 px-6" style={{ borderTop: "1px solid var(--border-light)", borderBottom: "1px solid var(--border-light)" }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {STATS.map((s, i) => (
+              <div key={s.label} className="relative">
+                {i < STATS.length - 1 && (
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-px hidden md:block"
+                    style={{ background: "var(--border)" }} />
+                )}
+                <p className="text-3xl font-bold text-white mb-1" style={{ fontFamily: "var(--font-heading)" }}>{s.value}</p>
+                <p className="text-sm" style={{ color: "var(--muted)" }}>{s.label}</p>
               </div>
             ))}
           </div>
         </div>
-
-        {/* fade into next section */}
-        <div className="absolute bottom-0 inset-x-0 h-16 pointer-events-none"
-          style={{ background:"linear-gradient(to top,#080F1E,transparent)" }} />
       </section>
 
-      {/* ── Feature ticker ───────────────────────────────────────────────── */}
-      <div className="overflow-hidden py-4"
-        style={{ background:"rgba(0,0,0,0.3)", borderTop:"1px solid rgba(255,255,255,0.04)", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
-        <div className="animate-ticker flex gap-12 whitespace-nowrap" style={{ width:"max-content" }}>
-          {[...TICKER,...TICKER,...TICKER].map((item,i)=>(
-            <span key={i} className="flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-widest"
-              style={{ color:"#1E2D48", fontFamily:"var(--font-syne)" }}>
-              <span className="w-1 h-1 rounded-full" style={{ background:"#00D4FF", opacity:.5 }} />
+      {/* ── Ticker ────────────────────────────────────────────────────────── */}
+      <div className="overflow-hidden py-4" style={{ borderBottom: "1px solid var(--border-light)", background: "var(--surface)" }}>
+        <div className="ticker flex gap-16 whitespace-nowrap" style={{ width: "max-content" }}>
+          {TICKER_ITEMS.map((item, i) => (
+            <span key={i} className="flex items-center gap-2.5 text-xs font-semibold tracking-widest uppercase"
+              style={{ color: "#1E2D48", fontFamily: "var(--font-heading)" }}>
+              <span className="w-1 h-1 rounded-full" style={{ background: "var(--accent)", opacity: 0.4 }} />
               {item}
             </span>
           ))}
         </div>
       </div>
 
-      {/* ════════════════════════════ COMPARISON ═════════════════════════════ */}
-      <section id="comparison" className="py-24 px-5 relative overflow-hidden"
-        style={{ background:"linear-gradient(180deg,#080F1E,#0A1428,#080F1E)" }}>
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background:"radial-gradient(ellipse 60% 50% at 50% 50%,rgba(139,92,246,0.05),transparent)" }} />
-
-        <div className="relative max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 mb-5">
-              <span className="w-5 h-px" style={{ background:"#A78BFA" }} />
-              <span className="text-xs font-bold tracking-[0.2em] uppercase" style={{ color:"#A78BFA", fontFamily:"var(--font-syne)" }}>The Difference</span>
-              <span className="w-5 h-px" style={{ background:"#A78BFA" }} />
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4" style={{ fontFamily:"var(--font-syne)" }}>
-              The old way vs<br />
-              <span className="gradient-text-cyan">the Townshub way</span>
-            </h2>
-            <p className="text-lg text-slate-400 max-w-lg mx-auto">
-              Every painful step of manual content creation — eliminated.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="rounded-2xl overflow-hidden"
-              style={{ background:"rgba(239,68,68,0.03)", border:"1px solid rgba(239,68,68,0.12)" }}>
-              <div className="flex items-center gap-2.5 px-6 py-4"
-                style={{ background:"rgba(239,68,68,0.06)", borderBottom:"1px solid rgba(239,68,68,0.1)" }}>
-                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background:"rgba(239,68,68,0.15)" }}>
-                  <X size={13} style={{ color:"#F87171" }} />
-                </div>
-                <span className="font-bold text-red-400 text-sm" style={{ fontFamily:"var(--font-syne)" }}>Without Townshub</span>
-              </div>
-              <ul className="p-6 space-y-4">
-                {COMPARISON.map((c,i)=>(
-                  <li key={i} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                      style={{ background:"rgba(239,68,68,0.12)" }}>
-                      <X size={9} style={{ color:"#F87171" }} />
-                    </div>
-                    <span className="text-sm text-slate-400">{c.before}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="rounded-2xl overflow-hidden"
-              style={{ background:"rgba(0,212,255,0.03)", border:"1px solid rgba(0,212,255,0.18)" }}>
-              <div className="flex items-center gap-2.5 px-6 py-4"
-                style={{ background:"rgba(0,212,255,0.07)", borderBottom:"1px solid rgba(0,212,255,0.1)" }}>
-                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background:"rgba(0,212,255,0.18)" }}>
-                  <Sparkles size={12} style={{ color:"#00D4FF" }} />
-                </div>
-                <span className="font-bold text-sm" style={{ color:"#00D4FF", fontFamily:"var(--font-syne)" }}>With Townshub Faceless</span>
-              </div>
-              <ul className="p-6 space-y-4">
-                {COMPARISON.map((c,i)=>(
-                  <li key={i} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                      style={{ background:"rgba(0,212,255,0.15)" }}>
-                      <Check size={9} style={{ color:"#00D4FF" }} />
-                    </div>
-                    <span className="text-sm text-slate-200 font-medium">{c.after}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="text-center mt-10">
-            <Link href="/login"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-sm font-bold transition-all hover:shadow-[0_0_40px_rgba(0,212,255,0.4)]"
-              style={{ background:"linear-gradient(135deg,#00D4FF,#0284C7)", color:"#020818", fontFamily:"var(--font-syne)" }}>
-              Switch to the Townshub way
-              <ArrowRight size={15} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* ════════════════════════════ FEATURES ═══════════════════════════════ */}
-      <section id="features" className="py-24 px-5">
+      <section id="features" className="py-28 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 mb-5">
-              <span className="w-5 h-px" style={{ background:"#00D4FF" }} />
-              <span className="text-xs font-bold tracking-[0.2em] uppercase" style={{ color:"#00D4FF", fontFamily:"var(--font-syne)" }}>Everything You Need</span>
-              <span className="w-5 h-px" style={{ background:"#00D4FF" }} />
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-5" style={{ fontFamily:"var(--font-syne)" }}>
-              Every tool. One studio.
-              <br /><span className="gradient-text-cyan">Zero wasted time.</span>
+          <div className="max-w-2xl mb-16">
+            <p className="section-label">Platform Features</p>
+            <h2 className="font-bold tracking-tight mb-5"
+              style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(32px,4vw,52px)", lineHeight: 1.1, color: "#FFFFFF" }}>
+              Every tool you need,
+              <br />nothing you don't
             </h2>
-            <p className="text-lg text-slate-400 max-w-xl mx-auto">
-              From your first niche idea to the finished video — every step powered by AI built for faceless creators.
+            <p className="text-lg" style={{ color: "var(--muted)", lineHeight: 1.7 }}>
+              From first idea to final upload — every step in your workflow powered by AI built
+              specifically for faceless YouTube creators.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Large: Script Writer */}
-            <div className="md:col-span-2 group relative rounded-2xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 cursor-default"
-              style={{ background:"rgba(0,212,255,0.04)", border:"1px solid rgba(0,212,255,0.2)" }}>
-              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
-                style={{ background:"radial-gradient(circle,rgba(0,212,255,0.1),transparent)", filter:"blur(30px)" }} />
-              <div className="absolute top-5 right-5 px-2.5 py-1 rounded-full text-[10px] font-bold"
-                style={{ background:"rgba(0,212,255,0.12)", border:"1px solid rgba(0,212,255,0.25)", color:"#00D4FF", fontFamily:"var(--font-syne)" }}>
-                Most Used
-              </div>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform"
-                style={{ background:"rgba(0,212,255,0.12)", border:"1px solid rgba(0,212,255,0.22)" }}>
-                <PenLine size={22} style={{ color:"#00D4FF" }} />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily:"var(--font-syne)" }}>AI Script Writer</h3>
-              <p className="text-sm text-slate-400 mb-6 leading-relaxed max-w-md">Research-backed scripts with retention-optimised hooks, body, and CTAs. Your voice, your niche, 30 seconds.</p>
-              <div className="space-y-2">
-                {[
-                  {l:"Hook",t:"Did you know 94% of people never achieve financial freedom?"},
-                  {l:"Intro",t:"In today's video, I'll reveal the exact 3 strategies..."},
-                  {l:"CTA",t:"Hit subscribe so you never miss a video like this."},
-                ].map(r=>(
-                  <div key={r.l} className="flex items-center gap-3 px-4 py-2.5 rounded-xl"
-                    style={{ background:"rgba(0,0,0,0.4)", border:"1px solid rgba(255,255,255,0.04)" }}>
-                    <span className="text-[8px] font-bold uppercase tracking-[0.15em] w-7 shrink-0"
-                      style={{ color:"#00D4FF", fontFamily:"var(--font-syne)" }}>{r.l}</span>
-                    <span className="text-xs text-slate-400 truncate">{r.t}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Viral Ideas */}
-            <div className="group relative rounded-2xl p-6 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 cursor-default"
-              style={{ background:"rgba(250,204,21,0.04)", border:"1px solid rgba(250,204,21,0.18)" }}>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform"
-                style={{ background:"rgba(250,204,21,0.1)", border:"1px solid rgba(250,204,21,0.2)" }}>
-                <Lightbulb size={20} style={{ color:"#FACC15" }} />
-              </div>
-              <h3 className="text-base font-bold text-white mb-2" style={{ fontFamily:"var(--font-syne)" }}>Viral Video Ideas</h3>
-              <p className="text-sm text-slate-400 mb-5">AI ranks every idea by viral potential before you waste a single hour.</p>
-              <div className="space-y-2">
-                {[
-                  {s:96,t:"5 Money Mistakes Nobody Tells You",c:"#34D399"},
-                  {s:91,t:"The Passive Income Lie",c:"#FACC15"},
-                  {s:87,t:"How I'd Build $10K/Month From Scratch",c:"#FB923C"},
-                ].map(idea=>(
-                  <div key={idea.t} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl"
-                    style={{ background:"rgba(250,204,21,0.05)", border:"1px solid rgba(250,204,21,0.1)" }}>
-                    <span className="text-[10px] font-bold w-6 shrink-0" style={{ color:idea.c, fontFamily:"var(--font-syne)" }}>{idea.s}</span>
-                    <span className="text-[11px] text-slate-400 truncate">{idea.t}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Remaining 4 */}
-            {FEATURES.slice(2).map(f=>(
-              <div key={f.id}
-                className="group relative rounded-2xl p-6 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 cursor-default"
-                style={{ background:f.glow, border:`1px solid ${f.border}` }}>
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform"
-                  style={{ background:f.glow, border:`1px solid ${f.border}` }}>
-                  <f.icon size={20} style={{ color:f.accent }} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {FEATURES.map((f, i) => (
+              <div key={f.title} className="card p-7 relative group">
+                {f.tag && (
+                  <span className="absolute top-5 right-5 text-[10px] font-bold px-2.5 py-1 rounded-full"
+                    style={{ background: "var(--accent-dim)", color: "var(--accent)", fontFamily: "var(--font-heading)", letterSpacing: "0.05em" }}>
+                    {f.tag}
+                  </span>
+                )}
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 transition-transform duration-200 group-hover:scale-105"
+                  style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                  <f.icon size={20} style={{ color: "var(--accent)" }} />
                 </div>
-                <h3 className="text-base font-bold text-white mb-2" style={{ fontFamily:"var(--font-syne)" }}>{f.title}</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
+                <h3 className="font-bold text-white mb-2.5" style={{ fontFamily: "var(--font-heading)", fontSize: "16px" }}>
+                  {f.title}
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--muted)" }}>{f.desc}</p>
               </div>
             ))}
           </div>
@@ -602,38 +544,38 @@ export default function Home() {
       </section>
 
       {/* ════════════════════════════ HOW IT WORKS ═══════════════════════════ */}
-      <section id="how" className="py-24 px-5"
-        style={{ background:"linear-gradient(180deg,#080F1E,#0A1428,#080F1E)" }}>
+      <section id="how-it-works" className="py-28 px-6" style={{ background: "var(--surface)", borderTop: "1px solid var(--border-light)", borderBottom: "1px solid var(--border-light)" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 mb-5">
-              <span className="w-5 h-px" style={{ background:"#FB923C" }} />
-              <span className="text-xs font-bold tracking-[0.2em] uppercase" style={{ color:"#FB923C", fontFamily:"var(--font-syne)" }}>The Process</span>
-              <span className="w-5 h-px" style={{ background:"#FB923C" }} />
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4" style={{ fontFamily:"var(--font-syne)" }}>
-              From zero to published
+            <p className="section-label justify-center">The Process</p>
+            <h2 className="font-bold tracking-tight mb-5"
+              style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(32px,4vw,52px)", lineHeight: 1.1, color: "#FFFFFF" }}>
+              From idea to upload
               <br />in your first week
             </h2>
-            <p className="text-lg text-slate-400">No experience required. Just follow 3 steps.</p>
+            <p className="text-lg mx-auto" style={{ color: "var(--muted)", maxWidth: "480px" }}>
+              No experience required. Three steps and you're publishing.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
-            <div className="hidden md:block absolute top-14 left-[22%] right-[22%] h-px"
-              style={{ background:"linear-gradient(90deg,rgba(0,212,255,0.4),rgba(139,92,246,0.4),rgba(52,211,153,0.4))" }} />
-            {[
-              {n:"01",title:"Set Up Your Style",desc:"Drop in competitor channels. We analyse their scripts to build your unique writing voice and style DNA.",bg:"linear-gradient(135deg,#00D4FF,#0284C7)",shadow:"0 0 40px rgba(0,212,255,0.4)",border:"rgba(0,212,255,0.15)"},
-              {n:"02",title:"Generate & Refine",desc:"Write scripts in seconds, design thumbnails, and use the niche finder to lock in your exact audience.",bg:"linear-gradient(135deg,#8B5CF6,#6D28D9)",shadow:"0 0 40px rgba(139,92,246,0.4)",border:"rgba(139,92,246,0.15)"},
-              {n:"03",title:"Produce & Ship",desc:"Track every video on your board. Set deadlines, collaborate with your team, and publish consistently.",bg:"linear-gradient(135deg,#34D399,#059669)",shadow:"0 0 40px rgba(52,211,153,0.4)",border:"rgba(52,211,153,0.15)"},
-            ].map(step=>(
-              <div key={step.n} className="relative rounded-2xl p-7 text-center transition-all duration-300 hover:-translate-y-1"
-                style={{ background:"rgba(10,16,30,0.8)", border:`1px solid ${step.border}` }}>
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
-                  style={{ background:step.bg, boxShadow:step.shadow }}>
-                  <span className="text-2xl font-bold text-white" style={{ fontFamily:"var(--font-syne)" }}>{step.n}</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+            {/* Connector */}
+            <div className="hidden md:block absolute top-10 left-[calc(33.3%+24px)] right-[calc(33.3%+24px)] h-px"
+              style={{ background: "linear-gradient(90deg, var(--accent), rgba(34,211,238,0.2))" }} />
+
+            {STEPS.map((step, i) => (
+              <div key={step.n} className="relative">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 font-bold text-lg"
+                  style={{
+                    background: i === 0 ? "var(--accent)" : "var(--surface-2)",
+                    color: i === 0 ? "#050D1A" : "var(--muted)",
+                    fontFamily: "var(--font-heading)",
+                    border: i !== 0 ? "1px solid var(--border)" : "none",
+                  }}>
+                  {step.n}
                 </div>
-                <h3 className="text-lg font-bold text-white mb-3" style={{ fontFamily:"var(--font-syne)" }}>{step.title}</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">{step.desc}</p>
+                <h3 className="font-bold text-white mb-3" style={{ fontFamily: "var(--font-heading)", fontSize: "18px" }}>{step.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--muted)" }}>{step.desc}</p>
               </div>
             ))}
           </div>
@@ -641,150 +583,148 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════ TESTIMONIALS ════════════════════════════ */}
-      <section className="py-24 px-5">
+      <section id="testimonials" className="py-28 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 mb-5">
-              <span className="w-5 h-px" style={{ background:"#34D399" }} />
-              <span className="text-xs font-bold tracking-[0.2em] uppercase" style={{ color:"#34D399", fontFamily:"var(--font-syne)" }}>Creator Stories</span>
-              <span className="w-5 h-px" style={{ background:"#34D399" }} />
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-16">
+            <div>
+              <p className="section-label">Creator Stories</p>
+              <h2 className="font-bold tracking-tight"
+                style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(32px,4vw,52px)", lineHeight: 1.1, color: "#FFFFFF" }}>
+                Real creators.
+                <br />Real results.
+              </h2>
             </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white" style={{ fontFamily:"var(--font-syne)" }}>
-              Real creators.<br /><span className="gradient-text-cyan">Real results.</span>
-            </h2>
+            <p className="text-sm max-w-xs" style={{ color: "var(--muted)", lineHeight: 1.7 }}>
+              From first script to 6-figure channels — here's what creators say after switching.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {TESTIMONIALS.map((t,i)=>(
-              <div key={t.name}
-                className="relative rounded-2xl p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5"
-                style={{ background:"linear-gradient(160deg,rgba(11,17,34,0.95),rgba(7,10,20,1))", border:"1px solid rgba(255,255,255,0.06)" }}>
-                <div className="absolute top-0 inset-x-0 h-px rounded-t-2xl"
-                  style={{ background:`linear-gradient(90deg,transparent,${t.accent}45,transparent)` }} />
-                <div className="absolute top-5 right-5 px-2.5 py-1 rounded-full text-[10px] font-bold"
-                  style={{ background:`${t.accent}15`, border:`1px solid ${t.accent}30`, color:t.accent, fontFamily:"var(--font-syne)" }}>
-                  {t.metric}
-                </div>
-                <div>
-                  <div className="flex gap-0.5 mb-5">
-                    {[...Array(5)].map((_,i)=><Star key={i} size={12} fill="#FACC15" style={{color:"#FACC15"}}/>)}
+            {TESTIMONIALS.map((t, i) => (
+              <div key={t.name} className="card p-7 flex flex-col justify-between">
+                {/* Result badge */}
+                <div className="mb-5">
+                  <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-md mb-4"
+                    style={{ background: "rgba(34,211,238,0.08)", color: "var(--accent)", border: "1px solid rgba(34,211,238,0.15)", fontFamily: "var(--font-heading)" }}>
+                    {t.result}
+                  </span>
+                  <div className="flex gap-0.5 mb-4">
+                    {[...Array(5)].map((_, j) => <Star key={j} size={12} fill="#FACC15" color="#FACC15" />)}
                   </div>
-                  <p className="text-sm text-slate-300 leading-relaxed mb-6">&ldquo;{t.quote}&rdquo;</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "#CBD5E1" }}>
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
                 </div>
-                <div className="flex items-center gap-3 pt-5" style={{ borderTop:"1px solid rgba(255,255,255,0.05)" }}>
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-                    style={{ background:`linear-gradient(135deg,${t.from},${t.to})`, fontFamily:"var(--font-syne)" }}>
+                {/* Author */}
+                <div className="flex items-center gap-3 pt-5" style={{ borderTop: "1px solid var(--border-light)" }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
+                    style={{ background: "var(--surface-2)", border: "1px solid var(--border)", fontFamily: "var(--font-heading)" }}>
                     {t.avatar}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-white leading-none" style={{ fontFamily:"var(--font-syne)" }}>{t.name}</p>
-                    <p className="text-[11px] text-slate-500 mt-1">{t.handle} · {t.role}</p>
+                    <p className="text-sm font-semibold text-white" style={{ fontFamily: "var(--font-heading)" }}>{t.name}</p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>{t.role}</p>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-
-          <p className="text-center mt-10 text-sm text-slate-500 flex items-center justify-center gap-2">
-            <Flame size={14} style={{ color:"#FB923C" }} />
-            Trusted by creators in Finance, Tech, Motivation, Lifestyle, History and 40+ more niches
-          </p>
         </div>
       </section>
 
       {/* ═════════════════════════════ PRICING ═══════════════════════════════ */}
-      <section id="pricing" className="py-24 px-5 relative overflow-hidden"
-        style={{ background:"linear-gradient(180deg,#080F1E,#0A1428,#080F1E)" }}>
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background:"radial-gradient(ellipse 60% 40% at 50% 50%,rgba(139,92,246,0.05),transparent)" }} />
-        <div className="relative max-w-5xl mx-auto">
+      <section id="pricing" className="py-28 px-6"
+        style={{ background: "var(--surface)", borderTop: "1px solid var(--border-light)", borderBottom: "1px solid var(--border-light)" }}>
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 mb-5">
-              <span className="w-5 h-px" style={{ background:"#A78BFA" }} />
-              <span className="text-xs font-bold tracking-[0.2em] uppercase" style={{ color:"#A78BFA", fontFamily:"var(--font-syne)" }}>Simple Pricing</span>
-              <span className="w-5 h-px" style={{ background:"#A78BFA" }} />
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4" style={{ fontFamily:"var(--font-syne)" }}>Pick your plan</h2>
-            <p className="text-slate-400 mb-8">7-day free trial on every plan. No charge until day 8. Cancel anytime.</p>
+            <p className="section-label justify-center">Pricing</p>
+            <h2 className="font-bold tracking-tight mb-4"
+              style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(32px,4vw,52px)", lineHeight: 1.1, color: "#FFFFFF" }}>
+              Simple, transparent pricing
+            </h2>
+            <p className="mb-8" style={{ color: "var(--muted)" }}>
+              7-day free trial on every plan. No charge until day 8.
+            </p>
 
-            {/* Toggle */}
+            {/* Billing toggle */}
             <div className="inline-flex items-center gap-1 p-1 rounded-xl"
-              style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)" }}>
-              {["Monthly","Annual"].map((label,i)=>(
-                <button key={label}
-                  onClick={()=>setAnnual(i===1)}
+              style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+              {[["Monthly", false], ["Annual", true]].map(([label, val]) => (
+                <button key={String(label)} onClick={() => setAnnual(val as boolean)}
                   className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
                   style={{
-                    background: (annual ? i===1 : i===0) ? "rgba(0,212,255,0.15)" : "transparent",
-                    color:      (annual ? i===1 : i===0) ? "#00D4FF" : "#64748B",
-                    border:     (annual ? i===1 : i===0) ? "1px solid rgba(0,212,255,0.25)" : "1px solid transparent",
-                    fontFamily: "var(--font-syne)",
+                    background: annual === val ? "var(--surface-2)" : "transparent",
+                    color: annual === val ? "var(--text)" : "var(--muted)",
+                    fontFamily: "var(--font-heading)",
+                    border: annual === val ? "1px solid var(--border)" : "1px solid transparent",
                   }}>
-                  {label}
-                  {i===1 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
-                    style={{ background:"rgba(52,211,153,0.15)", color:"#34D399" }}>−39%</span>}
+                  {String(label)}
+                  {val && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+                      style={{ background: "rgba(52,211,153,0.15)", color: "#34D399" }}>
+                      −39%
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {PLANS.map(plan=>(
-              <div key={plan.id}
-                className="relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
+            {PLANS.map(plan => (
+              <div key={plan.id} className="relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
                 style={{
-                  background:"linear-gradient(160deg,rgba(11,17,34,0.98),rgba(6,9,18,1))",
-                  border: plan.popular ? "1px solid rgba(0,212,255,0.4)" : plan.elite ? "1px solid rgba(250,204,21,0.3)" : "1px solid rgba(255,255,255,0.07)",
-                  boxShadow: plan.popular ? "0 0 60px rgba(0,212,255,0.06)" : "none",
+                  background: plan.popular ? "var(--surface-2)" : "var(--bg)",
+                  border: plan.popular ? "1px solid rgba(34,211,238,0.3)" : "1px solid var(--border)",
                 }}>
-                {(plan.popular||plan.elite) && (
+
+                {plan.popular && (
                   <div className="absolute top-0 inset-x-0 h-0.5"
-                    style={{ background: plan.popular
-                      ? "linear-gradient(90deg,transparent,#00D4FF,transparent)"
-                      : "linear-gradient(90deg,transparent,#FACC15,transparent)" }} />
+                    style={{ background: "linear-gradient(90deg, transparent, var(--accent), transparent)" }} />
                 )}
+
                 <div className="p-8">
                   <div className="h-7 mb-6">
                     {plan.popular && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
-                        style={{ background:"rgba(0,212,255,0.1)", border:"1px solid rgba(0,212,255,0.25)", color:"#00D4FF", fontFamily:"var(--font-syne)" }}>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full"
+                        style={{ background: "var(--accent-dim)", color: "var(--accent)", fontFamily: "var(--font-heading)" }}>
                         <Star size={10} fill="currentColor" /> Most Popular
-                      </div>
+                      </span>
                     )}
                     {plan.elite && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
-                        style={{ background:"rgba(250,204,21,0.1)", border:"1px solid rgba(250,204,21,0.25)", color:"#FACC15", fontFamily:"var(--font-syne)" }}>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full"
+                        style={{ background: "rgba(250,204,21,0.1)", color: "#FACC15", fontFamily: "var(--font-heading)" }}>
                         <Crown size={10} fill="currentColor" /> Premium
-                      </div>
+                      </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <plan.icon size={16} style={{ color:plan.accent }} />
-                    <span className="text-sm font-bold text-white" style={{ fontFamily:"var(--font-syne)" }}>{plan.name}</span>
+
+                  <div className="flex items-center gap-2 mb-4">
+                    <plan.icon size={16} style={{ color: plan.elite ? "#FACC15" : "var(--accent)" }} />
+                    <span className="font-bold text-white text-sm" style={{ fontFamily: "var(--font-heading)" }}>{plan.name}</span>
                   </div>
-                  <div className="flex items-end gap-1.5 mb-1">
-                    <span className="text-5xl font-bold text-white" style={{ fontFamily:"var(--font-syne)" }}>
+
+                  <div className="flex items-end gap-1.5 mb-6">
+                    <span className="text-5xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
                       {annual ? plan.annual : plan.price}
                     </span>
-                    <span className="text-slate-500 mb-2">/mo</span>
+                    <span className="mb-2 text-sm" style={{ color: "var(--muted)" }}>/mo</span>
                   </div>
-                  {annual && <p className="text-xs text-slate-500 mb-0.5">Billed annually</p>}
-                  <p className="text-xs text-slate-500 mb-7">{plan.desc}</p>
+
                   <Link href="/login"
-                    className="w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all mb-7 hover:opacity-90"
+                    className="w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all mb-7"
                     style={plan.popular
-                      ? { background:"linear-gradient(135deg,#00D4FF,#0284C7)", color:"#020818", fontFamily:"var(--font-syne)" }
-                      : plan.elite
-                      ? { background:"linear-gradient(135deg,#FACC15,#F97316)", color:"#0A0500", fontFamily:"var(--font-syne)" }
-                      : { border:"1px solid rgba(0,212,255,0.3)", color:"#00D4FF", fontFamily:"var(--font-syne)" }}>
+                      ? { background: "var(--accent)", color: "#050D1A", fontFamily: "var(--font-heading)" }
+                      : { background: "transparent", color: "var(--text)", border: "1px solid var(--border)", fontFamily: "var(--font-heading)" }}>
                     {plan.cta}
                     <ArrowRight size={14} />
                   </Link>
+
                   <ul className="space-y-3.5">
-                    {plan.features.map(f=>(
+                    {plan.features.map(f => (
                       <li key={f} className="flex items-start gap-2.5">
-                        <CheckCircle2 size={13} className="shrink-0 mt-0.5" style={{ color:plan.accent }} />
-                        <span className="text-[13px] text-slate-400 leading-snug">{f}</span>
+                        <Check size={14} className="shrink-0 mt-0.5" style={{ color: "var(--accent)" }} />
+                        <span className="text-sm leading-snug" style={{ color: "var(--muted)" }}>{f}</span>
                       </li>
                     ))}
                   </ul>
@@ -793,98 +733,91 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Guarantees */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm"
+            style={{ color: "var(--muted)" }}>
             {[
-              {icon:Shield,text:"7-day money back guarantee",color:"#34D399"},
-              {icon:Clock, text:"Cancel anytime — no contracts",color:"#00D4FF"},
-              {icon:Users, text:"Team collaboration on Pro & Elite",color:"#A78BFA"},
-            ].map(({icon:Icon,text,color})=>(
-              <div key={text} className="flex items-center gap-3 px-5 py-4 rounded-xl"
-                style={{ background:`${color}07`, border:`1px solid ${color}18` }}>
-                <Icon size={15} style={{ color }} />
-                <span className="text-sm text-slate-400">{text}</span>
-              </div>
+              [Shield, "7-day money back guarantee"],
+              [Clock,  "Cancel anytime, no contracts"],
+              [Users,  "Team collaboration on Pro & Elite"],
+            ].map(([Icon, text]) => (
+              <span key={String(text)} className="flex items-center gap-2">
+                <Icon size={14} style={{ color: "var(--accent)" }} />
+                {String(text)}
+              </span>
             ))}
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════ FINAL CTA ═══════════════════════════════ */}
-      <section className="py-24 px-5">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative rounded-3xl overflow-hidden text-center px-8 py-20"
-            style={{ background:"linear-gradient(160deg,rgba(10,17,32,0.98),rgba(5,8,16,1))", border:"1px solid rgba(0,212,255,0.14)" }}>
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[500px] h-[400px] pointer-events-none"
-              style={{ background:"radial-gradient(ellipse,rgba(0,212,255,0.1),transparent 65%)", filter:"blur(40px)" }} />
-            <div className="absolute -bottom-20 left-1/3 w-80 h-80 pointer-events-none"
-              style={{ background:"radial-gradient(circle,rgba(139,92,246,0.08),transparent)", filter:"blur(50px)" }} />
-            <div className="relative">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
-                style={{ background:"rgba(0,212,255,0.07)", border:"1px solid rgba(0,212,255,0.2)" }}>
-                <Sparkles size={12} style={{ color:"#00D4FF" }} />
-                <span className="text-xs font-bold tracking-widest uppercase" style={{ color:"#00D4FF", fontFamily:"var(--font-syne)" }}>
-                  Join 2,400+ Creators
-                </span>
-              </div>
-              <h2 className="text-4xl sm:text-5xl xl:text-6xl font-bold mb-6" style={{ fontFamily:"var(--font-syne)" }}>
-                <span className="text-white">Your faceless channel</span>
-                <br /><span className="gradient-text-cyan">starts right now</span>
-              </h2>
-              <p className="text-lg text-slate-400 max-w-lg mx-auto mb-10 leading-relaxed">
-                Join thousands of creators building real income on YouTube — without ever showing their face.
-              </p>
-              <Link href="/login"
-                className="group inline-flex items-center gap-2 px-12 py-5 rounded-xl text-lg font-bold transition-all hover:shadow-[0_0_60px_rgba(0,212,255,0.5)]"
-                style={{ background:"linear-gradient(135deg,#00D4FF,#0284C7)", color:"#020818", fontFamily:"var(--font-syne)" }}>
-                Start Free 7-Day Trial
-                <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-              </Link>
-              <p className="text-xs text-slate-600 mt-5">No charge until day 8 · No credit card · Cancel anytime</p>
-            </div>
+      <section className="py-28 px-6">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-8"
+            style={{ background: "var(--accent)", boxShadow: "0 0 40px rgba(34,211,238,0.2)" }}>
+            <TrendingUp size={24} color="#050D1A" />
           </div>
+          <h2 className="font-bold tracking-tight mb-5"
+            style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(36px,5vw,64px)", lineHeight: 1.08, color: "#FFFFFF" }}>
+            Your channel starts
+            <br />right now
+          </h2>
+          <p className="text-lg mb-10 mx-auto" style={{ color: "var(--muted)", maxWidth: "480px", lineHeight: 1.7 }}>
+            Join 2,400+ creators building real income on YouTube — without ever showing their face.
+          </p>
+          <Link href="/login" className="btn-primary text-base px-10 py-5">
+            Start your free 7-day trial
+            <ArrowRight size={18} />
+          </Link>
+          <p className="mt-5 text-sm" style={{ color: "#2D3D55" }}>
+            No charge until day 8 · No credit card · Cancel anytime
+          </p>
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <footer className="px-5 py-14" style={{ borderTop:"1px solid rgba(255,255,255,0.05)" }}>
+      {/* ── Footer ────────────────────────────────────────────────────────── */}
+      <footer className="px-6 py-14"
+        style={{ borderTop: "1px solid var(--border-light)", background: "var(--surface)" }}>
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background:"linear-gradient(135deg,#00D4FF,#0284C7)", boxShadow:"0 0 14px rgba(0,212,255,0.4)" }}>
-                  <Zap size={16} fill="#020818" />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--accent)" }}>
+                  <Zap size={14} fill="#050D1A" color="#050D1A" />
                 </div>
-                <div>
-                  <p className="font-bold text-white" style={{ fontFamily:"var(--font-syne)" }}>
-                    Townshub <span style={{ color:"#00D4FF" }}>Faceless</span>
-                  </p>
-                  <p className="text-xs text-slate-600 mt-0.5">AI YouTube Growth Studio</p>
-                </div>
+                <span className="font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
+                  Townshub <span style={{ color: "var(--accent)" }}>Faceless</span>
+                </span>
               </div>
-              <p className="text-sm text-slate-500 leading-relaxed max-w-xs">
-                The complete toolkit for building a profitable faceless YouTube channel — powered by AI, designed by creators.
+              <p className="text-sm leading-relaxed max-w-xs" style={{ color: "var(--muted)" }}>
+                The complete AI studio for building a profitable faceless YouTube channel.
               </p>
             </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.15em] text-slate-600 mb-4" style={{ fontFamily:"var(--font-syne)" }}>Product</p>
-              <ul className="space-y-2.5">
-                {["Features","Pricing","How It Works","Chrome Extension"].map(l=>(
-                  <li key={l}><a href="#" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">{l}</a></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.15em] text-slate-600 mb-4" style={{ fontFamily:"var(--font-syne)" }}>Company</p>
-              <ul className="space-y-2.5">
-                {["Privacy Policy","Terms of Service","Support","Contact"].map(l=>(
-                  <li key={l}><a href="#" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">{l}</a></li>
-                ))}
-              </ul>
-            </div>
+            {[
+              { label: "Product",  links: ["Features","Pricing","How It Works","Chrome Extension"] },
+              { label: "Company",  links: ["Privacy Policy","Terms of Service","Support","Contact"] },
+            ].map(col => (
+              <div key={col.label}>
+                <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--muted)", fontFamily: "var(--font-heading)" }}>
+                  {col.label}
+                </p>
+                <ul className="space-y-2.5">
+                  {col.links.map(l => (
+                    <li key={l}>
+                      <a href="#" className="text-sm transition-colors"
+                        style={{ color: "var(--muted)" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "var(--muted)")}>
+                        {l}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600"
-            style={{ borderTop:"1px solid rgba(255,255,255,0.04)" }}>
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+            style={{ borderTop: "1px solid var(--border-light)", color: "var(--muted)" }}>
             <p>© 2026 Townshub. Not affiliated with YouTube or Google LLC.</p>
             <p>Built for faceless creators everywhere.</p>
           </div>
