@@ -22,28 +22,34 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
-    const { error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: name } },
-    });
+    try {
+      const supabase = createClient();
 
-    if (signUpError) {
-      setError(signUpError.message);
-      setLoading(false);
-      return;
-    }
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } },
+      });
 
-    // Auto sign in
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-    if (!signInError) {
-      setSuccess(true);
-      router.push("/dashboard");
-      router.refresh();
-    } else {
-      setSuccess(true); // account created, just needs to sign in
-      setError("Account created! Please sign in.");
+      if (signUpError) {
+        setError(signUpError.message);
+        setLoading(false);
+        return;
+      }
+
+      // Auto sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (!signInError) {
+        setSuccess(true);
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        setError("Account created! Check your email or try signing in.");
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError("Connection failed. Check your internet and try again.");
       setLoading(false);
     }
   };
