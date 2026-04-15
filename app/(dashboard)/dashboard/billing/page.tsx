@@ -2,76 +2,26 @@
 
 import { useState } from "react";
 import { Topbar } from "@/components/dashboard/topbar";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Zap, Star, Crown, ArrowRight, CreditCard, FileText } from "lucide-react";
 
 const plans = [
   {
-    id: "starter",
-    name: "Starter",
-    price: "$9.99",
-    period: "/mo",
-    scripts: 4,
-    thumbnails: 120,
-    current: true,
-    color: "border-cyan-500/20",
-    tag: null,
-    features: [
-      "4 full AI scripts",
-      "120 AI thumbnail assets",
-      "Chrome Extension (analytics, tags, outlier scores)",
-      "Score review & analysis",
-      "Style profiles",
-      "Research import (URLs, PDFs)",
-      "Production board",
-    ],
+    id: "starter", name: "Starter", price: "$9.99", scripts: 4, current: true,
+    accentColor: "#00D4FF", glowColor: "rgba(0,212,255,0.08)",
+    borderColor: "rgba(0,212,255,0.2)",
+    features: ["4 full AI scripts/month","120 AI thumbnail assets","Chrome Extension","Outlier scores & analytics","Style profiles","Production board"],
   },
   {
-    id: "pro",
-    name: "Pro",
-    price: "$29.99",
-    period: "/mo",
-    scripts: 15,
-    thumbnails: 300,
-    current: false,
-    color: "border-cyan-400/40",
-    tag: "Most Popular",
-    tagColor: "cyan",
-    features: [
-      "15 full AI scripts",
-      "300 AI thumbnail assets",
-      "Everything in Starter",
-      "Niche Finder database",
-      "Similar Channels finder",
-      "Saved Channels",
-      "Niche Bending tool",
-      "Team collaboration",
-      "Multiple channel profiles",
-      "Priority generation",
-    ],
+    id: "pro", name: "Pro", price: "$29.99", scripts: 15, current: false,
+    tag: "Most Popular", accentColor: "#00D4FF", glowColor: "rgba(0,212,255,0.06)",
+    borderColor: "rgba(0,212,255,0.35)",
+    features: ["15 full AI scripts/month","300 AI thumbnail assets","Everything in Starter","Niche Finder database","Similar Channels finder","Team collaboration","Multiple channel profiles","Priority generation"],
   },
   {
-    id: "elite",
-    name: "Elite AI",
-    price: "$99.99",
-    period: "/mo",
-    scripts: 30,
-    thumbnails: 600,
-    current: false,
-    color: "border-yellow-500/30",
-    tag: "Premium",
-    tagColor: "gold",
-    features: [
-      "30 full AI scripts",
-      "600 AI thumbnail assets",
-      "Everything in Pro",
-      "AI consulting chat",
-      "Personal YouTube mentor",
-      "Strategy & growth advice",
-      "Niche & trend analysis",
-      "Priority support",
-    ],
+    id: "elite", name: "Elite AI", price: "$99.99", scripts: 30, current: false,
+    tag: "Premium", accentColor: "#facc15", glowColor: "rgba(250,204,21,0.06)",
+    borderColor: "rgba(250,204,21,0.3)",
+    features: ["30 full AI scripts/month","600 AI thumbnail assets","Everything in Pro","AI consulting chat","Personal YouTube mentor","Strategy & growth advice","Priority support"],
   },
 ];
 
@@ -79,115 +29,147 @@ export default function BillingPage() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
 
   return (
-    <div className="min-h-screen">
-      <Topbar title="Billing" />
+    <div style={{ minHeight: "100vh", background: "#080D1A" }}>
+      <Topbar title="Billing" subtitle="Manage your plan and usage" />
 
-      <div className="p-6 max-w-6xl mx-auto space-y-8">
+      <div style={{ padding: "28px 32px", maxWidth: 1100, margin: "0 auto" }}>
 
-        {/* Current Plan */}
-        <div className="rounded-xl border border-cyan-500/15 bg-gradient-to-br from-[#162035] to-[#0F1829] p-6 flex items-center gap-6">
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/15 flex items-center justify-center shrink-0">
-            <Zap size={22} className="text-cyan-400" />
+        {/* Current plan card */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 20,
+          padding: "22px 26px", borderRadius: 16, marginBottom: 36,
+          background: "linear-gradient(135deg, rgba(0,212,255,0.07), rgba(0,212,255,0.02))",
+          border: "1px solid rgba(0,212,255,0.18)",
+        }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 13, flexShrink: 0,
+            background: "rgba(0,212,255,0.12)", border: "1px solid rgba(0,212,255,0.2)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Zap size={22} color="#00D4FF" fill="#00D4FF" />
           </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <p className="text-lg font-bold text-white font-[family-name:var(--font-syne)]">Starter Plan</p>
-              <Badge variant="cyan">Current Plan</Badge>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              <span style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Starter Plan</span>
+              <span style={{
+                fontSize: 11, fontWeight: 700, padding: "2px 9px", borderRadius: 99,
+                background: "rgba(0,212,255,0.12)", border: "1px solid rgba(0,212,255,0.25)", color: "#00D4FF",
+              }}>Current Plan</span>
             </div>
-            <p className="text-sm text-slate-400">$9.99/month · Renews May 13, 2026</p>
-            <div className="flex gap-4 mt-2">
-              <span className="text-xs text-slate-500">Scripts: <span className="text-white font-medium">0/4 used</span></span>
-              <span className="text-xs text-slate-500">Thumbnails: <span className="text-white font-medium">0/120 used</span></span>
+            <p style={{ fontSize: 13, color: "#475569", margin: 0 }}>$9.99/month · Renews May 13, 2026</p>
+            <div style={{ display: "flex", gap: 20, marginTop: 6 }}>
+              <span style={{ fontSize: 12, color: "#475569" }}>Scripts: <strong style={{ color: "#e2e8f0" }}>0 / 4 used</strong></span>
+              <span style={{ fontSize: 12, color: "#475569" }}>Thumbnails: <strong style={{ color: "#e2e8f0" }}>0 / 120 used</strong></span>
             </div>
           </div>
-          <button className="px-5 py-2.5 rounded-lg border border-white/10 text-slate-400 text-sm font-medium hover:border-white/20 hover:text-white transition-all">
-            Manage Subscription
-          </button>
+          <button style={{
+            padding: "10px 20px", borderRadius: 10,
+            border: "1px solid rgba(255,255,255,0.08)",
+            background: "rgba(255,255,255,0.03)", color: "#94a3b8",
+            fontSize: 13, cursor: "pointer", transition: "all 0.2s",
+          }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)")}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
+          >Manage Subscription</button>
         </div>
 
-        {/* Billing Toggle */}
-        <div className="flex flex-col items-center gap-3">
-          <h2 className="text-2xl font-bold text-white font-[family-name:var(--font-syne)]">Upgrade Your Plan</h2>
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-white/4 border border-white/8">
-            <button
-              onClick={() => setBilling("monthly")}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all font-[family-name:var(--font-syne)] ${billing === "monthly" ? "bg-[#162035] text-white border border-cyan-500/15" : "text-slate-500"}`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBilling("annual")}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all font-[family-name:var(--font-syne)] flex items-center gap-2 ${billing === "annual" ? "bg-[#162035] text-white border border-cyan-500/15" : "text-slate-500"}`}
-            >
-              Annual
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">Save 20%</span>
-            </button>
+        {/* Toggle */}
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 16, letterSpacing: "-0.5px" }}>Upgrade Your Plan</h2>
+          <div style={{
+            display: "inline-flex", padding: 4, borderRadius: 12,
+            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
+          }}>
+            {(["monthly", "annual"] as const).map((b) => (
+              <button key={b} onClick={() => setBilling(b)} style={{
+                padding: "8px 20px", borderRadius: 9, fontSize: 13, fontWeight: 600,
+                cursor: "pointer", transition: "all 0.2s", border: "none",
+                background: billing === b ? "rgba(0,212,255,0.1)" : "transparent",
+                color: billing === b ? "#00D4FF" : "#475569",
+                outline: billing === b ? "1px solid rgba(0,212,255,0.2)" : "none",
+                display: "flex", alignItems: "center", gap: 8,
+              }}>
+                {b === "monthly" ? "Monthly" : "Annual"}
+                {b === "annual" && <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 99, background: "rgba(52,211,153,0.15)", color: "#34d399", fontWeight: 700 }}>Save 20%</span>}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Plans grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18, marginBottom: 40 }}>
           {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative rounded-2xl border bg-gradient-to-br from-[#162035]/90 to-[#0F1829]/95 overflow-hidden ${plan.color} ${plan.current ? "opacity-70" : ""}`}
-            >
+            <div key={plan.id} style={{
+              borderRadius: 18, overflow: "hidden", position: "relative",
+              background: `linear-gradient(135deg, rgba(15,24,42,0.97), rgba(8,13,26,0.99))`,
+              border: `1px solid ${plan.borderColor}`,
+              opacity: plan.current ? 0.75 : 1,
+            }}>
+              {/* Glow */}
+              <div style={{
+                position: "absolute", inset: 0, pointerEvents: "none",
+                background: `radial-gradient(ellipse at 50% 0%, ${plan.glowColor}, transparent 70%)`,
+              }} />
+
               {plan.tag && (
-                <div className="absolute top-4 right-4">
-                  <Badge variant={plan.tagColor as "cyan" | "gold"}>{plan.tag}</Badge>
+                <div style={{ position: "absolute", top: 16, right: 16 }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 99,
+                    background: plan.id === "elite" ? "rgba(250,204,21,0.15)" : "rgba(0,212,255,0.15)",
+                    color: plan.id === "elite" ? "#facc15" : "#00D4FF",
+                    border: `1px solid ${plan.id === "elite" ? "rgba(250,204,21,0.3)" : "rgba(0,212,255,0.3)"}`,
+                  }}>{plan.tag}</span>
                 </div>
               )}
-              {plan.id === "pro" && (
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/4 to-transparent pointer-events-none" />
-              )}
-              {plan.id === "elite" && (
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/4 to-transparent pointer-events-none" />
-              )}
 
-              <div className="p-6">
-                {/* Plan Header */}
-                <div className="mb-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    {plan.id === "starter" && <Zap size={16} className="text-cyan-400" />}
-                    {plan.id === "pro" && <Star size={16} className="text-cyan-400" fill="currentColor" />}
-                    {plan.id === "elite" && <Crown size={16} className="text-yellow-400" fill="currentColor" />}
-                    <p className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">{plan.name}</p>
-                  </div>
-                  <div className="flex items-end gap-1 mb-1">
-                    <span className="text-4xl font-bold text-white font-[family-name:var(--font-syne)]">
-                      {billing === "annual" ? `$${(parseFloat(plan.price.slice(1)) * 0.8).toFixed(2)}` : plan.price}
-                    </span>
-                    <span className="text-slate-400 mb-1">{plan.period}</span>
-                  </div>
-                  <p className="text-xs text-cyan-400 font-semibold font-[family-name:var(--font-syne)]">
-                    {plan.scripts} scripts/month
-                  </p>
+              <div style={{ padding: "26px 24px", position: "relative" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                  {plan.id === "starter" && <Zap size={16} color="#00D4FF" />}
+                  {plan.id === "pro" && <Star size={16} color="#00D4FF" fill="#00D4FF" />}
+                  {plan.id === "elite" && <Crown size={16} color="#facc15" fill="#facc15" />}
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0" }}>{plan.name}</span>
                 </div>
 
-                {/* CTA */}
+                <div style={{ marginBottom: 4 }}>
+                  <span style={{ fontSize: 38, fontWeight: 800, color: "#fff", letterSpacing: "-1px" }}>
+                    {billing === "annual" ? `$${(parseFloat(plan.price.slice(1)) * 0.8).toFixed(2)}` : plan.price}
+                  </span>
+                  <span style={{ fontSize: 13, color: "#475569" }}>/mo</span>
+                </div>
+                <p style={{ fontSize: 12, color: plan.accentColor, fontWeight: 600, marginBottom: 20 }}>
+                  {plan.scripts} scripts/month
+                </p>
+
                 {plan.current ? (
-                  <button disabled className="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-500 text-sm font-bold font-[family-name:var(--font-syne)] cursor-not-allowed">
-                    Current Plan
-                  </button>
+                  <button disabled style={{
+                    width: "100%", padding: "11px", borderRadius: 11,
+                    background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                    color: "#475569", fontSize: 13, fontWeight: 700, cursor: "not-allowed",
+                  }}>Current Plan</button>
                 ) : (
-                  <button className={`w-full py-2.5 rounded-xl text-sm font-bold font-[family-name:var(--font-syne)] flex items-center justify-center gap-2 transition-all ${
-                    plan.id === "pro"
-                      ? "bg-gradient-to-r from-cyan-400 to-cyan-600 text-[#04080F] hover:shadow-[0_0_20px_rgba(0,212,255,0.4)]"
-                      : plan.id === "elite"
-                      ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:shadow-[0_0_20px_rgba(255,193,7,0.4)]"
-                      : "bg-white/8 border border-white/15 text-white hover:bg-white/12"
-                  }`}>
-                    Upgrade to {plan.name}
-                    <ArrowRight size={14} />
+                  <button style={{
+                    width: "100%", padding: "11px", borderRadius: 11,
+                    background: plan.id === "elite"
+                      ? "linear-gradient(135deg, #facc15, #f59e0b)"
+                      : "linear-gradient(135deg, #00D4FF, #0080cc)",
+                    color: plan.id === "elite" ? "#1a0a00" : "#04080F",
+                    fontSize: 13, fontWeight: 800, cursor: "pointer", border: "none",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    boxShadow: plan.id === "elite" ? "0 0 20px rgba(250,204,21,0.25)" : "0 0 20px rgba(0,212,255,0.25)",
+                    transition: "all 0.2s",
+                  }}
+                    onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.1)")}
+                    onMouseLeave={e => (e.currentTarget.style.filter = "brightness(1)")}
+                  >
+                    Upgrade to {plan.name} <ArrowRight size={14} />
                   </button>
                 )}
 
-                {/* Features */}
-                <ul className="mt-5 space-y-2.5">
+                <ul style={{ marginTop: 22, listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <CheckCircle2 size={13} className="text-cyan-400 shrink-0 mt-0.5" />
-                      <span className="text-xs text-slate-400 leading-tight">{f}</span>
+                    <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
+                      <CheckCircle2 size={13} color={plan.accentColor} style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.4 }}>{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -197,21 +179,21 @@ export default function BillingPage() {
         </div>
 
         {/* Invoice History */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <FileText size={14} className="text-cyan-400" />
-              <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">Invoice History</h3>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="text-center py-8">
-              <CreditCard size={28} className="text-slate-600 mx-auto mb-3" />
-              <p className="text-sm text-slate-500">No invoices yet</p>
-              <p className="text-xs text-slate-600 mt-1">Your billing history will appear here</p>
-            </div>
-          </CardBody>
-        </Card>
+        <div style={{
+          borderRadius: 16, overflow: "hidden",
+          background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))",
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}>
+          <div style={{ padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: 8 }}>
+            <FileText size={14} color="#00D4FF" />
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Invoice History</span>
+          </div>
+          <div style={{ padding: "40px 22px", textAlign: "center" }}>
+            <CreditCard size={28} color="#1e293b" style={{ margin: "0 auto 12px" }} />
+            <p style={{ fontSize: 13, color: "#334155", margin: 0 }}>No invoices yet</p>
+            <p style={{ fontSize: 11, color: "#1e293b", marginTop: 4 }}>Your billing history will appear here</p>
+          </div>
+        </div>
       </div>
     </div>
   );

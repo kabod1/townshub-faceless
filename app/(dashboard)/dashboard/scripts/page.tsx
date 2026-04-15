@@ -4,45 +4,23 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
-import { Card, CardBody } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   ScrollText, Search, PenLine, Eye, Copy, Trash2,
-  Download, Clock, SortAsc, FileText,
-  ChevronUp, CheckCircle2, X,
+  Download, Clock, SortAsc, FileText, ChevronUp, CheckCircle2, X,
 } from "lucide-react";
 
-interface ScriptSection {
-  id: string;
-  title: string;
-  content: string;
-  wordCount: number;
-}
-
+interface ScriptSection { id: string; title: string; content: string; wordCount: number; }
 interface SavedScript {
-  id: string;
-  title: string;
-  niche: string;
-  format: string;
-  words: number;
-  duration: number;
-  createdAt: string;
-  status: "draft" | "final" | "published";
-  sections: ScriptSection[];
+  id: string; title: string; niche: string; format: string;
+  words: number; duration: number; createdAt: string;
+  status: "draft" | "final" | "published"; sections: ScriptSection[];
 }
 
-const statusColors: Record<string, "cyan" | "green" | "neutral"> = {
-  draft: "neutral",
-  final: "cyan",
-  published: "green",
-};
-
-const statusCycle: Record<string, "draft" | "final" | "published"> = {
-  draft: "final",
-  final: "published",
-  published: "draft",
+const statusCycle: Record<string, "draft" | "final" | "published"> = { draft: "final", final: "published", published: "draft" };
+const statusStyle: Record<string, { bg: string; color: string; border: string }> = {
+  draft: { bg: "rgba(255,255,255,0.05)", color: "#64748b", border: "rgba(255,255,255,0.08)" },
+  final: { bg: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "rgba(0,212,255,0.2)" },
+  published: { bg: "rgba(52,211,153,0.1)", color: "#34d399", border: "rgba(52,211,153,0.2)" },
 };
 
 export default function ScriptsPage() {
@@ -57,21 +35,13 @@ export default function ScriptsPage() {
   useEffect(() => {
     const load = async () => {
       const supabase = createClient();
-      const { data } = await supabase
-        .from("scripts")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data } = await supabase.from("scripts").select("*").order("created_at", { ascending: false });
       if (data) {
         setScripts(data.map((s) => ({
-          id: s.id,
-          title: s.title,
-          niche: s.niche || "General",
-          format: s.format || "listicle",
-          words: s.words || 0,
-          duration: s.duration || 10,
+          id: s.id, title: s.title, niche: s.niche || "General", format: s.format || "listicle",
+          words: s.words || 0, duration: s.duration || 10,
           createdAt: new Date(s.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
-          status: s.status as "draft" | "final" | "published",
-          sections: s.sections || [],
+          status: s.status as "draft" | "final" | "published", sections: s.sections || [],
         })));
       }
       setHydrated(true);
@@ -79,15 +49,11 @@ export default function ScriptsPage() {
     load();
   }, []);
 
-  const filtered = scripts
-    .filter((s) => {
-      const matchSearch = !search ||
-        s.title.toLowerCase().includes(search.toLowerCase()) ||
-        s.niche.toLowerCase().includes(search.toLowerCase());
-      const matchFilter = filter === "all" || s.status === filter;
-      return matchSearch && matchFilter;
-    })
-    .sort((a, b) => sortDesc ? 1 : -1);
+  const filtered = scripts.filter((s) => {
+    const matchSearch = !search || s.title.toLowerCase().includes(search.toLowerCase()) || s.niche.toLowerCase().includes(search.toLowerCase());
+    const matchFilter = filter === "all" || s.status === filter;
+    return matchSearch && matchFilter;
+  }).sort((a, b) => sortDesc ? 1 : -1);
 
   const deleteScript = async (id: string) => {
     const supabase = createClient();
@@ -113,186 +79,168 @@ export default function ScriptsPage() {
   };
 
   const downloadScript = (script: SavedScript) => {
-    const text = `# ${script.title}\n\n` +
-      script.sections.map((s) => `## ${s.title}\n\n${s.content}`).join("\n\n---\n\n");
+    const text = `# ${script.title}\n\n` + script.sections.map((s) => `## ${s.title}\n\n${s.content}`).join("\n\n---\n\n");
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `${script.title.slice(0, 50).replace(/[^a-z0-9]/gi, "-")}.txt`;
-    a.click();
+    a.href = url; a.download = `${script.title.slice(0, 50).replace(/[^a-z0-9]/gi, "-")}.txt`; a.click();
     URL.revokeObjectURL(url);
   };
 
+  const statCards = [
+    { label: "Total Scripts", value: scripts.length, color: "#00D4FF" },
+    { label: "Published", value: scripts.filter(s => s.status === "published").length, color: "#34d399" },
+    { label: "In Draft", value: scripts.filter(s => s.status === "draft").length, color: "#facc15" },
+    { label: "Scripts Left", value: Math.max(0, 4 - scripts.length), color: "#fb923c" },
+  ];
+
   return (
-    <div className="min-h-screen">
-      <Topbar title="My Scripts" action={{ label: "Write New Script" }} />
+    <div style={{ minHeight: "100vh", background: "#080D1A" }}>
+      <Topbar title="My Scripts" subtitle={`${scripts.length} scripts saved`}
+        action={{ label: "New Script", icon: <PenLine size={13} /> }} />
 
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div style={{ padding: "28px 32px", maxWidth: 1000, margin: "0 auto" }}>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: "Total Scripts", value: scripts.length, color: "text-cyan-400" },
-            { label: "Published", value: scripts.filter(s => s.status === "published").length, color: "text-emerald-400" },
-            { label: "In Draft", value: scripts.filter(s => s.status === "draft").length, color: "text-yellow-400" },
-            { label: "Scripts Left", value: Math.max(0, 4 - scripts.length), color: "text-orange-400" },
-          ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-white/6 bg-[#0F1829]/80 p-4">
-              <p className={`text-2xl font-bold font-[family-name:var(--font-syne)] ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+        {/* Stats */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+          {statCards.map((s) => (
+            <div key={s.label} style={{
+              padding: "18px 20px", borderRadius: 14,
+              background: "linear-gradient(135deg, rgba(15,24,42,0.9), rgba(8,13,26,0.95))",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}>
+              <p style={{ fontSize: 28, fontWeight: 800, color: s.color, margin: "0 0 4px", letterSpacing: "-1px" }}>{s.value}</p>
+              <p style={{ fontSize: 11, color: "#334155", margin: 0 }}>{s.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Filters + Search */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-          <Input
-            placeholder="Search by title or niche..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            icon={<Search size={14} />}
-            className="sm:w-72"
-          />
-          <div className="flex gap-2 flex-wrap">
+        {/* Filters */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+          <div style={{ position: "relative", flex: "0 0 260px" }}>
+            <Search size={13} color="#475569" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+            <input value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by title or niche…"
+              style={{ width: "100%", boxSizing: "border-box", background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 14px 10px 34px", color: "#e2e8f0", fontSize: 13, outline: "none" }}
+              onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.3)"}
+              onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"} />
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
             {["all", "draft", "final", "published"].map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all font-[family-name:var(--font-syne)] ${
-                  filter === f
-                    ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/25"
-                    : "bg-white/3 text-slate-500 border border-white/8 hover:border-white/15"
-                }`}
-              >
-                {f}
-              </button>
+              <button key={f} onClick={() => setFilter(f)} style={{
+                padding: "8px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600,
+                cursor: "pointer", border: "none", transition: "all 0.15s", textTransform: "capitalize",
+                background: filter === f ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.03)",
+                color: filter === f ? "#00D4FF" : "#475569",
+                outline: filter === f ? "1px solid rgba(0,212,255,0.2)" : "1px solid rgba(255,255,255,0.06)",
+              }}>{f}</button>
             ))}
           </div>
-          <button
-            onClick={() => setSortDesc(!sortDesc)}
-            className="ml-auto flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-          >
-            <SortAsc size={13} className={sortDesc ? "" : "rotate-180"} />
+          <button onClick={() => setSortDesc(!sortDesc)} style={{
+            marginLeft: "auto", display: "flex", alignItems: "center", gap: 6,
+            fontSize: 12, color: "#475569", background: "none", border: "none", cursor: "pointer",
+          }}>
+            <SortAsc size={13} style={{ transform: sortDesc ? "none" : "rotate(180deg)" }} />
             {sortDesc ? "Newest first" : "Oldest first"}
           </button>
         </div>
 
-        {/* Scripts list or empty */}
+        {/* Content */}
         {!hydrated ? null : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-white/3 border border-white/8 flex items-center justify-center">
-              <FileText size={28} className="text-slate-600" />
+          <div style={{ textAlign: "center", padding: "80px 20px" }}>
+            <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <FileText size={26} color="#1e293b" />
             </div>
-            <div className="text-center">
-              <p className="text-base font-bold text-slate-400 font-[family-name:var(--font-syne)]">
-                {scripts.length > 0 && filter !== "all" ? "No scripts match this filter" : "No scripts yet"}
-              </p>
-              <p className="text-sm text-slate-600 mt-1">
-                {scripts.length > 0 && filter !== "all"
-                  ? "Try a different filter above"
-                  : "Create your first AI-powered YouTube script."}
-              </p>
-            </div>
+            <p style={{ fontSize: 15, fontWeight: 700, color: "#94a3b8", margin: "0 0 6px" }}>
+              {scripts.length > 0 && filter !== "all" ? "No scripts match this filter" : "No scripts yet"}
+            </p>
+            <p style={{ fontSize: 13, color: "#334155", margin: "0 0 20px" }}>
+              {scripts.length > 0 ? "Try a different filter" : "Create your first AI-powered YouTube script."}
+            </p>
             {scripts.length === 0 && (
-              <Link href="/dashboard/new-script">
-                <Button icon={<PenLine size={14} />}>Write your first script</Button>
+              <Link href="/dashboard/new-script" style={{
+                display: "inline-flex", alignItems: "center", gap: 7, padding: "10px 20px", borderRadius: 10,
+                background: "linear-gradient(135deg, #00D4FF, #0080cc)", color: "#04080F",
+                fontSize: 13, fontWeight: 700, textDecoration: "none",
+              }}>
+                <PenLine size={14} /> Write your first script
               </Link>
             )}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {filtered.map((script) => {
               const isExpanded = expandedId === script.id;
+              const ss = statusStyle[script.status];
               return (
-                <Card key={script.id}>
-                  {/* Header row */}
-                  <CardBody className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center shrink-0">
-                      <ScrollText size={18} className="text-cyan-400" />
+                <div key={script.id} style={{
+                  borderRadius: 14, overflow: "hidden",
+                  background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px" }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: "rgba(0,212,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <ScrollText size={17} color="#00D4FF" />
                     </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="text-sm font-semibold text-white font-[family-name:var(--font-syne)] truncate">{script.title}</h3>
-                        <button onClick={() => cycleStatus(script.id)} title="Click to change status">
-                          <Badge variant={statusColors[script.status]} className="cursor-pointer hover:opacity-80 transition-opacity">
-                            {script.status}
-                          </Badge>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{script.title}</p>
+                        <button onClick={() => cycleStatus(script.id)} style={{
+                          fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, cursor: "pointer",
+                          background: ss.bg, color: ss.color, border: `1px solid ${ss.border}`,
+                          textTransform: "capitalize",
+                        }}>{script.status}</button>
+                      </div>
+                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        {[script.format, `${script.words.toLocaleString()} words`, `${script.duration} min`].map((item, i) => (
+                          <span key={i} style={{ fontSize: 11, color: "#334155", textTransform: "capitalize" }}>{item}{i < 2 ? " ·" : ""}</span>
+                        ))}
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#334155" }}>
+                          <Clock size={9} /> {script.createdAt}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                      {[
+                        { icon: isExpanded ? ChevronUp : Eye, title: "Toggle", onClick: () => setExpandedId(isExpanded ? null : script.id), hoverColor: "#00D4FF" },
+                        { icon: copiedId === script.id ? CheckCircle2 : Copy, title: "Copy", onClick: () => copyScript(script), hoverColor: "#94a3b8" },
+                        { icon: Download, title: "Download", onClick: () => downloadScript(script), hoverColor: "#94a3b8" },
+                        { icon: Trash2, title: "Delete", onClick: () => deleteScript(script.id), hoverColor: "#f87171" },
+                      ].map((btn, i) => (
+                        <button key={i} title={btn.title} onClick={btn.onClick} style={{
+                          width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
+                          borderRadius: 8, border: "none", background: "transparent", cursor: "pointer", color: "#334155",
+                          transition: "all 0.15s",
+                        }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.color = btn.hoverColor; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#334155"; }}
+                        >
+                          <btn.icon size={14} />
                         </button>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
-                        <span className="capitalize">{script.format || "script"}</span>
-                        <span>·</span>
-                        <span>{script.words.toLocaleString()} words</span>
-                        <span>·</span>
-                        <span>{script.duration} min</span>
-                        <span>·</span>
-                        <span className="flex items-center gap-1"><Clock size={10} />{script.createdAt}</span>
-                        {script.sections?.length > 0 && (
-                          <><span>·</span><span>{script.sections.length} sections</span></>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        title="Expand sections"
-                        onClick={() => setExpandedId(isExpanded ? null : script.id)}
-                        className="p-2 rounded-lg hover:bg-white/5 text-slate-500 hover:text-cyan-400 transition-all"
-                      >
-                        {isExpanded ? <ChevronUp size={14} /> : <Eye size={14} />}
-                      </button>
-                      <button
-                        title={copiedId === script.id ? "Copied!" : "Copy all"}
-                        onClick={() => copyScript(script)}
-                        className="p-2 rounded-lg hover:bg-white/5 text-slate-500 hover:text-slate-300 transition-all"
-                      >
-                        {copiedId === script.id ? <CheckCircle2 size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                      </button>
-                      <button
-                        title="Download .txt"
-                        onClick={() => downloadScript(script)}
-                        className="p-2 rounded-lg hover:bg-white/5 text-slate-500 hover:text-slate-300 transition-all"
-                      >
-                        <Download size={14} />
-                      </button>
-                      <button
-                        title="Delete"
-                        onClick={() => deleteScript(script.id)}
-                        className="p-2 rounded-lg hover:bg-white/5 text-slate-500 hover:text-red-400 transition-all"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </CardBody>
-
-                  {/* Expanded sections */}
-                  {isExpanded && script.sections?.length > 0 && (
-                    <div className="border-t border-white/5 px-5 pb-5 pt-4 space-y-3">
-                      {script.sections.map((section, i) => (
-                        <div key={section.id} className="rounded-lg bg-[#0A1020] border border-white/5 p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-5 h-5 rounded-full bg-cyan-500/15 flex items-center justify-center text-cyan-400 text-[10px] font-bold font-[family-name:var(--font-syne)]">
-                              {i + 1}
-                            </div>
-                            <p className="text-xs font-bold text-slate-300 font-[family-name:var(--font-syne)]">{section.title}</p>
-                            {section.wordCount > 0 && (
-                              <span className="ml-auto text-[10px] text-slate-600">{section.wordCount}w</span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">{section.content}</p>
-                        </div>
                       ))}
-                      <button
-                        onClick={() => setExpandedId(null)}
-                        className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-400 transition-colors mt-1"
-                      >
+                    </div>
+                  </div>
+
+                  {isExpanded && script.sections?.length > 0 && (
+                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", padding: "16px 18px" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {script.sections.map((section, i) => (
+                          <div key={section.id} style={{ borderRadius: 10, background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.05)", padding: "14px 16px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                              <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(0,212,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#00D4FF", flexShrink: 0 }}>{i + 1}</div>
+                              <p style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", margin: 0 }}>{section.title}</p>
+                              {section.wordCount > 0 && <span style={{ marginLeft: "auto", fontSize: 10, color: "#1e293b" }}>{section.wordCount}w</span>}
+                            </div>
+                            <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>{section.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={() => setExpandedId(null)} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#334155", background: "none", border: "none", cursor: "pointer", marginTop: 12 }}>
                         <X size={11} /> Collapse
                       </button>
                     </div>
                   )}
-                </Card>
+                </div>
               );
             })}
           </div>

@@ -2,69 +2,32 @@
 
 import { useState } from "react";
 import { Topbar } from "@/components/dashboard/topbar";
-import { Card, CardBody } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input, Select } from "@/components/ui/input";
 import {
-  Compass, Search, TrendingUp, Users, DollarSign,
-  Play, Flame, Star, BookmarkPlus, ArrowRight,
-  BarChart3, Eye, RefreshCw, Zap, AlertCircle, Lightbulb
+  Compass, Search, TrendingUp, Users, DollarSign, Play,
+  BookmarkPlus, ArrowRight, BarChart3, Eye, Flame,
+  RefreshCw, Zap, AlertCircle, Lightbulb
 } from "lucide-react";
 
 interface Niche {
-  id: string;
-  name: string;
-  category: string;
-  competition: "Low" | "Medium" | "High";
-  potential: number;
-  avgViews: string;
-  avgSubs: string;
-  rpm: string;
-  topChannels: number;
-  trend: "up" | "stable" | "down";
-  tags: string[];
-  whyNow?: string;
-  contentIdeas?: string[];
-  saved: boolean;
+  id: string; name: string; category: string;
+  competition: "Low" | "Medium" | "High"; potential: number;
+  avgViews: string; avgSubs: string; rpm: string; topChannels: number;
+  trend: "up" | "stable" | "down"; tags: string[];
+  whyNow?: string; contentIdeas?: string[]; saved: boolean;
 }
 
 const categories = [
-  { value: "all", label: "All Categories" },
-  { value: "technology", label: "Technology" },
-  { value: "finance", label: "Finance" },
-  { value: "lifestyle", label: "Lifestyle" },
-  { value: "education", label: "Education" },
-  { value: "entertainment", label: "Entertainment" },
+  { value: "all", label: "All Categories" }, { value: "technology", label: "Technology" },
+  { value: "finance", label: "Finance" }, { value: "lifestyle", label: "Lifestyle" },
+  { value: "education", label: "Education" }, { value: "entertainment", label: "Entertainment" },
   { value: "health", label: "Health & Fitness" },
 ];
 
-const competitionColors: Record<string, "green" | "gold" | "coral"> = {
-  Low: "green",
-  Medium: "gold",
-  High: "coral",
-};
+const STEPS = ["Scanning YouTube trends…","Analysing 12,000+ channels…","Calculating RPM data…","Scoring competition gaps…","Finalising opportunities…"];
 
-const STEPS = [
-  "Scanning YouTube trends…",
-  "Analysing 12,000+ channels…",
-  "Calculating RPM data…",
-  "Scoring competition gaps…",
-  "Finalising opportunities…",
-];
-
-function PotentialMeter({ score }: { score: number }) {
-  const color = score >= 90 ? "from-emerald-400 to-emerald-500" : score >= 80 ? "from-cyan-400 to-cyan-500" : "from-yellow-400 to-yellow-500";
-  const textColor = score >= 90 ? "text-emerald-400" : score >= 80 ? "text-cyan-400" : "text-yellow-400";
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
-        <div className={`h-full bg-gradient-to-r ${color}`} style={{ width: `${score}%` }} />
-      </div>
-      <span className={`text-xs font-bold font-[family-name:var(--font-syne)] ${textColor}`}>{score}</span>
-    </div>
-  );
-}
+const compColor: Record<string, string> = { Low: "#34d399", Medium: "#facc15", High: "#f87171" };
+const compBg: Record<string, string> = { Low: "rgba(52,211,153,0.1)", Medium: "rgba(250,204,21,0.1)", High: "rgba(248,113,113,0.1)" };
+const compBorder: Record<string, string> = { Low: "rgba(52,211,153,0.2)", Medium: "rgba(250,204,21,0.2)", High: "rgba(248,113,113,0.2)" };
 
 export default function NicheFinderPage() {
   const [niches, setNiches] = useState<Niche[]>([]);
@@ -78,49 +41,27 @@ export default function NicheFinderPage() {
   const [expandedNiche, setExpandedNiche] = useState<string | null>(null);
 
   const handleSearch = async () => {
-    setGenerating(true);
-    setError(null);
-    setGeneratingStep(0);
-
-    const interval = setInterval(() => {
-      setGeneratingStep((s) => Math.min(s + 1, STEPS.length - 1));
-    }, 2000);
-
+    setGenerating(true); setError(null); setGeneratingStep(0);
+    const interval = setInterval(() => setGeneratingStep((s) => Math.min(s + 1, STEPS.length - 1)), 2000);
     try {
       const res = await fetch("/api/niche-finder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category, competition, search, count: 8 }),
       });
-
       clearInterval(interval);
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-        throw new Error(err.error || `Server error ${res.status}`);
-      }
-
+      if (!res.ok) { const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` })); throw new Error(err.error || `Server error ${res.status}`); }
       const json = await res.json();
       const data = json.data || json;
-      const rawNiches: Niche[] = (data.niches || []).map((n: Niche, i: number) => ({
-        ...n,
-        id: n.id || String(i + 1),
-        saved: false,
-      }));
-
+      const rawNiches: Niche[] = (data.niches || []).map((n: Niche, i: number) => ({ ...n, id: n.id || String(i + 1), saved: false }));
       if (!rawNiches.length) throw new Error("No niches returned. Please try again.");
-      setNiches(rawNiches);
-      setHasGenerated(true);
+      setNiches(rawNiches); setHasGenerated(true);
     } catch (err: unknown) {
       clearInterval(interval);
       setError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setGenerating(false);
-    }
+    } finally { setGenerating(false); }
   };
 
-  const toggleSave = (id: string) =>
-    setNiches((prev) => prev.map((n) => (n.id === id ? { ...n, saved: !n.saved } : n)));
+  const toggleSave = (id: string) => setNiches((prev) => prev.map((n) => (n.id === id ? { ...n, saved: !n.saved } : n)));
 
   const filtered = niches.filter((n) => {
     const matchSearch = !search || n.name.toLowerCase().includes(search.toLowerCase()) || n.category?.toLowerCase().includes(search.toLowerCase());
@@ -130,83 +71,76 @@ export default function NicheFinderPage() {
   });
 
   return (
-    <div className="min-h-screen">
-      <Topbar title="Niche Finder" />
+    <div style={{ minHeight: "100vh", background: "#080D1A" }}>
+      <Topbar title="Niche Finder" subtitle="Discover high-performing niches for faceless channels" />
 
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div style={{ padding: "28px 32px", maxWidth: 1100, margin: "0 auto" }}>
 
-        {/* Hero */}
-        <div className="rounded-xl border border-cyan-500/15 bg-gradient-to-br from-[#162035] to-[#0F1829] p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-              <Compass size={22} className="text-emerald-400" />
+        {/* Hero search card */}
+        <div style={{
+          padding: "24px 28px", borderRadius: 18, marginBottom: 28,
+          background: "linear-gradient(135deg, rgba(15,24,42,0.97), rgba(8,13,26,0.99))",
+          border: "1px solid rgba(52,211,153,0.12)", position: "relative", overflow: "hidden",
+        }}>
+          <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(52,211,153,0.06)", filter: "blur(40px)", pointerEvents: "none" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 22 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 13, background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Compass size={22} color="#34d399" />
             </div>
-            <div className="flex-1">
-              <h2 className="text-lg font-bold text-white font-[family-name:var(--font-syne)]">Niche Finder Database</h2>
-              <p className="text-sm text-slate-400 mt-0.5">
-                AI-powered niche analysis — competition gaps, RPM data, growth trends, and viral potential for faceless channels.
-              </p>
+            <div>
+              <p style={{ fontSize: 16, fontWeight: 800, color: "#e2e8f0", margin: 0 }}>Niche Finder Database</p>
+              <p style={{ fontSize: 12, color: "#475569", margin: "3px 0 0" }}>AI-powered analysis — competition gaps, RPM data, growth trends, and viral potential.</p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 mt-5">
-            <Select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              options={categories}
-              className="sm:w-48"
-            />
-            <div className="flex gap-2">
-              {["all", "low", "medium", "high"].map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setCompetition(c)}
-                  className={`px-3 py-2 rounded-lg text-xs font-semibold capitalize transition-all font-[family-name:var(--font-syne)] ${
-                    competition === c
-                      ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/25"
-                      : "bg-white/3 text-slate-500 border border-white/8 hover:border-white/15"
-                  }`}
-                >
-                  {c === "all" ? "All Competition" : c}
-                </button>
-              ))}
-            </div>
-            <Button
-              loading={generating}
-              onClick={handleSearch}
-              icon={generating ? undefined : <Zap size={14} fill="currentColor" />}
-              className="sm:ml-auto"
-            >
-              {generating ? STEPS[generatingStep] : hasGenerated ? "Refresh Niches" : "Find Niches"}
-            </Button>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} style={{
+              background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10,
+              padding: "10px 14px", color: "#94a3b8", fontSize: 13, outline: "none", cursor: "pointer",
+            }}>
+              {categories.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+            {["all", "low", "medium", "high"].map((c) => (
+              <button key={c} onClick={() => setCompetition(c)} style={{
+                padding: "9px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                border: "none", textTransform: "capitalize", transition: "all 0.15s",
+                background: competition === c ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.03)",
+                color: competition === c ? "#00D4FF" : "#475569",
+                outline: competition === c ? "1px solid rgba(0,212,255,0.2)" : "1px solid rgba(255,255,255,0.06)",
+              }}>{c === "all" ? "All Competition" : c}</button>
+            ))}
+            <button onClick={handleSearch} disabled={generating} style={{
+              marginLeft: "auto", display: "flex", alignItems: "center", gap: 8,
+              padding: "10px 22px", borderRadius: 10, border: "none",
+              background: generating ? "rgba(0,212,255,0.3)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
+              color: "#04080F", fontSize: 13, fontWeight: 700, cursor: generating ? "not-allowed" : "pointer",
+              boxShadow: "0 0 20px rgba(0,212,255,0.25)",
+            }}>
+              {generating ? <><RefreshCw size={13} style={{ animation: "spin 0.7s linear infinite" }} /> {STEPS[generatingStep]}</> : <><Zap size={13} fill="#04080F" /> {hasGenerated ? "Refresh Niches" : "Find Niches"}</>}
+            </button>
           </div>
 
           {generating && (
-            <div className="mt-3">
-              <div className="w-full bg-white/5 rounded-full h-1">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-[2000ms] ease-out"
-                  style={{ width: `${((generatingStep + 1) / STEPS.length) * 100}%` }}
-                />
+            <div style={{ marginTop: 14 }}>
+              <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+                <div style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #34d399, #00D4FF)", transition: "width 2000ms ease-out", width: `${((generatingStep + 1) / STEPS.length) * 100}%` }} />
               </div>
-              <p className="text-[11px] text-slate-500 mt-1.5">Using GPT-4o · Usually 10–20 seconds</p>
+              <p style={{ fontSize: 11, color: "#334155", marginTop: 6 }}>Using GPT-4o · Usually 10–20 seconds</p>
             </div>
           )}
 
-          {/* Stats row */}
           {hasGenerated && niches.length > 0 && (
-            <div className="flex gap-6 mt-5 pt-4 border-t border-white/5">
+            <div style={{ display: "flex", gap: 24, marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
               {[
-                { label: "Niches Found", value: niches.length.toString(), icon: BarChart3 },
-                { label: "Low Competition", value: niches.filter(n => n.competition === "Low").length.toString(), icon: Flame },
-                { label: "High RPM", value: niches.filter(n => n.rpm?.includes("$1") || n.rpm?.includes("$2")).length.toString(), icon: DollarSign },
-                { label: "Trending Up", value: niches.filter(n => n.trend === "up").length.toString(), icon: TrendingUp },
+                { label: "Niches Found", value: niches.length, icon: BarChart3, color: "#00D4FF" },
+                { label: "Low Competition", value: niches.filter(n => n.competition === "Low").length, icon: Flame, color: "#34d399" },
+                { label: "Trending Up", value: niches.filter(n => n.trend === "up").length, icon: TrendingUp, color: "#a78bfa" },
               ].map((s) => (
-                <div key={s.label} className="flex items-center gap-2">
-                  <s.icon size={13} className="text-cyan-400" />
+                <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <s.icon size={13} color={s.color} />
                   <div>
-                    <p className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">{s.value}</p>
-                    <p className="text-[10px] text-slate-500">{s.label}</p>
+                    <p style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0 }}>{s.value}</p>
+                    <p style={{ fontSize: 10, color: "#334155", margin: 0 }}>{s.label}</p>
                   </div>
                 </div>
               ))}
@@ -216,127 +150,112 @@ export default function NicheFinderPage() {
 
         {/* Error */}
         {error && (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-4 flex items-start gap-3">
-            <AlertCircle size={15} className="text-red-400 shrink-0 mt-0.5" />
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 18px", borderRadius: 12, background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", marginBottom: 20 }}>
+            <AlertCircle size={15} color="#f87171" style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
-              <p className="text-sm font-semibold text-red-300 font-[family-name:var(--font-syne)]">Search Failed</p>
-              <p className="text-xs text-slate-400 mt-0.5">{error}</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "#fca5a5", margin: 0 }}>Search Failed</p>
+              <p style={{ fontSize: 12, color: "#94a3b8", margin: "3px 0 0" }}>{error}</p>
             </div>
           </div>
         )}
 
         {/* Empty state */}
         {!hasGenerated && !generating && (
-          <Card>
-            <CardBody className="py-16 text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
-                <Compass size={24} className="text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-base font-bold text-slate-300 font-[family-name:var(--font-syne)]">Discover High-Performing Niches</p>
-                <p className="text-sm text-slate-500 mt-1.5 max-w-sm mx-auto leading-relaxed">
-                  Our AI analyses thousands of channels to surface untapped niches with strong RPM, low competition, and high faceless-channel suitability.
-                </p>
-              </div>
-              <Button onClick={handleSearch} icon={<Zap size={14} fill="currentColor" />}>
-                Find Niches Now
-              </Button>
-            </CardBody>
-          </Card>
+          <div style={{ textAlign: "center", padding: "80px 20px" }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <Compass size={24} color="#34d399" />
+            </div>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "#94a3b8", margin: "0 0 8px" }}>Discover High-Performing Niches</p>
+            <p style={{ fontSize: 13, color: "#334155", margin: "0 0 24px", maxWidth: 400, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
+              Our AI analyses thousands of channels to surface untapped niches with strong RPM and low competition.
+            </p>
+            <button onClick={handleSearch} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #00D4FF, #0080cc)", color: "#04080F", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              <Zap size={14} fill="#04080F" /> Find Niches Now
+            </button>
+          </div>
         )}
 
-        {/* Results with search filter */}
+        {/* Results */}
         {hasGenerated && niches.length > 0 && (
           <>
-            <div className="flex gap-3">
-              <Input
-                placeholder="Search niches…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                icon={<Search size={14} />}
-                className="sm:w-64"
-              />
+            <div style={{ position: "relative", marginBottom: 20 }}>
+              <Search size={13} color="#475569" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search niches…"
+                style={{ width: "100%", maxWidth: 280, boxSizing: "border-box", background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 14px 10px 34px", color: "#e2e8f0", fontSize: 13, outline: "none" }}
+                onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.3)"}
+                onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 24 }}>
               {filtered.map((niche) => {
                 const isExpanded = expandedNiche === niche.id;
+                const cc = compColor[niche.competition] || "#94a3b8";
                 return (
-                  <div
-                    key={niche.id}
-                    className="rounded-xl border border-cyan-500/10 bg-gradient-to-br from-[#162035]/90 to-[#0F1829]/95 overflow-hidden transition-all duration-300 hover:border-cyan-500/25"
-                  >
-                    <div className="p-5">
-                      {/* Header */}
-                      <div className="flex items-start justify-between gap-3 mb-3">
+                  <div key={niche.id} style={{ borderRadius: 16, background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))", border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                    <div style={{ padding: "20px" }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            {niche.trend === "up" && <TrendingUp size={13} className="text-emerald-400" />}
-                            {niche.trend === "stable" && <BarChart3 size={13} className="text-cyan-400" />}
-                            <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">{niche.name}</h3>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                            {niche.trend === "up" && <TrendingUp size={13} color="#34d399" />}
+                            <p style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>{niche.name}</p>
                           </div>
-                          <Badge variant="neutral">{niche.category}</Badge>
+                          <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "rgba(255,255,255,0.05)", color: "#64748b", border: "1px solid rgba(255,255,255,0.07)" }}>{niche.category}</span>
                         </div>
-                        <Badge variant={competitionColors[niche.competition] || "neutral"}>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: compBg[niche.competition], color: cc, border: `1px solid ${compBorder[niche.competition]}`, flexShrink: 0 }}>
                           {niche.competition} Competition
-                        </Badge>
+                        </span>
                       </div>
 
-                      {/* Tags */}
                       {niche.tags?.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-4">
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
                           {niche.tags.map((tag) => (
-                            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 border border-white/8">{tag}</span>
+                            <span key={tag} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "rgba(255,255,255,0.04)", color: "#475569", border: "1px solid rgba(255,255,255,0.06)" }}>{tag}</span>
                           ))}
                         </div>
                       )}
 
-                      {/* Potential */}
-                      <div className="mb-4">
-                        <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest font-[family-name:var(--font-syne)] block mb-1.5">
-                          Niche Potential
-                        </span>
-                        <PotentialMeter score={niche.potential} />
+                      <div style={{ marginBottom: 14 }}>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: "#334155", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>Niche Potential</p>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ flex: 1, height: 5, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+                            <div style={{ height: "100%", borderRadius: 99, width: `${niche.potential}%`, background: niche.potential >= 90 ? "linear-gradient(90deg, #34d399, #10b981)" : niche.potential >= 80 ? "linear-gradient(90deg, #00D4FF, #0080cc)" : "linear-gradient(90deg, #facc15, #f59e0b)" }} />
+                          </div>
+                          <span style={{ fontSize: 12, fontWeight: 800, color: niche.potential >= 90 ? "#34d399" : niche.potential >= 80 ? "#00D4FF" : "#facc15" }}>{niche.potential}</span>
+                        </div>
                       </div>
 
-                      {/* Stats */}
-                      <div className="grid grid-cols-4 gap-3 mb-4">
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 14 }}>
                         {[
                           { label: "Avg Views", value: niche.avgViews, icon: Eye },
                           { label: "Avg Subs", value: niche.avgSubs, icon: Users },
                           { label: "RPM", value: niche.rpm, icon: DollarSign },
-                          { label: "Top Channels", value: String(niche.topChannels), icon: Play },
+                          { label: "Channels", value: String(niche.topChannels), icon: Play },
                         ].map((s) => (
-                          <div key={s.label} className="text-center">
-                            <s.icon size={12} className="text-slate-500 mx-auto mb-1" />
-                            <p className="text-xs font-bold text-white font-[family-name:var(--font-syne)] leading-tight">{s.value}</p>
-                            <p className="text-[9px] text-slate-600">{s.label}</p>
+                          <div key={s.label} style={{ textAlign: "center", padding: "8px 4px", borderRadius: 8, background: "rgba(255,255,255,0.02)" }}>
+                            <s.icon size={11} color="#334155" style={{ margin: "0 auto 4px", display: "block" }} />
+                            <p style={{ fontSize: 11, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>{s.value}</p>
+                            <p style={{ fontSize: 9, color: "#1e293b", margin: 0 }}>{s.label}</p>
                           </div>
                         ))}
                       </div>
 
-                      {/* Why Now */}
                       {niche.whyNow && (
-                        <div className="flex gap-2 mb-4 p-2.5 rounded-lg bg-white/3 border border-white/5">
-                          <Lightbulb size={12} className="text-yellow-400 shrink-0 mt-0.5" />
-                          <p className="text-[11px] text-slate-400 leading-relaxed">{niche.whyNow}</p>
+                        <div style={{ display: "flex", gap: 8, padding: "10px 12px", borderRadius: 9, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", marginBottom: 14 }}>
+                          <Lightbulb size={12} color="#facc15" style={{ flexShrink: 0, marginTop: 2 }} />
+                          <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.5, margin: 0 }}>{niche.whyNow}</p>
                         </div>
                       )}
 
-                      {/* Content Ideas expandable */}
                       {niche.contentIdeas?.length ? (
-                        <div className="mb-4">
-                          <button
-                            onClick={() => setExpandedNiche(isExpanded ? null : niche.id)}
-                            className="text-xs text-cyan-500 hover:text-cyan-300 transition-colors font-medium"
-                          >
+                        <div style={{ marginBottom: 14 }}>
+                          <button onClick={() => setExpandedNiche(isExpanded ? null : niche.id)} style={{ fontSize: 12, color: "#00D4FF", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                             {isExpanded ? "▲ Hide content ideas" : `▼ Show ${niche.contentIdeas.length} content ideas`}
                           </button>
                           {isExpanded && (
-                            <ul className="mt-2 space-y-1">
+                            <ul style={{ marginTop: 10, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
                               {niche.contentIdeas.map((idea, i) => (
-                                <li key={i} className="text-xs text-slate-400 flex gap-2">
-                                  <span className="text-cyan-500 font-bold">{i + 1}.</span> {idea}
+                                <li key={i} style={{ fontSize: 12, color: "#64748b", display: "flex", gap: 8 }}>
+                                  <span style={{ color: "#00D4FF", fontWeight: 700 }}>{i + 1}.</span> {idea}
                                 </li>
                               ))}
                             </ul>
@@ -344,23 +263,18 @@ export default function NicheFinderPage() {
                         </div>
                       ) : null}
 
-                      {/* Actions */}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => toggleSave(niche.id)}
-                          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all border ${
-                            niche.saved
-                              ? "bg-cyan-500/15 border-cyan-500/30 text-cyan-300"
-                              : "border-white/8 text-slate-500 hover:border-white/15 hover:text-slate-300"
-                          }`}
-                        >
-                          <BookmarkPlus size={12} />
-                          {niche.saved ? "Saved" : "Save"}
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button onClick={() => toggleSave(niche.id)} style={{
+                          display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9,
+                          fontSize: 12, fontWeight: 600, cursor: "pointer", border: "none", transition: "all 0.15s",
+                          background: niche.saved ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.04)",
+                          color: niche.saved ? "#00D4FF" : "#475569",
+                          outline: niche.saved ? "1px solid rgba(0,212,255,0.2)" : "1px solid rgba(255,255,255,0.06)",
+                        }}>
+                          <BookmarkPlus size={12} /> {niche.saved ? "Saved" : "Save"}
                         </button>
-                        <button className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-cyan-500/15 to-cyan-600/10 border border-cyan-500/25 text-cyan-300 text-xs font-bold font-[family-name:var(--font-syne)] hover:from-cyan-500/20 transition-all">
-                          <Zap size={12} />
-                          Explore Niche
-                          <ArrowRight size={11} className="ml-auto" />
+                        <button style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "8px 14px", borderRadius: 9, background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.18)", color: "#00D4FF", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                          <Zap size={12} /> Explore Niche <ArrowRight size={11} style={{ marginLeft: "auto" }} />
                         </button>
                       </div>
                     </div>
@@ -369,19 +283,16 @@ export default function NicheFinderPage() {
               })}
             </div>
 
-            <div className="text-center">
-              <button
-                onClick={handleSearch}
-                disabled={generating}
-                className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-cyan-400 transition-colors disabled:opacity-50"
-              >
-                <RefreshCw size={14} className={generating ? "animate-spin" : ""} />
+            <div style={{ textAlign: "center" }}>
+              <button onClick={handleSearch} disabled={generating} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: "#334155", background: "none", border: "none", cursor: generating ? "not-allowed" : "pointer", opacity: generating ? 0.5 : 1 }}>
+                <RefreshCw size={14} style={generating ? { animation: "spin 0.7s linear infinite" } : {}} />
                 {generating ? "Refreshing…" : "Refresh niche analysis"}
               </button>
             </div>
           </>
         )}
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
