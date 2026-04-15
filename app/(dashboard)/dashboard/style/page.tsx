@@ -3,13 +3,9 @@
 import { useState } from "react";
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { Topbar } from "@/components/dashboard/topbar";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input, Textarea, Select } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
-  Sparkles, Plus, Trash2, Play, Globe, CheckCircle2,
-  PenLine, Mic, BookOpen, TrendingUp, Lightbulb, AlertCircle
+  Sparkles, Plus, Trash2, Globe, CheckCircle2,
+  PenLine, Mic, BookOpen, TrendingUp, Lightbulb, AlertCircle, Play
 } from "lucide-react";
 
 const toneOptions = [
@@ -58,19 +54,11 @@ const DEFAULT_STYLE: StyleSettings = {
 };
 
 export default function StylePage() {
-  const [style, setStyle, , ] = useLocalStorage<StyleSettings>("th_style", DEFAULT_STYLE);
+  const [style, setStyle] = useLocalStorage<StyleSettings>("th_style", DEFAULT_STYLE);
   const [channels, setChannels] = useLocalStorage<ChannelProfile[]>("th_channels", []);
   const [saved, setSaved] = useState(false);
   const [showAddChannel, setShowAddChannel] = useState(false);
   const [newChannel, setNewChannel] = useState({ name: "", niche: "", handle: "", competitor: "" });
-
-  const selectedTone = style.tone;
-  const selectedHooks = style.hooks;
-  const selectedPillars = style.pillars;
-  const writingDNA = style.writingDNA;
-
-  const setSelectedTone = (v: string) => setStyle((p) => ({ ...p, tone: v }));
-  const setWritingDNA = (v: string) => setStyle((p) => ({ ...p, writingDNA: v }));
 
   const toggleHook = (id: string) =>
     setStyle((p) => ({
@@ -105,232 +93,315 @@ export default function StylePage() {
     setShowAddChannel(false);
   };
 
-  return (
-    <div className="min-h-screen">
-      <Topbar title="My Style & Profiles" />
+  const card: React.CSSProperties = {
+    background: "linear-gradient(135deg, rgba(15,24,42,0.97), rgba(8,13,26,0.99))",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: 16,
+  };
 
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
+  const sectionLabel: React.CSSProperties = {
+    fontSize: 10, fontWeight: 700, letterSpacing: "0.14em",
+    textTransform: "uppercase", color: "#475569", marginBottom: 10,
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%", background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 10, padding: "10px 14px", color: "#e2e8f0", fontSize: 13, outline: "none",
+    boxSizing: "border-box",
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#080D1A" }}>
+      <Topbar title="My Style & Profiles" subtitle="Configure how the AI writes for your channels" />
+
+      <div style={{ padding: "28px 32px", maxWidth: 1100, margin: "0 auto" }}>
 
         {/* Banner */}
-        <div className="rounded-xl border border-orange-500/20 bg-gradient-to-r from-orange-500/8 to-transparent p-4 flex items-center gap-3">
-          <AlertCircle size={16} className="text-orange-400 shrink-0" />
-          <p className="text-sm text-slate-300">
-            Add competitor channels so Townshub can learn your writing style and generate better scripts & SEO keywords.
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12, padding: "14px 18px",
+          borderRadius: 12, background: "rgba(251,146,60,0.06)", border: "1px solid rgba(251,146,60,0.18)",
+          marginBottom: 28,
+        }}>
+          <AlertCircle size={15} color="#fb923c" style={{ flexShrink: 0 }} />
+          <p style={{ fontSize: 13, color: "#94a3b8", margin: 0, flex: 1 }}>
+            Add competitor channels so Townshub can learn your writing style and generate better scripts &amp; SEO keywords.
           </p>
-          <button className="ml-auto shrink-0 px-4 py-1.5 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-300 text-xs font-bold font-[family-name:var(--font-syne)] hover:bg-orange-500/30 transition-all">
+          <button
+            onClick={() => setShowAddChannel(true)}
+            style={{
+              padding: "7px 16px", borderRadius: 8, border: "1px solid rgba(251,146,60,0.3)",
+              background: "rgba(251,146,60,0.1)", color: "#fb923c", fontSize: 12,
+              fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+            }}
+          >
             Set Up My Style
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24 }}>
 
-          {/* Left: Style Config */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* ── Left: Style Config ─────────────────────────────────────── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-            {/* My Style */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-cyan-500/15 flex items-center justify-center">
-                    <Sparkles size={14} className="text-cyan-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">My Style</h3>
-                    <p className="text-xs text-slate-500">Customize how the AI writes for you across all channels</p>
-                  </div>
+            {/* Writing Style Card */}
+            <div style={card}>
+              {/* Header */}
+              <div style={{ padding: "18px 22px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Sparkles size={16} color="#00D4FF" />
                 </div>
-              </CardHeader>
-              <CardBody className="space-y-5">
+                <div>
+                  <p style={{ fontSize: 15, fontWeight: 800, color: "#e2e8f0", margin: 0 }}>My Style</p>
+                  <p style={{ fontSize: 12, color: "#475569", margin: "2px 0 0" }}>Customize how the AI writes for you across all channels</p>
+                </div>
+              </div>
+
+              <div style={{ padding: "22px" }}>
 
                 {/* Writing Tone */}
-                <Select
-                  label="Writing Tone"
-                  value={selectedTone}
-                  onChange={(e) => setSelectedTone(e.target.value)}
-                  options={toneOptions}
-                />
+                <div style={{ marginBottom: 22 }}>
+                  <p style={sectionLabel}>Writing Tone</p>
+                  <select
+                    value={style.tone}
+                    onChange={(e) => setStyle((p) => ({ ...p, tone: e.target.value }))}
+                    style={inputStyle}
+                  >
+                    {toneOptions.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                </div>
 
-                {/* Hook Style */}
-                <div>
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 font-[family-name:var(--font-syne)]">Hook Styles</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {hookStyles.map((h) => (
-                      <button
-                        key={h.id}
-                        onClick={() => toggleHook(h.id)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
-                          selectedHooks.includes(h.id)
-                            ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-300"
-                            : "border-white/8 bg-white/2 text-slate-500 hover:border-white/15 hover:text-slate-400"
-                        }`}
-                      >
-                        <span className="text-xs font-bold w-4 text-center">{h.icon}</span>
-                        <span className="text-xs leading-tight">{h.label}</span>
-                        {selectedHooks.includes(h.id) && <CheckCircle2 size={12} className="ml-auto text-cyan-400" />}
-                      </button>
-                    ))}
+                {/* Hook Styles */}
+                <div style={{ marginBottom: 22 }}>
+                  <p style={sectionLabel}>Hook Styles</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                    {hookStyles.map((h) => {
+                      const active = style.hooks.includes(h.id);
+                      return (
+                        <button
+                          key={h.id}
+                          onClick={() => toggleHook(h.id)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 8,
+                            padding: "10px 12px", borderRadius: 10, cursor: "pointer",
+                            border: active ? "1px solid rgba(0,212,255,0.35)" : "1px solid rgba(255,255,255,0.07)",
+                            background: active ? "rgba(0,212,255,0.08)" : "rgba(255,255,255,0.02)",
+                            transition: "all 0.15s",
+                          }}
+                        >
+                          <span style={{ fontSize: 12, fontWeight: 800, width: 18, textAlign: "center", color: active ? "#00D4FF" : "#475569" }}>{h.icon}</span>
+                          <span style={{ fontSize: 12, color: active ? "#7dd3fc" : "#475569", lineHeight: 1.3, textAlign: "left" }}>{h.label}</span>
+                          {active && <CheckCircle2 size={12} color="#00D4FF" style={{ marginLeft: "auto", flexShrink: 0 }} />}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* Content Pillars */}
-                <div>
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 font-[family-name:var(--font-syne)]">Content Pillars</p>
-                  <div className="flex flex-wrap gap-2">
-                    {contentPillars.map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => togglePillar(p)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                          selectedPillars.includes(p)
-                            ? "bg-cyan-500/12 border-cyan-500/30 text-cyan-300"
-                            : "border-white/8 text-slate-500 hover:border-white/15 hover:text-slate-400"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
+                <div style={{ marginBottom: 22 }}>
+                  <p style={sectionLabel}>Content Pillars</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {contentPillars.map((p) => {
+                      const active = style.pillars.includes(p);
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => togglePillar(p)}
+                          style={{
+                            padding: "7px 14px", borderRadius: 99, cursor: "pointer",
+                            fontSize: 12, fontWeight: 500,
+                            border: active ? "1px solid rgba(0,212,255,0.3)" : "1px solid rgba(255,255,255,0.07)",
+                            background: active ? "rgba(0,212,255,0.08)" : "rgba(255,255,255,0.02)",
+                            color: active ? "#7dd3fc" : "#475569",
+                            transition: "all 0.15s",
+                          }}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* Writing DNA */}
-                <Textarea
-                  label="Writing DNA (Custom Instructions)"
-                  value={writingDNA}
-                  onChange={(e) => setWritingDNA(e.target.value)}
-                  rows={4}
-                  placeholder="e.g. Always start with a counterintuitive insight. Use short punchy sentences. Avoid corporate jargon. Reference real examples whenever possible..."
-                  hint="These instructions are applied to every script you generate."
-                />
-
-                <Button
-                  size="md"
-                  icon={saved ? <CheckCircle2 size={14} /> : <Sparkles size={14} />}
-                  variant={saved ? "outline" : "primary"}
-                  onClick={handleSave}
-                >
-                  {saved ? "Saved!" : "Save Style Settings"}
-                </Button>
-              </CardBody>
-            </Card>
-
-            {/* Style Insights */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <TrendingUp size={14} className="text-cyan-400" />
-                  <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">Style Insights</h3>
+                <div style={{ marginBottom: 22 }}>
+                  <p style={sectionLabel}>Writing DNA (Custom Instructions)</p>
+                  <textarea
+                    value={style.writingDNA}
+                    onChange={(e) => setStyle((p) => ({ ...p, writingDNA: e.target.value }))}
+                    rows={4}
+                    placeholder="e.g. Always start with a counterintuitive insight. Use short punchy sentences. Avoid corporate jargon. Reference real examples whenever possible..."
+                    style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
+                  />
+                  <p style={{ fontSize: 11, color: "#334155", marginTop: 6 }}>These instructions are applied to every script you generate.</p>
                 </div>
-              </CardHeader>
-              <CardBody>
-                <div className="grid grid-cols-3 gap-4">
+
+                <button
+                  onClick={handleSave}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    padding: "11px 22px", borderRadius: 10, border: "none",
+                    background: saved ? "rgba(52,211,153,0.1)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
+                    color: saved ? "#34d399" : "#04080F",
+                    fontSize: 13, fontWeight: 700, cursor: "pointer",
+                    outline: saved ? "1px solid rgba(52,211,153,0.3)" : "none",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {saved ? <><CheckCircle2 size={14} /> Saved!</> : <><Sparkles size={14} /> Save Style Settings</>}
+                </button>
+              </div>
+            </div>
+
+            {/* Style Insights Card */}
+            <div style={card}>
+              <div style={{ padding: "18px 22px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 10 }}>
+                <TrendingUp size={15} color="#00D4FF" />
+                <p style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>Style Insights</p>
+              </div>
+              <div style={{ padding: "22px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
                   {[
-                    { icon: PenLine, label: "Avg. Script Length", value: "—", color: "text-cyan-400" },
-                    { icon: Mic, label: "Preferred Hook", value: "—", color: "text-orange-400" },
-                    { icon: BookOpen, label: "Top Pillar", value: "—", color: "text-violet-400" },
+                    { icon: PenLine, label: "Avg. Script Length", value: "—", color: "#00D4FF" },
+                    { icon: Mic, label: "Preferred Hook", value: "—", color: "#fb923c" },
+                    { icon: BookOpen, label: "Top Pillar", value: "—", color: "#a78bfa" },
                   ].map((item) => (
-                    <div key={item.label} className="text-center p-3 rounded-lg bg-white/2 border border-white/5">
-                      <item.icon size={18} className={`${item.color} mx-auto mb-2`} />
-                      <p className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">{item.value}</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">{item.label}</p>
+                    <div key={item.label} style={{ textAlign: "center", padding: "16px 12px", borderRadius: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <item.icon size={18} color={item.color} style={{ margin: "0 auto 10px", display: "block" }} />
+                      <p style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: "0 0 4px" }}>{item.value}</p>
+                      <p style={{ fontSize: 11, color: "#334155", margin: 0 }}>{item.label}</p>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-slate-600 text-center mt-4">Generate scripts to see your writing patterns.</p>
-              </CardBody>
-            </Card>
+                <p style={{ fontSize: 12, color: "#1e293b", textAlign: "center", marginTop: 16 }}>Generate scripts to see your writing patterns.</p>
+              </div>
+            </div>
           </div>
 
-          {/* Right: Channel Profiles */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+          {/* ── Right: Channel Profiles ────────────────────────────────── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <h3 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">Channel Profiles</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Switch between different YouTube channels</p>
+                <p style={{ fontSize: 14, fontWeight: 800, color: "#e2e8f0", margin: "0 0 2px" }}>Channel Profiles</p>
+                <p style={{ fontSize: 12, color: "#475569", margin: 0 }}>Switch between YouTube channels</p>
               </div>
-              <Button size="sm" variant="outline" icon={<Plus size={12} />} onClick={() => setShowAddChannel(true)}>
-                Add
-              </Button>
+              <button
+                onClick={() => setShowAddChannel(true)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "7px 14px", borderRadius: 9,
+                  border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)",
+                  color: "#94a3b8", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                <Plus size={13} /> Add
+              </button>
             </div>
 
-            {channels.length === 0 && !showAddChannel && (
-              <Card>
-                <CardBody className="text-center py-8">
-                  <Play size={28} className="text-slate-600 mx-auto mb-3" />
-                  <p className="text-sm font-semibold text-slate-400 font-[family-name:var(--font-syne)]">No channels yet</p>
-                  <p className="text-xs text-slate-600 mt-1 mb-4">Add a channel profile to get personalized scripts.</p>
-                  <Button size="sm" variant="outline" onClick={() => setShowAddChannel(true)} icon={<Plus size={12} />}>
-                    Add Channel Profile
-                  </Button>
-                </CardBody>
-              </Card>
-            )}
-
+            {/* Add channel form */}
             {showAddChannel && (
-              <Card glow>
-                <CardHeader>
-                  <h4 className="text-sm font-bold text-white font-[family-name:var(--font-syne)]">New Channel Profile</h4>
-                </CardHeader>
-                <CardBody className="space-y-3">
-                  <Input label="Channel Name" placeholder="e.g. Money Mindset" value={newChannel.name} onChange={(e) => setNewChannel({ ...newChannel, name: e.target.value })} />
-                  <Input label="Niche" placeholder="e.g. Personal Finance" value={newChannel.niche} onChange={(e) => setNewChannel({ ...newChannel, niche: e.target.value })} />
-                  <Input label="YouTube Handle" placeholder="@yourhandle" value={newChannel.handle} onChange={(e) => setNewChannel({ ...newChannel, handle: e.target.value })} icon={<Play size={14} />} />
-                  <Input label="Competitor Channel URL" placeholder="youtube.com/@competitor" value={newChannel.competitor} onChange={(e) => setNewChannel({ ...newChannel, competitor: e.target.value })} icon={<Globe size={14} />} hint="We'll analyze their scripts to build your style." />
-                  <div className="flex gap-2 pt-1">
-                    <Button size="sm" onClick={addChannel}>Save</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setShowAddChannel(false)}>Cancel</Button>
-                  </div>
-                </CardBody>
-              </Card>
-            )}
-
-            {channels.map((ch) => (
-              <Card key={ch.id} hover>
-                <CardBody>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center text-white text-sm font-bold font-[family-name:var(--font-syne)]">
-                        {ch.name.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white font-[family-name:var(--font-syne)]">{ch.name}</p>
-                        <p className="text-xs text-slate-500">{ch.niche}</p>
-                        {ch.handle && <p className="text-xs text-cyan-500">{ch.handle}</p>}
-                      </div>
+              <div style={{ ...card, padding: "18px" }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", margin: "0 0 14px" }}>New Channel Profile</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {[
+                    { label: "Channel Name", key: "name", placeholder: "e.g. Money Mindset" },
+                    { label: "Niche", key: "niche", placeholder: "e.g. Personal Finance" },
+                    { label: "YouTube Handle", key: "handle", placeholder: "@yourhandle" },
+                    { label: "Competitor Channel URL", key: "competitor", placeholder: "youtube.com/@competitor" },
+                  ].map(({ label, key, placeholder }) => (
+                    <div key={key}>
+                      <p style={{ fontSize: 11, color: "#475569", marginBottom: 4 }}>{label}</p>
+                      <input
+                        value={newChannel[key as keyof typeof newChannel]}
+                        onChange={(e) => setNewChannel({ ...newChannel, [key]: e.target.value })}
+                        placeholder={placeholder}
+                        style={inputStyle}
+                      />
                     </div>
+                  ))}
+                  <div style={{ display: "flex", gap: 8, paddingTop: 4 }}>
                     <button
-                      onClick={() => setChannels((p: ChannelProfile[]) => p.filter((c) => c.id !== ch.id))}
-                      className="text-slate-600 hover:text-red-400 transition-colors"
+                      onClick={addChannel}
+                      style={{ flex: 1, padding: "9px", borderRadius: 9, border: "none", background: "linear-gradient(135deg, #00D4FF, #0080cc)", color: "#04080F", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
                     >
-                      <Trash2 size={14} />
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setShowAddChannel(false)}
+                      style={{ padding: "9px 16px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "#64748b", fontSize: 13, cursor: "pointer" }}
+                    >
+                      Cancel
                     </button>
                   </div>
-                  {ch.competitors.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-white/5">
-                      <p className="text-[11px] text-slate-600 mb-1.5">Competitor Channels</p>
-                      {ch.competitors.map((c, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <Globe size={11} className="text-slate-600" />
-                          <p className="text-xs text-slate-500">{c}</p>
-                          <Badge variant="green" className="ml-auto">Analyzed</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardBody>
-              </Card>
+                </div>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {channels.length === 0 && !showAddChannel && (
+              <div style={{ ...card, padding: "40px 20px", textAlign: "center" }}>
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+                  <Play size={20} color="#334155" />
+                </div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#475569", margin: "0 0 6px" }}>No channels yet</p>
+                <p style={{ fontSize: 12, color: "#334155", margin: "0 0 16px", lineHeight: 1.5 }}>Add a channel profile to get personalized scripts.</p>
+                <button
+                  onClick={() => setShowAddChannel(true)}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#94a3b8", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
+                >
+                  <Plus size={13} /> Add Channel Profile
+                </button>
+              </div>
+            )}
+
+            {/* Channel list */}
+            {channels.map((ch) => (
+              <div key={ch.id} style={{ ...card, padding: "16px 18px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg, #00D4FF, #0080cc)", display: "flex", alignItems: "center", justifyContent: "center", color: "#04080F", fontSize: 15, fontWeight: 800, flexShrink: 0 }}>
+                    {ch.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", margin: "0 0 2px" }}>{ch.name}</p>
+                    <p style={{ fontSize: 11, color: "#475569", margin: 0 }}>{ch.niche}</p>
+                    {ch.handle && <p style={{ fontSize: 11, color: "#00D4FF", margin: "2px 0 0" }}>{ch.handle}</p>}
+                  </div>
+                  <button
+                    onClick={() => setChannels((p: ChannelProfile[]) => p.filter((c) => c.id !== ch.id))}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "#334155", padding: 4 }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = "#f87171"}
+                    onMouseLeave={(e) => e.currentTarget.style.color = "#334155"}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                {ch.competitors.length > 0 && (
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                    <p style={{ fontSize: 10, color: "#334155", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.1em" }}>Competitors</p>
+                    {ch.competitors.map((c, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <Globe size={11} color="#334155" />
+                        <p style={{ fontSize: 11, color: "#475569", margin: 0, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c}</p>
+                        <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "rgba(52,211,153,0.1)", color: "#34d399", border: "1px solid rgba(52,211,153,0.2)" }}>Analyzed</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
 
-            {/* Competitor analysis tip */}
-            <Card>
-              <CardBody>
-                <div className="flex gap-3">
-                  <Lightbulb size={14} className="text-yellow-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Add 3+ competitor channels to enable <span className="text-cyan-400 font-medium">Writing DNA</span> analysis — we&apos;ll reverse-engineer what makes their scripts work.
-                  </p>
-                </div>
-              </CardBody>
-            </Card>
+            {/* Tip card */}
+            <div style={{ ...card, padding: "14px 16px" }}>
+              <div style={{ display: "flex", gap: 10 }}>
+                <Lightbulb size={14} color="#facc15" style={{ flexShrink: 0, marginTop: 2 }} />
+                <p style={{ fontSize: 12, color: "#475569", lineHeight: 1.6, margin: 0 }}>
+                  Add 3+ competitor channels to enable <span style={{ color: "#00D4FF", fontWeight: 600 }}>Writing DNA</span> analysis — we&apos;ll reverse-engineer what makes their scripts work.
+                </p>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
