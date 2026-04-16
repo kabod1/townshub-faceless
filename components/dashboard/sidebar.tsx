@@ -29,7 +29,7 @@ function THMark({ size = 32 }: { size?: number }) {
     </div>
   );
 }
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const nav = [
   {
@@ -67,17 +67,46 @@ const nav = [
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    const toggle = () => setMobileOpen(o => !o);
+    window.addEventListener("toggle-sidebar", toggle);
+    return () => {
+      window.removeEventListener("resize", check);
+      window.removeEventListener("toggle-sidebar", toggle);
+    };
+  }, []);
+
+  const closeMobile = () => setMobileOpen(false);
 
   const w = collapsed ? 64 : 220;
 
   return (
+    <>
+      {/* Mobile backdrop */}
+      {isMobile && mobileOpen && (
+        <div onClick={closeMobile} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(4px)", zIndex: 290,
+        }} />
+      )}
     <aside style={{
-      width: w, minWidth: w, height: "100vh",
+      width: isMobile ? 240 : w,
+      minWidth: isMobile ? 240 : w,
+      height: "100vh",
       background: "#070C18",
       borderRight: "1px solid rgba(255,255,255,0.05)",
       display: "flex", flexDirection: "column",
-      transition: "width 0.25s ease, min-width 0.25s ease",
-      position: "relative", flexShrink: 0,
+      transition: "width 0.25s ease, min-width 0.25s ease, transform 0.28s ease",
+      position: isMobile ? "fixed" : "relative",
+      top: 0, left: 0, zIndex: isMobile ? 300 : "auto",
+      transform: isMobile ? (mobileOpen ? "translateX(0)" : "translateX(-100%)") : "none",
+      flexShrink: 0,
       overflow: "hidden",
     }}>
 
@@ -114,7 +143,7 @@ export function Sidebar() {
                 const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
                 return (
                   <li key={href}>
-                    <Link href={href} title={collapsed ? label : undefined} style={{ textDecoration: "none" }}>
+                    <Link href={href} title={collapsed ? label : undefined} style={{ textDecoration: "none" }} onClick={isMobile ? closeMobile : undefined}>
                       <div style={{
                         display: "flex", alignItems: "center",
                         gap: collapsed ? 0 : 9,
@@ -215,8 +244,8 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Collapse toggle */}
-      <button
+      {/* Collapse toggle — desktop only */}
+      {!isMobile && <button
         onClick={() => setCollapsed(!collapsed)}
         style={{
           position: "absolute", right: -12, top: 72,
@@ -229,7 +258,8 @@ export function Sidebar() {
         onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,212,255,0.2)"}
       >
         <ChevronLeft size={11} color="#475569" style={{ transform: collapsed ? "rotate(180deg)" : "none", transition: "transform 0.25s" }} />
-      </button>
+      </button>}
     </aside>
+    </>
   );
 }

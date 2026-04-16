@@ -2,9 +2,9 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-[#080D1A]">
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#080D1A" }}>
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">
+      <main style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
         {children}
       </main>
     </div>

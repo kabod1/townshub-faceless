@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface TopbarProps {
@@ -14,6 +14,7 @@ interface TopbarProps {
 
 export function Topbar({ title, subtitle, action, channelName, wordCount }: TopbarProps) {
   const [activeChannel, setActiveChannel] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (channelName) { setActiveChannel(channelName); return; }
@@ -21,10 +22,17 @@ export function Topbar({ title, subtitle, action, channelName, wordCount }: Topb
     if (saved) setActiveChannel(saved);
   }, [channelName]);
 
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   return (
     <header style={{
       height: 60, display: "flex", alignItems: "center", justifyContent: "space-between",
-      padding: "0 28px",
+      padding: isMobile ? "0 16px" : "0 28px",
       borderBottom: "1px solid rgba(255,255,255,0.04)",
       background: "rgba(7,12,24,0.9)",
       backdropFilter: "blur(12px)",
@@ -32,8 +40,16 @@ export function Topbar({ title, subtitle, action, channelName, wordCount }: Topb
       flexShrink: 0,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        {isMobile && (
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("toggle-sidebar"))}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", display: "flex", alignItems: "center", padding: 4, flexShrink: 0 }}
+          >
+            <Menu size={20} />
+          </button>
+        )}
         <div>
-          <h1 style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.3px" }}>{title}</h1>
+          <h1 style={{ fontSize: isMobile ? 14 : 16, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.3px" }}>{title}</h1>
           {subtitle && <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>{subtitle}</p>}
         </div>
         {wordCount !== undefined && wordCount > 0 && (
@@ -48,7 +64,7 @@ export function Topbar({ title, subtitle, action, channelName, wordCount }: Topb
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {activeChannel && (
+        {activeChannel && !isMobile && (
           <div style={{
             display: "flex", alignItems: "center", gap: 7,
             padding: "5px 12px 5px 6px",
