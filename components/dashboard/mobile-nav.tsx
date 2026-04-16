@@ -88,8 +88,8 @@ export function MobileNav() {
                     background: active ? `${color}14` : "rgba(255,255,255,0.03)",
                     border: `1px solid ${active ? color + "40" : "rgba(255,255,255,0.07)"}`,
                   }}>
-                    <Icon size={17} color={active ? color : "#64748b"} />
-                    <span style={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#e2e8f0" : "#94a3b8" }}>
+                    <Icon size={17} color={active ? color : "#94a3b8"} />
+                    <span style={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#ffffff" : "#C8D6F0" }}>
                       {label}
                     </span>
                   </div>
@@ -121,7 +121,7 @@ export function MobileNav() {
                 justifyContent: "center", gap: 5, height: "100%",
               }}>
                 <div style={{ position: "relative" }}>
-                  <Icon size={21} color={active ? "#00D4FF" : "#4B5A72"} strokeWidth={active ? 2.5 : 2} />
+                  <Icon size={21} color={active ? "#00D4FF" : "#C8D6F0"} strokeWidth={active ? 2.5 : 2} />
                   {active && (
                     <div style={{
                       position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%)",
@@ -129,7 +129,7 @@ export function MobileNav() {
                     }} />
                   )}
                 </div>
-                <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#00D4FF" : "#4B5A72", letterSpacing: "0.01em" }}>
+                <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#00D4FF" : "#C8D6F0", letterSpacing: "0.01em" }}>
                   {label}
                 </span>
               </div>
@@ -158,7 +158,7 @@ export function MobileNav() {
           background: "none", border: "none", cursor: "pointer",
         }}>
           <GridIcon active={moreOpen} />
-          <span style={{ fontSize: 10, fontWeight: moreOpen ? 700 : 500, color: moreOpen ? "#00D4FF" : "#4B5A72" }}>More</span>
+          <span style={{ fontSize: 10, fontWeight: moreOpen ? 700 : 500, color: moreOpen ? "#00D4FF" : "#C8D6F0" }}>More</span>
         </button>
       </nav>
     </>

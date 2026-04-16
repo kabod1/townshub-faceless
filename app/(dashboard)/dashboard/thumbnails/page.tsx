@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { Topbar } from "@/components/dashboard/topbar";
 import {
@@ -29,7 +29,6 @@ export default function ThumbnailsPage() {
   const [subtitleText, setSubtitleText] = useState("(And How to Be the 1%)");
   const [selectedStyle, setSelectedStyle] = useState("bold");
   const [generating, setGenerating] = useState(false);
-  const [generated, setGenerated] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [textColor, setTextColor] = useState("#FFFFFF");
@@ -42,7 +41,15 @@ export default function ThumbnailsPage() {
   const [isBold, setIsBold] = useState(true);
   const [isItalic, setIsItalic] = useState(false);
   const [zoom, setZoom] = useState(100);
+  const [isMobile, setIsMobile] = useState(false);
   const [savedAssets, setSavedAssets] = useLocalStorage<ThumbnailAsset[]>("th_thumbnails", []);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const style = stylePresets.find(s => s.id === selectedStyle)!;
   const effectiveAccent = accentColor || style.accent;
@@ -108,8 +115,7 @@ export default function ThumbnailsPage() {
         img.src = url;
       });
       setGeneratedImageUrl(url);
-      setGenerated(true);
-    } catch {
+          } catch {
       setGenerateError("Generation failed. Check your connection and try again.");
     } finally {
       setGenerating(false);
@@ -150,8 +156,7 @@ export default function ThumbnailsPage() {
       });
       setBgImageUrl(url);
       setGeneratedImageUrl(url);
-      setGenerated(true);
-    } catch {
+          } catch {
       setBgError("Generation failed. Check connection and try again.");
     } finally {
       setBgGenerating(false);
@@ -190,7 +195,7 @@ export default function ThumbnailsPage() {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <Topbar title="Thumbnail Studio" subtitle="Create eye-catching YouTube thumbnails" />
 
-      <div style={{ padding: "24px 28px", maxWidth: 1300, margin: "0 auto" }}>
+      <div style={{ padding: isMobile ? "16px 14px" : "24px 28px", maxWidth: 1300, margin: "0 auto" }}>
 
         {/* Tabs */}
         <div style={{ display: "inline-flex", padding: 4, borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 22 }}>
@@ -209,7 +214,7 @@ export default function ThumbnailsPage() {
         </div>
 
         {activeTab === "create" ? (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 300px", gap: isMobile ? 14 : 20 }}>
 
             {/* Preview column */}
             <div>
@@ -233,7 +238,7 @@ export default function ThumbnailsPage() {
                     alignItems: textAlign === "left" ? "flex-start" : "center",
                     justifyContent: "center",
                     userSelect: "none",
-                    transform: `scale(${zoom / 100})`,
+                    transform: zoom !== 100 ? `scale(${zoom / 100})` : "none",
                     transformOrigin: "top left",
                     transition: "transform 0.2s",
                   }}>
@@ -285,7 +290,7 @@ export default function ThumbnailsPage() {
                   </div>
 
                   {/* Toolbar */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, flexWrap: "wrap", rowGap: 8 }}>
                     <div style={{ display: "flex", gap: 2, padding: 4, borderRadius: 9, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
                       {([
                         { Icon: AlignLeft,   active: textAlign === "left",   action: () => setTextAlign("left") },
@@ -305,11 +310,11 @@ export default function ThumbnailsPage() {
                     <button onClick={() => setZoom(z => Math.min(z + 10, 150))} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
                       <ZoomIn size={12} /> {zoom}%
                     </button>
-                    <button onClick={() => { setTitleText("Why 99% of YouTube Channels FAIL"); setSubtitleText("(And How to Be the 1%)"); setSelectedStyle("bold"); setAccentColor(""); setTextColor("#FFFFFF"); setTextAlign("center"); setIsBold(true); setIsItalic(false); setZoom(100); setGenerated(false); setGeneratedImageUrl(null); setGenerateError(null); }}
+                    <button onClick={() => { setTitleText("Why 99% of YouTube Channels FAIL"); setSubtitleText("(And How to Be the 1%)"); setSelectedStyle("bold"); setAccentColor(""); setTextColor("#FFFFFF"); setTextAlign("center"); setIsBold(true); setIsItalic(false); setZoom(100); setGeneratedImageUrl(null); setGenerateError(null); }}
                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
                       <RotateCcw size={12} /> Reset
                     </button>
-                    <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                    <div style={{ marginLeft: isMobile ? 0 : "auto", display: "flex", gap: 8, width: isMobile ? "100%" : "auto" }}>
                       <button onClick={handleSaveToLibrary} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
                         Save to Library
                       </button>
@@ -419,7 +424,7 @@ export default function ThumbnailsPage() {
                   </div>
                 </div>
                 <div style={S.cardBody}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr 1fr" : "1fr 1fr", gap: 8 }}>
                     {stylePresets.map(preset => (
                       <button key={preset.id} onClick={() => setSelectedStyle(preset.id)} style={{
                         position: "relative", height: 48, borderRadius: 10, overflow: "hidden",
