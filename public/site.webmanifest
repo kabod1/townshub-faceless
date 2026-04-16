@@ -1,0 +1,13 @@
+{
+  "name": "Townshub Faceless Video Studio",
+  "short_name": "Townshub",
+  "description": "AI-powered faceless YouTube content studio",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#080D1A",
+  "theme_color": "#0B1F4A",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "/logo.svg",    "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

@@ -149,11 +149,17 @@ export default function SettingsPage() {
                 <p style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", margin: 0 }}>Extension Not Connected</p>
                 <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0" }}>Install the Chrome Extension to analyze channels.</p>
               </div>
-              <button style={{
-                display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 9,
-                background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)",
-                color: "#00D4FF", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0,
-              }}>Install <ExternalLink size={11} /></button>
+              <a
+                href="https://chromewebstore.google.com/detail/townshub"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 9,
+                  background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)",
+                  color: "#00D4FF", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0,
+                  textDecoration: "none",
+                }}
+              >Install <ExternalLink size={11} /></a>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {["Outlier score on every YouTube video","Channel analytics overlay","Video tags & SEO data","Monetization status indicator","One-click channel import"].map((f) => (

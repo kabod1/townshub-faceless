@@ -4,11 +4,94 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
+import Link from "next/link";
 import {
   PenLine, Sparkles, Link2, FileText, Plus, Trash2,
   ChevronDown, ChevronUp, Copy, Download, CheckCircle2,
-  Clock, Zap, BookOpen, AlertCircle,
+  Clock, Zap, BookOpen, AlertCircle, ScrollText,
+  MessageSquare, X, ThumbsUp, ThumbsDown, BarChart2,
 } from "lucide-react";
+
+// ─── Score helpers ──────────────────────────────────────────────────────────
+interface ScriptScores { originality: number; karisma: number; structure: number; humanTone: number; }
+
+function computeScores(secs: { title: string; content: string; wordCount: number }[]): ScriptScores {
+  const full = secs.map(s => s.content).join(" ");
+  const words = full.toLowerCase().split(/\s+/).filter(Boolean);
+  const sentences = full.split(/[.!?]+/).filter(s => s.trim().length > 3);
+
+  const ttr = new Set(words).size / Math.max(words.length, 1);
+  const originality = Math.min(97, Math.max(62, Math.round(ttr * 190 + 38)));
+
+  const pw = ["discover","secret","reveal","proven","transform","amazing","shocking","never","always","you","your","imagine","because","instantly","truth","real","actually","exactly","seriously","powerful","incredible","fascinating","warning","breaking","finally","stop","start"];
+  const phits = words.filter(w => pw.some(p => w.includes(p))).length;
+  const qs = (full.match(/\?/g) || []).length;
+  const karisma = Math.min(97, Math.max(66, Math.round(66 + (phits / Math.max(words.length, 1)) * 450 + qs * 1.8)));
+
+  const lens = secs.map(s => (s.content || "").split(/\s+/).length);
+  const avg = lens.reduce((a, b) => a + b, 0) / Math.max(lens.length, 1);
+  const cv = Math.sqrt(lens.reduce((s, l) => s + (l - avg) ** 2, 0) / Math.max(lens.length, 1)) / Math.max(avg, 1);
+  const trans = (full.match(/\b(first|second|third|next|then|finally|however|moreover|furthermore|therefore|additionally|meanwhile|now|but here|so what)\b/gi) || []).length;
+  const structure = Math.min(97, Math.max(68, Math.round((1 - cv) * 60 + 38 + Math.min(20, trans * 1.8))));
+
+  const cont = (full.match(/\b(I'm|you're|it's|don't|can't|won't|I've|we're|they're|isn't|aren't|wasn't|weren't|I'd|you'd|let's|that's|here's|there's)\b/gi) || []).length;
+  const pron = words.filter(w => ["i","you","we","us","me","my","our","your"].includes(w)).length;
+  const conv = (full.match(/\b(look|listen|think about|imagine|picture|consider|right|okay|so|well|now|actually|honestly|frankly|here's the thing|guess what)\b/gi) || []).length;
+  const humanTone = Math.min(97, Math.max(64, Math.round(64 + cont * 1.8 + (pron / Math.max(words.length, 1)) * 140 + conv * 1.4)));
+
+  return { originality, karisma, structure, humanTone };
+}
+
+function getSectionLabel(title: string, idx: number): string {
+  const t = title.toLowerCase();
+  if (idx === 0 || t.includes("hook") || (t.includes("intro") && idx === 0)) return "HOOK";
+  if (t.includes("conclusion") || t.includes("outro") || t.includes("closing") || t.includes("wrap")) return "OUTRO";
+  if (t.includes("cta") || t.includes("call to action")) return "CTA";
+  if (t.includes("intro")) return "INTRO";
+  return `SECTION ${idx}`;
+}
+
+const LABEL_COLORS: Record<string, { bg: string; color: string; border: string }> = {
+  HOOK:    { bg: "rgba(251,146,60,0.1)",  color: "#fb923c", border: "rgba(251,146,60,0.3)" },
+  INTRO:   { bg: "rgba(0,212,255,0.08)", color: "#00D4FF", border: "rgba(0,212,255,0.25)" },
+  OUTRO:   { bg: "rgba(168,85,247,0.1)", color: "#a855f7", border: "rgba(168,85,247,0.3)" },
+  CTA:     { bg: "rgba(34,197,94,0.08)",  color: "#22c55e", border: "rgba(34,197,94,0.25)" },
+  DEFAULT: { bg: "rgba(255,255,255,0.05)", color: "#64748b", border: "rgba(255,255,255,0.1)" },
+};
+
+function getLabelStyle(label: string) {
+  return LABEL_COLORS[label] || LABEL_COLORS.DEFAULT;
+}
+
+function generateReview(scores: ScriptScores): { title: string; comment: string } {
+  const ranked = [
+    { key: "originality", score: scores.originality },
+    { key: "karisma",     score: scores.karisma },
+    { key: "structure",   score: scores.structure },
+    { key: "humanTone",   score: scores.humanTone },
+  ].sort((a, b) => a.score - b.score);
+
+  const tips: Record<string, { title: string; comment: string }[]> = {
+    originality: [
+      { title: "Boost uniqueness", comment: "Some phrases feel templated. Try replacing common expressions with your own spin — viewers notice when content feels fresh vs recycled." },
+      { title: "Fresh angles needed", comment: "Your vocabulary repeats in spots. Mix in unusual words and unexpected angles to hook viewers who've seen similar content before." },
+    ],
+    karisma: [
+      { title: "Turn up the energy", comment: "The script reads flat in a few places. Add rhetorical questions, bold statements, and direct 'you' moments to pull viewers forward." },
+      { title: "More emotional hooks", comment: "Lead with a stronger emotional punch. Power words like 'shocking', 'you won't believe this', or 'here's the truth' dramatically boost retention." },
+    ],
+    structure: [
+      { title: "Balance your pacing", comment: "Some sections are significantly longer than others. Consistent section lengths keep viewers from feeling lost in the middle." },
+      { title: "Add transitions", comment: "The flow between sections feels abrupt in spots. Phrases like 'Now here's where it gets interesting...' keep viewers from clicking away." },
+    ],
+    humanTone: [
+      { title: "Sound more natural", comment: "This reads a bit formal in places. Add contractions (don't, you're, it's) and speak directly to 'you' more to feel like a real conversation." },
+      { title: "Be more conversational", comment: "Try phrases like 'look', 'here's the thing', or 'guess what?' to break the fourth wall and keep viewers genuinely engaged." },
+    ],
+  };
+  const pool = tips[ranked[0].key];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 
 const lengthOptions = [
   { value: "3", label: "3 min (Short)" },
@@ -79,6 +162,9 @@ function NewScriptInner() {
   const [copied, setCopied] = useState(false);
   const [step, setStep] = useState<"setup" | "result">("setup");
   const [scriptSaved, setScriptSaved] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const [reviewData, setReviewData] = useState<{ title: string; comment: string } | null>(null);
+  const [reviewDismissed, setReviewDismissed] = useState(false);
 
   const addNote = (type: "url" | "text") => {
     if (!newNote.trim()) return;
@@ -142,121 +228,271 @@ function NewScriptInner() {
 
   // ── Result view ──────────────────────────────────────────────────────────────
   if (step === "result" && sections.length > 0 && scriptMeta) {
-    return (
-      <div style={{ minHeight: "100vh", background: "#080D1A" }}>
-        <Topbar title="New Script" />
-        <div style={{ padding: "28px 32px", maxWidth: 860, margin: "0 auto" }}>
+    const scores = computeScores(sections);
+    const scoreCards = [
+      { label: "Originality", value: scores.originality, color: "#a855f7", bar: "rgba(168,85,247,0.15)" },
+      { label: "Karisma",     value: scores.karisma,     color: "#fb923c", bar: "rgba(251,146,60,0.15)" },
+      { label: "Structure",   value: scores.structure,   color: "#3b82f6", bar: "rgba(59,130,246,0.15)" },
+      { label: "Human Tone",  value: scores.humanTone,   color: "#22c55e", bar: "rgba(34,197,94,0.12)" },
+    ];
 
-          {/* Success banner */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 16, padding: "18px 22px",
-            borderRadius: 14, marginBottom: 24,
-            background: "linear-gradient(to right, rgba(52,211,153,0.07), transparent)",
-            border: "1px solid rgba(52,211,153,0.18)",
+    return (
+      <div style={{ minHeight: "100vh", background: "#080D1A", color: "#e2e8f0" }}>
+        <Topbar title="New Script" wordCount={scriptMeta.totalWords} />
+
+        {/* ── Action Bar ── */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap",
+          padding: "10px 28px",
+          borderBottom: "1px solid rgba(255,255,255,0.04)",
+          background: "rgba(7,12,24,0.8)", backdropFilter: "blur(8px)",
+          position: "sticky", top: 60, zIndex: 19,
+        }}>
+          <Link href="/dashboard/scripts" style={{
+            display: "flex", alignItems: "center", gap: 6, padding: "6px 14px",
+            borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+            color: "#94a3b8", fontSize: 12, fontWeight: 600, textDecoration: "none", transition: "all 0.15s",
           }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(52,211,153,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <CheckCircle2 size={20} color="#34d399" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "#34d399", margin: "0 0 2px" }}>Script Generated Successfully</p>
-              <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>~{scriptMeta.totalWords} words · {scriptMeta.estimatedMinutes} min · {sections.length} sections</p>
-            </div>
-            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-              <button onClick={copyAll} style={{
-                display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9,
-                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-                color: "#94a3b8", fontSize: 12, fontWeight: 600, cursor: "pointer",
-              }}>
-                <Copy size={12} /> {copied ? "Copied!" : "Copy All"}
-              </button>
-              <button onClick={() => {
-                const text = sections.map(s => `## ${s.title}\n\n${s.content}`).join("\n\n---\n\n");
+            <ScrollText size={12} /> All Scripts
+          </Link>
+
+          {[
+            { label: copied ? "Copied!" : "Copy All", icon: <Copy size={12} />, onClick: copyAll, active: copied },
+            {
+              label: "Download", icon: <Download size={12} />, onClick: () => {
+                const text = `# ${scriptMeta.title}\n\n` + sections.map((s, i) => `## [${getSectionLabel(s.title, i)}] ${s.title}\n\n${s.content}`).join("\n\n---\n\n");
                 const blob = new Blob([text], { type: "text/plain" });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url; a.download = `${scriptMeta.title.slice(0, 50)}.txt`; a.click();
-              }} style={{
-                display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9,
-                background: "linear-gradient(135deg, #00D4FF, #0080cc)", border: "none",
-                color: "#04080F", fontSize: 12, fontWeight: 700, cursor: "pointer",
-              }}>
-                <Download size={12} /> Export
-              </button>
-            </div>
-          </div>
+                const a = document.createElement("a"); a.href = url; a.download = `${scriptMeta.title.slice(0, 50)}.txt`; a.click();
+              },
+              active: false,
+            },
+            {
+              label: "AI Review", icon: <MessageSquare size={12} />, onClick: () => {
+                setReviewData(generateReview(scores)); setShowReview(true); setReviewDismissed(false);
+              },
+              active: showReview && !reviewDismissed,
+            },
+          ].map(btn => (
+            <button key={btn.label} onClick={btn.onClick} style={{
+              display: "flex", alignItems: "center", gap: 6, padding: "6px 14px",
+              borderRadius: 8,
+              background: btn.active ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.04)",
+              border: btn.active ? "1px solid rgba(0,212,255,0.3)" : "1px solid rgba(255,255,255,0.08)",
+              color: btn.active ? "#00D4FF" : "#94a3b8",
+              fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s",
+            }}>
+              {btn.icon}{btn.label}
+            </button>
+          ))}
 
-          {/* Title + badges */}
-          <div style={{ marginBottom: 20 }}>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", margin: "0 0 10px", lineHeight: 1.3 }}>{scriptMeta.title}</h2>
-            <div style={{ display: "flex", gap: 8 }}>
-              {[
-                { label: formatOptions.find(f => f.value === format)?.label.split(" ")[0] || format, bg: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "rgba(0,212,255,0.2)" },
-                { label: `${targetLength} min`, bg: "rgba(255,255,255,0.05)", color: "#64748b", border: "rgba(255,255,255,0.08)" },
-                { label: `${scriptMeta.totalWords} words`, bg: "rgba(52,211,153,0.08)", color: "#34d399", border: "rgba(52,211,153,0.18)" },
-              ].map(b => (
-                <span key={b.label} style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: b.bg, color: b.color, border: `1px solid ${b.border}` }}>{b.label}</span>
-              ))}
-            </div>
+          <div style={{ marginLeft: "auto" }}>
+            <button
+              onClick={saveScript} disabled={scriptSaved}
+              style={{
+                display: "flex", alignItems: "center", gap: 7, padding: "6px 16px", borderRadius: 8,
+                background: scriptSaved ? "rgba(52,211,153,0.1)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
+                border: scriptSaved ? "1px solid rgba(52,211,153,0.3)" : "none",
+                color: scriptSaved ? "#34d399" : "#04080F",
+                fontSize: 12, fontWeight: 700, cursor: scriptSaved ? "not-allowed" : "pointer",
+              }}
+            >
+              {scriptSaved ? <><CheckCircle2 size={12} /> Saved!</> : <><Zap size={12} /> Save Script</>}
+            </button>
           </div>
+        </div>
 
-          {/* Sections */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-            {sections.map((section, i) => (
-              <div key={section.id} style={{
-                borderRadius: 14, overflow: "hidden",
+        <div style={{ padding: "24px 28px" }}>
+
+          {/* ── Score Cards ── */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
+            {scoreCards.map(sc => (
+              <div key={sc.label} style={{
+                padding: "18px 20px", borderRadius: 14,
                 background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))",
-                border: section.expanded ? "1px solid rgba(0,212,255,0.15)" : "1px solid rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.06)",
               }}>
-                <div
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", cursor: "pointer" }}
-                  onClick={() => setSections(prev => prev.map(s => s.id === section.id ? { ...s, expanded: !s.expanded } : s))}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(0,212,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#00D4FF", flexShrink: 0 }}>{i + 1}</div>
-                    <h3 style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", margin: 0 }}>{section.title}</h3>
-                    {section.wordCount > 0 && (
-                      <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 99, background: "rgba(255,255,255,0.05)", color: "#64748b" }}>{section.wordCount}w</span>
-                    )}
-                  </div>
-                  {section.expanded ? <ChevronUp size={15} color="#475569" /> : <ChevronDown size={15} color="#475569" />}
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginBottom: 6 }}>
+                  <span style={{ fontSize: 32, fontWeight: 900, color: sc.color, lineHeight: 1, letterSpacing: "-2px" }}>{sc.value}</span>
+                  <span style={{ fontSize: 11, color: "#475569", marginBottom: 4 }}>/100</span>
                 </div>
-                {section.expanded && (
-                  <div style={{ padding: "0 18px 16px" }}>
-                    <div style={{ borderRadius: 10, background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.05)", padding: "14px 16px" }}>
-                      <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap" }}>{section.content}</p>
-                    </div>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(section.content)}
-                      style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b", background: "none", border: "none", cursor: "pointer", marginTop: 10 }}
-                    >
-                      <Copy size={11} /> Copy Section
-                    </button>
-                  </div>
-                )}
+                <div style={{ height: 3, borderRadius: 99, background: sc.bar, overflow: "hidden", marginBottom: 6 }}>
+                  <div style={{ height: "100%", width: `${sc.value}%`, borderRadius: 99, background: sc.color, transition: "width 1s ease" }} />
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>{sc.label}</span>
               </div>
             ))}
           </div>
 
-          <div style={{ display: "flex", gap: 10 }}>
-            <button
-              onClick={() => { setStep("setup"); setSections([]); setScriptMeta(null); setScriptSaved(false); }}
-              style={{ padding: "10px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "#64748b", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
-            >
-              ← Edit Inputs
-            </button>
-            <button
-              onClick={saveScript}
-              disabled={scriptSaved}
-              style={{
-                display: "flex", alignItems: "center", gap: 8, padding: "10px 22px", borderRadius: 10, border: "none",
-                background: scriptSaved ? "rgba(52,211,153,0.1)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
-                color: scriptSaved ? "#34d399" : "#04080F", fontSize: 13, fontWeight: 700,
-                cursor: scriptSaved ? "not-allowed" : "pointer",
-                outline: scriptSaved ? "1px solid rgba(52,211,153,0.3)" : "none",
-              }}
-            >
-              {scriptSaved ? <><CheckCircle2 size={14} /> Saved!</> : <><Zap size={14} /> Save to My Scripts</>}
-            </button>
+          {/* ── Main content + Review panel ── */}
+          <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+
+            {/* Script content */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {/* Title */}
+              <div style={{ marginBottom: 20 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", margin: "0 0 10px", lineHeight: 1.3 }}>{scriptMeta.title}</h2>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {[
+                    { label: formatOptions.find(f => f.value === format)?.label.split(" ")[0] || format, bg: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "rgba(0,212,255,0.2)" },
+                    { label: `${targetLength} min`,           bg: "rgba(255,255,255,0.05)", color: "#64748b",  border: "rgba(255,255,255,0.08)" },
+                    { label: `${scriptMeta.totalWords} words`,bg: "rgba(52,211,153,0.08)", color: "#34d399",  border: "rgba(52,211,153,0.18)" },
+                    { label: `${sections.length} sections`,   bg: "rgba(168,85,247,0.08)", color: "#a855f7",  border: "rgba(168,85,247,0.2)" },
+                  ].map(b => (
+                    <span key={b.label} style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: b.bg, color: b.color, border: `1px solid ${b.border}` }}>{b.label}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sections */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {sections.map((section, i) => {
+                  const lbl = getSectionLabel(section.title, i);
+                  const ls = getLabelStyle(lbl);
+                  return (
+                    <div key={section.id} style={{
+                      borderRadius: 14, overflow: "hidden",
+                      background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))",
+                      border: section.expanded ? "1px solid rgba(0,212,255,0.15)" : "1px solid rgba(255,255,255,0.06)",
+                    }}>
+                      <div
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", cursor: "pointer" }}
+                        onClick={() => setSections(prev => prev.map(s => s.id === section.id ? { ...s, expanded: !s.expanded } : s))}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          {/* Format marker */}
+                          <span style={{
+                            fontSize: 9, fontWeight: 800, padding: "2px 8px", borderRadius: 4, letterSpacing: "0.1em",
+                            background: ls.bg, color: ls.color, border: `1px solid ${ls.border}`, flexShrink: 0,
+                          }}>{lbl}</span>
+                          <h3 style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", margin: 0 }}>{section.title}</h3>
+                          {section.wordCount > 0 && (
+                            <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 99, background: "rgba(255,255,255,0.05)", color: "#64748b" }}>{section.wordCount}w</span>
+                          )}
+                        </div>
+                        {section.expanded ? <ChevronUp size={14} color="#475569" /> : <ChevronDown size={14} color="#475569" />}
+                      </div>
+                      {section.expanded && (
+                        <div style={{ padding: "0 18px 16px" }}>
+                          <div style={{ borderRadius: 10, background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.05)", padding: "14px 16px" }}>
+                            <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.75, margin: 0, whiteSpace: "pre-wrap" }}>{section.content}</p>
+                          </div>
+                          <button
+                            onClick={() => navigator.clipboard.writeText(section.content)}
+                            style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b", background: "none", border: "none", cursor: "pointer", marginTop: 10 }}
+                          >
+                            <Copy size={11} /> Copy Section
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => { setStep("setup"); setSections([]); setScriptMeta(null); setScriptSaved(false); setShowReview(false); }}
+                style={{ marginTop: 20, padding: "10px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "#64748b", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                ← Edit Inputs
+              </button>
+            </div>
+
+            {/* ── AI Review Panel ── */}
+            {showReview && reviewData && !reviewDismissed && (
+              <div style={{
+                width: 300, flexShrink: 0,
+                position: "sticky", top: 120,
+              }}>
+                <div style={{
+                  borderRadius: 14,
+                  background: "linear-gradient(135deg, rgba(15,24,42,0.97), rgba(8,13,26,0.99))",
+                  border: "1px solid rgba(0,212,255,0.15)",
+                  overflow: "hidden",
+                }}>
+                  {/* Header */}
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 10, padding: "14px 16px",
+                    borderBottom: "1px solid rgba(255,255,255,0.05)",
+                    background: "rgba(0,212,255,0.04)",
+                  }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+                      background: "linear-gradient(135deg, #0B1F4A, #1B4080)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 12, fontWeight: 800, color: "#00D4FF",
+                    }}>AI</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Script Reviewer</div>
+                      <div style={{ fontSize: 10, color: "#475569" }}>Powered by Townshub AI</div>
+                    </div>
+                    <button onClick={() => setShowReview(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 2 }}>
+                      <X size={14} />
+                    </button>
+                  </div>
+
+                  {/* Comment */}
+                  <div style={{ padding: "16px" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#00D4FF", marginBottom: 8 }}>{reviewData.title}</div>
+                    <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.65, margin: "0 0 16px" }}>{reviewData.comment}</p>
+
+                    {/* Score breakdown */}
+                    <div style={{ marginBottom: 16 }}>
+                      {scoreCards.map(sc => (
+                        <div key={sc.label} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                          <span style={{ fontSize: 10, color: "#64748b", width: 72, flexShrink: 0 }}>{sc.label}</span>
+                          <div style={{ flex: 1, height: 3, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${sc.value}%`, borderRadius: 99, background: sc.color }} />
+                          </div>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: sc.color, width: 24, textAlign: "right" }}>{sc.value}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        onClick={() => { const r = generateReview(scores); setReviewData(r); }}
+                        style={{
+                          flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                          padding: "8px 12px", borderRadius: 8,
+                          background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)",
+                          color: "#00D4FF", fontSize: 11, fontWeight: 700, cursor: "pointer",
+                        }}
+                      >
+                        <BarChart2 size={11} /> Reasoning
+                      </button>
+                      <button
+                        onClick={() => setReviewDismissed(true)}
+                        style={{
+                          flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                          padding: "8px 12px", borderRadius: 8,
+                          background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)",
+                          color: "#f87171", fontSize: 11, fontWeight: 700, cursor: "pointer",
+                        }}
+                      >
+                        <ThumbsDown size={11} /> Reject
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Tip */}
+                  <div style={{ padding: "10px 16px 14px" }}>
+                    <button
+                      onClick={() => { const r = generateReview(scores); setReviewData(r); }}
+                      style={{
+                        width: "100%", display: "flex", alignItems: "center", gap: 6,
+                        padding: "8px 12px", borderRadius: 8, background: "transparent",
+                        border: "1px solid rgba(255,255,255,0.06)", cursor: "pointer",
+                        color: "#64748b", fontSize: 11, fontWeight: 600,
+                      }}
+                    >
+                      <ThumbsUp size={11} /> Get another suggestion
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

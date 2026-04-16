@@ -6,25 +6,26 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, Sparkles, Lightbulb, PenLine, ScrollText,
   Kanban, Image, Compass, Users, CreditCard, Settings,
-  LogOut, ChevronLeft, Mic, CalendarClock,
+  LogOut, ChevronLeft, Mic, CalendarClock, Share2,
 } from "lucide-react";
 
 function THMark({ size = 32 }: { size?: number }) {
   return (
     <div style={{
       width: size, height: size, borderRadius: Math.round(size * 0.28), flexShrink: 0,
-      background: "linear-gradient(145deg, #0B1F4A 0%, #1B4080 60%, #1E5299 100%)",
+      background: "#ffffff",
       display: "flex", alignItems: "center", justifyContent: "center",
-      boxShadow: "0 2px 12px rgba(27,64,128,0.5)",
+      boxShadow: "0 2px 12px rgba(0,0,0,0.35)",
+      overflow: "hidden",
     }}>
-      <svg viewBox="0 0 64 64" fill="none" width={size * 0.62} height={size * 0.62}>
-        <rect x="3" y="3" width="34" height="11" fill="white"/>
-        <rect x="33" y="3" width="5" height="11" fill="white"/>
-        <rect x="3" y="14" width="12" height="47" fill="white"/>
-        <rect x="33" y="18" width="9" height="43" fill="white"/>
-        <rect x="33" y="30" width="28" height="10" fill="white"/>
-        <rect x="52" y="3" width="9" height="58" fill="white"/>
-      </svg>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo.svg"
+        alt="Townshub"
+        width={size * 0.82}
+        height={size * 0.82}
+        style={{ display: "block" }}
+      />
     </div>
   );
 }
@@ -48,6 +49,7 @@ const nav = [
       { href: "/dashboard/thumbnails", label: "Thumbnails", icon: Image },
       { href: "/dashboard/voiceover", label: "AI Voiceover", icon: Mic },
       { href: "/dashboard/scheduler", label: "YT Scheduler", icon: CalendarClock },
+      { href: "/dashboard/publish", label: "Social Channels", icon: Share2 },
       { href: "/dashboard/niche-finder", label: "Niche Finder", icon: Compass },
     ],
   },

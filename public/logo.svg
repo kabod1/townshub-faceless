@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="grad" x1="3" y1="3" x2="61" y2="61" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#081530"/>
+      <stop offset="45%"  stop-color="#0D2A60"/>
+      <stop offset="100%" stop-color="#1956A8"/>
+    </linearGradient>
+  </defs>
+  <!-- T crossbar -->
+  <rect x="3"  y="3"  width="34" height="11" fill="url(#grad)"/>
+  <!-- T/H connector gap filler -->
+  <rect x="33" y="3"  width="5"  height="11" fill="url(#grad)"/>
+  <!-- T stem -->
+  <rect x="3"  y="14" width="12" height="47" fill="url(#grad)"/>
+  <!-- H left stem -->
+  <rect x="33" y="18" width="9"  height="43" fill="url(#grad)"/>
+  <!-- H crossbar -->
+  <rect x="33" y="30" width="28" height="10" fill="url(#grad)"/>
+  <!-- H right stem -->
+  <rect x="52" y="3"  width="9"  height="58" fill="url(#grad)"/>
+</svg>

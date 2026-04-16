@@ -2,14 +2,25 @@
 
 import Link from "next/link";
 import { Bell } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface TopbarProps {
   title: string;
   subtitle?: string;
   action?: { label: string; href?: string; onClick?: () => void; icon?: React.ReactNode };
+  channelName?: string;
+  wordCount?: number;
 }
 
-export function Topbar({ title, subtitle, action }: TopbarProps) {
+export function Topbar({ title, subtitle, action, channelName, wordCount }: TopbarProps) {
+  const [activeChannel, setActiveChannel] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (channelName) { setActiveChannel(channelName); return; }
+    const saved = localStorage.getItem("townshub_channel_name");
+    if (saved) setActiveChannel(saved);
+  }, [channelName]);
+
   return (
     <header style={{
       height: 60, display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -20,12 +31,43 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
       position: "sticky", top: 0, zIndex: 20,
       flexShrink: 0,
     }}>
-      <div>
-        <h1 style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.3px" }}>{title}</h1>
-        {subtitle && <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>{subtitle}</p>}
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div>
+          <h1 style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.3px" }}>{title}</h1>
+          {subtitle && <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>{subtitle}</p>}
+        </div>
+        {wordCount !== undefined && wordCount > 0 && (
+          <span style={{
+            fontSize: 11, fontWeight: 700, color: "#00D4FF",
+            background: "rgba(0,212,255,0.07)", border: "1px solid rgba(0,212,255,0.15)",
+            borderRadius: 6, padding: "3px 10px",
+          }}>
+            {wordCount.toLocaleString()} words
+          </span>
+        )}
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {activeChannel && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 7,
+            padding: "5px 12px 5px 6px",
+            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
+            borderRadius: 20, cursor: "pointer",
+          }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: "50%",
+              background: "linear-gradient(135deg, #f97316, #dc2626)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 10, fontWeight: 800, color: "#fff", flexShrink: 0,
+            }}>
+              {activeChannel[0].toUpperCase()}
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#94a3b8", maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {activeChannel}
+            </span>
+          </div>
+        )}
         <button style={{
           position: "relative", width: 34, height: 34,
           display: "flex", alignItems: "center", justifyContent: "center",

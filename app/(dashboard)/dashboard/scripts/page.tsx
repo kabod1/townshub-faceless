@@ -9,6 +9,45 @@ import {
   Download, Clock, SortAsc, FileText, ChevronUp, CheckCircle2, X,
 } from "lucide-react";
 
+// ─── Score helpers (mirrored from new-script page) ──────────────────────────
+function computeScores(secs: { title: string; content: string; wordCount: number }[]) {
+  const full = secs.map(s => s.content).join(" ");
+  const words = full.toLowerCase().split(/\s+/).filter(Boolean);
+  const ttr = new Set(words).size / Math.max(words.length, 1);
+  const originality = Math.min(97, Math.max(62, Math.round(ttr * 190 + 38)));
+  const pw = ["discover","secret","reveal","proven","transform","amazing","shocking","never","always","you","your","imagine","because","instantly","truth","real","actually","exactly","seriously","powerful","incredible","fascinating"];
+  const phits = words.filter(w => pw.some(p => w.includes(p))).length;
+  const qs = (full.match(/\?/g) || []).length;
+  const karisma = Math.min(97, Math.max(66, Math.round(66 + (phits / Math.max(words.length, 1)) * 450 + qs * 1.8)));
+  const lens = secs.map(s => (s.content || "").split(/\s+/).length);
+  const avg = lens.reduce((a, b) => a + b, 0) / Math.max(lens.length, 1);
+  const cv = Math.sqrt(lens.reduce((s, l) => s + (l - avg) ** 2, 0) / Math.max(lens.length, 1)) / Math.max(avg, 1);
+  const trans = (full.match(/\b(first|second|third|next|then|finally|however|moreover|furthermore|therefore|additionally|meanwhile)\b/gi) || []).length;
+  const structure = Math.min(97, Math.max(68, Math.round((1 - cv) * 60 + 38 + Math.min(20, trans * 1.8))));
+  const cont = (full.match(/\b(I'm|you're|it's|don't|can't|won't|I've|we're|they're|isn't|aren't|wasn't|weren't|I'd|you'd|let's|that's|here's|there's)\b/gi) || []).length;
+  const pron = words.filter(w => ["i","you","we","us","me","my","our","your"].includes(w)).length;
+  const conv = (full.match(/\b(look|listen|think about|imagine|picture|consider|right|okay|so|well|now|actually|honestly|frankly)\b/gi) || []).length;
+  const humanTone = Math.min(97, Math.max(64, Math.round(64 + cont * 1.8 + (pron / Math.max(words.length, 1)) * 140 + conv * 1.4)));
+  return { originality, karisma, structure, humanTone };
+}
+
+function getSectionLabel(title: string, idx: number): string {
+  const t = title.toLowerCase();
+  if (idx === 0 || t.includes("hook") || (t.includes("intro") && idx === 0)) return "HOOK";
+  if (t.includes("conclusion") || t.includes("outro") || t.includes("closing") || t.includes("wrap")) return "OUTRO";
+  if (t.includes("cta") || t.includes("call to action")) return "CTA";
+  return `SECTION ${idx}`;
+}
+
+const LABEL_COLORS: Record<string, { bg: string; color: string; border: string }> = {
+  HOOK:    { bg: "rgba(251,146,60,0.1)",   color: "#fb923c", border: "rgba(251,146,60,0.3)" },
+  INTRO:   { bg: "rgba(0,212,255,0.08)",   color: "#00D4FF", border: "rgba(0,212,255,0.25)" },
+  OUTRO:   { bg: "rgba(168,85,247,0.1)",   color: "#a855f7", border: "rgba(168,85,247,0.3)" },
+  CTA:     { bg: "rgba(34,197,94,0.08)",   color: "#22c55e", border: "rgba(34,197,94,0.25)" },
+  DEFAULT: { bg: "rgba(255,255,255,0.05)", color: "#64748b", border: "rgba(255,255,255,0.1)" },
+};
+function getLabelStyle(label: string) { return LABEL_COLORS[label] || LABEL_COLORS.DEFAULT; }
+
 interface ScriptSection { id: string; title: string; content: string; wordCount: number; }
 interface SavedScript {
   id: string; title: string; niche: string; format: string;
@@ -221,25 +260,61 @@ export default function ScriptsPage() {
                     </div>
                   </div>
 
-                  {isExpanded && script.sections?.length > 0 && (
-                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", padding: "16px 18px" }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        {script.sections.map((section, i) => (
-                          <div key={section.id} style={{ borderRadius: 10, background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.05)", padding: "14px 16px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                              <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(0,212,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#00D4FF", flexShrink: 0 }}>{i + 1}</div>
-                              <p style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", margin: 0 }}>{section.title}</p>
-                              {section.wordCount > 0 && <span style={{ marginLeft: "auto", fontSize: 10, color: "#94a3b8" }}>{section.wordCount}w</span>}
+                  {isExpanded && script.sections?.length > 0 && (() => {
+                    const scores = computeScores(script.sections);
+                    const scoreCards = [
+                      { label: "Originality", value: scores.originality, color: "#a855f7" },
+                      { label: "Karisma",     value: scores.karisma,     color: "#fb923c" },
+                      { label: "Structure",   value: scores.structure,   color: "#3b82f6" },
+                      { label: "Human Tone",  value: scores.humanTone,   color: "#22c55e" },
+                    ];
+                    return (
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", padding: "16px 18px" }}>
+                        {/* Score cards */}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 16 }}>
+                          {scoreCards.map(sc => (
+                            <div key={sc.label} style={{
+                              padding: "12px 14px", borderRadius: 10,
+                              background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.05)",
+                            }}>
+                              <div style={{ display: "flex", alignItems: "flex-end", gap: 4, marginBottom: 4 }}>
+                                <span style={{ fontSize: 22, fontWeight: 900, color: sc.color, lineHeight: 1, letterSpacing: "-1px" }}>{sc.value}</span>
+                                <span style={{ fontSize: 9, color: "#475569", marginBottom: 2 }}>/100</span>
+                              </div>
+                              <div style={{ height: 2, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden", marginBottom: 4 }}>
+                                <div style={{ height: "100%", width: `${sc.value}%`, background: sc.color, borderRadius: 99 }} />
+                              </div>
+                              <span style={{ fontSize: 9, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.08em" }}>{sc.label}</span>
                             </div>
-                            <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>{section.content}</p>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+
+                        {/* Sections with format markers */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          {script.sections.map((section, i) => {
+                            const lbl = getSectionLabel(section.title, i);
+                            const ls = getLabelStyle(lbl);
+                            return (
+                              <div key={section.id} style={{ borderRadius: 10, background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.05)", padding: "14px 16px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                                  <span style={{
+                                    fontSize: 8, fontWeight: 800, padding: "2px 7px", borderRadius: 4, letterSpacing: "0.1em", flexShrink: 0,
+                                    background: ls.bg, color: ls.color, border: `1px solid ${ls.border}`,
+                                  }}>{lbl}</span>
+                                  <p style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", margin: 0 }}>{section.title}</p>
+                                  {section.wordCount > 0 && <span style={{ marginLeft: "auto", fontSize: 10, color: "#475569" }}>{section.wordCount}w</span>}
+                                </div>
+                                <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.65, margin: 0, whiteSpace: "pre-wrap" }}>{section.content}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <button onClick={() => setExpandedId(null)} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#64748b", background: "none", border: "none", cursor: "pointer", marginTop: 12 }}>
+                          <X size={11} /> Collapse
+                        </button>
                       </div>
-                      <button onClick={() => setExpandedId(null)} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#64748b", background: "none", border: "none", cursor: "pointer", marginTop: 12 }}>
-                        <X size={11} /> Collapse
-                      </button>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               );
             })}

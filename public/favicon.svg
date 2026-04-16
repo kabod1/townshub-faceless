@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#0B1F4A"/>
+      <stop offset="60%"  stop-color="#1B4080"/>
+      <stop offset="100%" stop-color="#1E5299"/>
+    </linearGradient>
+  </defs>
+  <!-- Dark rounded square background -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <!-- White TH mark -->
+  <rect x="3"  y="3"  width="34" height="11" fill="white"/>
+  <rect x="33" y="3"  width="5"  height="11" fill="white"/>
+  <rect x="3"  y="14" width="12" height="47" fill="white"/>
+  <rect x="33" y="18" width="9"  height="43" fill="white"/>
+  <rect x="33" y="30" width="28" height="10" fill="white"/>
+  <rect x="52" y="3"  width="9"  height="58" fill="white"/>
+</svg>
