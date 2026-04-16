@@ -126,6 +126,10 @@ function TaskCard({ task, onMove }: { task: Task; onMove: (id: string, stage: Ta
 
 export default function ProductionPage() {
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const [addingTask, setAddingTask] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newStage, setNewStage] = useState<TaskStatus>("ideas");
+  const [newPriority, setNewPriority] = useState<"high" | "medium" | "low">("medium");
 
   useEffect(() => {
     const load = async () => {
@@ -142,10 +146,23 @@ export default function ProductionPage() {
     load();
   }, []);
 
-  const moveTask = async (id: string, newStage: TaskStatus) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, stage: newStage } : t));
+  const moveTask = async (id: string, stage: TaskStatus) => {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, stage } : t));
     const supabase = createClient();
-    await supabase.from("production_tasks").update({ stage: newStage }).eq("id", id);
+    await supabase.from("production_tasks").update({ stage }).eq("id", id);
+  };
+
+  const addTask = async () => {
+    if (!newTitle.trim()) return;
+    const task: Task = {
+      id: Date.now().toString(), title: newTitle.trim(),
+      stage: newStage, priority: newPriority, tags: [], checklist: [],
+    };
+    setTasks(prev => [task, ...prev]);
+    const supabase = createClient();
+    await supabase.from("production_tasks").insert({ id: task.id, title: task.title, stage: task.stage, priority: task.priority, tags: [], checklist: [], position: 0 });
+    setNewTitle(""); setNewStage("ideas"); setNewPriority("medium");
+    setAddingTask(false);
   };
 
   return (
@@ -153,7 +170,7 @@ export default function ProductionPage() {
       <Topbar
         title="Production Board"
         subtitle="Track your videos from idea to publish"
-        action={{ label: "Add Video", icon: <Plus size={13} /> }}
+        action={{ label: "Add Video", icon: <Plus size={13} />, onClick: () => setAddingTask(true) }}
       />
 
       <div style={{ padding: "24px 28px", flex: 1, display: "flex", flexDirection: "column" }}>
@@ -224,6 +241,64 @@ export default function ProductionPage() {
           })}
         </div>
       </div>
+
+      {/* Add Video Modal */}
+      {addingTask && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
+        }} onClick={() => setAddingTask(false)}>
+          <div style={{
+            width: 420, borderRadius: 18,
+            background: "linear-gradient(135deg, #0F1829, #08111F)",
+            border: "1px solid rgba(0,212,255,0.2)",
+            boxShadow: "0 32px 80px rgba(0,0,0,0.8)",
+            padding: "24px",
+          }} onClick={e => e.stopPropagation()}>
+            <h2 style={{ fontSize: 16, fontWeight: 800, color: "#e2e8f0", margin: "0 0 20px", letterSpacing: "-0.3px" }}>Add New Video</h2>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Video Title</label>
+              <input
+                autoFocus
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && addTask()}
+                placeholder="e.g. 5 AI Tools That Actually Make Money"
+                style={{ width: "100%", boxSizing: "border-box", background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 13px", color: "#e2e8f0", fontSize: 13, outline: "none" }}
+                onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.35)"}
+                onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"}
+              />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Stage</label>
+                <select value={newStage} onChange={e => setNewStage(e.target.value as TaskStatus)} style={{ width: "100%", background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 13px", color: "#e2e8f0", fontSize: 13, outline: "none", cursor: "pointer" }}>
+                  {COLUMNS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Priority</label>
+                <select value={newPriority} onChange={e => setNewPriority(e.target.value as "high" | "medium" | "low")} style={{ width: "100%", background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 13px", color: "#e2e8f0", fontSize: 13, outline: "none", cursor: "pointer" }}>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setAddingTask(false)} style={{ flex: 1, padding: "11px", borderRadius: 11, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                Cancel
+              </button>
+              <button onClick={addTask} disabled={!newTitle.trim()} style={{ flex: 1, padding: "11px", borderRadius: 11, background: newTitle.trim() ? "linear-gradient(135deg, #00D4FF, #0080cc)" : "rgba(0,212,255,0.2)", border: "none", color: newTitle.trim() ? "#04080F" : "#475569", fontSize: 13, fontWeight: 800, cursor: newTitle.trim() ? "pointer" : "not-allowed", transition: "all 0.15s" }}>
+                Add Video
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

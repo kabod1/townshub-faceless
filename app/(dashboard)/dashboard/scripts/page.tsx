@@ -53,7 +53,7 @@ export default function ScriptsPage() {
     const matchSearch = !search || s.title.toLowerCase().includes(search.toLowerCase()) || s.niche.toLowerCase().includes(search.toLowerCase());
     const matchFilter = filter === "all" || s.status === filter;
     return matchSearch && matchFilter;
-  }).sort((a, b) => sortDesc ? 1 : -1);
+  }).sort(() => sortDesc ? 1 : -1);
 
   const deleteScript = async (id: string) => {
     const supabase = createClient();
@@ -97,7 +97,7 @@ export default function ScriptsPage() {
   return (
     <div style={{ minHeight: "100vh", background: "#080D1A" }}>
       <Topbar title="My Scripts" subtitle={`${scripts.length} scripts saved`}
-        action={{ label: "New Script", icon: <PenLine size={13} /> }} />
+        action={{ label: "New Script", href: "/dashboard/new-script", icon: <PenLine size={13} /> }} />
 
       <div style={{ padding: "28px 32px", maxWidth: 1000, margin: "0 auto" }}>
 
@@ -213,7 +213,7 @@ export default function ScriptsPage() {
                           transition: "all 0.15s",
                         }}
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.color = btn.hoverColor; }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#334155"; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#64748b"; }}
                         >
                           <btn.icon size={14} />
                         </button>

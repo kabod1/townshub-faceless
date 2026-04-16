@@ -11,7 +11,7 @@ import {
 
 const stylePresets = [
   { id: "bold",   label: "Bold & Dramatic",  bg: ["#7f1d1d", "#000000"],   accent: "#FF3333" },
-  { id: "clean",  label: "Clean & Minimal",  bg: ["#1e293b", "#0f172a"],   accent: "#00D4FF" },
+  { id: "clean",  label: "Clean & Minimal",  bg: ["#475569", "#0f172a"],   accent: "#00D4FF" },
   { id: "neon",   label: "Neon Cyberpunk",   bg: ["#581c87", "#000000"],   accent: "#FF00FF" },
   { id: "gold",   label: "Premium Gold",     bg: ["#78350f", "#1c1917"],   accent: "#FFD700" },
   { id: "nature", label: "Natural Organic",  bg: ["#14532d", "#022c22"],   accent: "#4ADE80" },
@@ -30,6 +30,8 @@ export default function ThumbnailsPage() {
   const [selectedStyle, setSelectedStyle] = useState("bold");
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
   const [textColor, setTextColor] = useState("#FFFFFF");
   const [accentColor, setAccentColor] = useState("");
   const [savedAssets, setSavedAssets] = useLocalStorage<ThumbnailAsset[]>("th_thumbnails", []);
@@ -65,19 +67,62 @@ export default function ThumbnailsPage() {
   }, [style, effectiveAccent, textColor, titleText, subtitleText]);
 
   const handleGenerate = async () => {
+    if (!titleText.trim()) return;
     setGenerating(true);
-    await new Promise(r => setTimeout(r, 800));
-    setGenerating(false); setGenerated(true);
+    setGenerateError(null);
+    setGeneratedImageUrl(null);
+
+    const styleNames: Record<string, string> = {
+      bold: "bold dramatic cinematic", clean: "clean minimal modern",
+      neon: "neon cyberpunk futuristic", gold: "premium luxury gold",
+      nature: "natural organic lush", fire: "fire energy intense",
+    };
+    const prompt = encodeURIComponent(
+      `YouTube thumbnail, ${styleNames[selectedStyle] || "dramatic"} style, ` +
+      `large bold text "${titleText.slice(0, 60)}", ` +
+      `${subtitleText ? `subtitle "${subtitleText.slice(0, 40)}", ` : ""}` +
+      `accent color ${effectiveAccent}, professional, eye-catching, high contrast, ` +
+      `studio quality, 4k, sharp focus`
+    );
+    const url = `https://image.pollinations.ai/prompt/${prompt}?width=1280&height=720&nologo=true&model=flux&seed=${Date.now()}`;
+
+    try {
+      // Pre-fetch to verify it loads before showing
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Image failed to load"));
+        img.src = url;
+      });
+      setGeneratedImageUrl(url);
+      setGenerated(true);
+    } catch {
+      setGenerateError("Generation failed. Check your connection and try again.");
+    } finally {
+      setGenerating(false);
+    }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    const filename = `${(titleText || "thumbnail").slice(0, 40).replace(/[^a-z0-9]/gi, "-")}.png`;
+    if (generatedImageUrl) {
+      try {
+        const res = await fetch(generatedImageUrl);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = filename; a.click();
+        URL.revokeObjectURL(url);
+        return;
+      } catch { /* fall through to canvas */ }
+    }
     const dataUrl = renderToCanvas();
     const a = document.createElement("a");
-    a.href = dataUrl; a.download = `${(titleText || "thumbnail").slice(0, 40).replace(/[^a-z0-9]/gi, "-")}.png`; a.click();
+    a.href = dataUrl; a.download = filename; a.click();
   };
 
   const handleSaveToLibrary = () => {
-    const dataUrl = renderToCanvas();
+    const dataUrl = generatedImageUrl || renderToCanvas();
     setSavedAssets(prev => [{
       id: Date.now().toString(), title: titleText || "Untitled", subtitle: subtitleText,
       style: style.label, accent: effectiveAccent,
@@ -105,6 +150,7 @@ export default function ThumbnailsPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#080D1A" }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <Topbar title="Thumbnail Studio" subtitle="Create eye-catching YouTube thumbnails" />
 
       <div style={{ padding: "24px 28px", maxWidth: 1300, margin: "0 auto" }}>
@@ -142,33 +188,50 @@ export default function ThumbnailsPage() {
                   </div>
                 </div>
                 <div style={S.cardBody}>
-                  {/* Thumbnail canvas preview */}
+                  {/* Thumbnail preview */}
                   <div style={{
                     position: "relative", width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
                     background: `linear-gradient(135deg, ${style.bg[0]}, ${style.bg[1]})`,
                     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                     userSelect: "none",
                   }}>
-                    {/* Grid overlay */}
-                    <div style={{ position: "absolute", inset: 0, opacity: 0.08, backgroundImage: "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-                    {/* Glow */}
-                    <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "75%", height: "50%", borderRadius: "50%", filter: "blur(40px)", background: effectiveAccent, opacity: 0.25 }} />
-                    {/* Content */}
-                    <div style={{ position: "relative", textAlign: "center", padding: "0 32px" }}>
-                      <p style={{ fontWeight: 800, color: textColor, lineHeight: 1.2, margin: "0 0 8px", fontSize: "clamp(14px, 3vw, 36px)", textShadow: `0 0 40px ${effectiveAccent}` }}>
-                        {titleText || "Your Title Here"}
-                      </p>
-                      {subtitleText && (
-                        <p style={{ fontWeight: 600, color: effectiveAccent, fontSize: "clamp(10px, 1.8vw, 22px)", margin: 0, opacity: 0.85 }}>
-                          {subtitleText}
-                        </p>
-                      )}
-                    </div>
-                    {/* Preview watermark */}
-                    {!generated && (
-                      <div style={{ position: "absolute", bottom: 10, right: 10, display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                        <ImageIcon size={10} color="#64748b" />
-                        <span style={{ fontSize: 10, color: "#64748b" }}>Preview</span>
+                    {generatedImageUrl ? (
+                      /* AI-generated image */
+                      <img src={generatedImageUrl} alt="AI generated thumbnail" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : generating ? (
+                      /* Loading state */
+                      <>
+                        <div style={{ position: "absolute", inset: 0, opacity: 0.08, backgroundImage: "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+                        <div style={{ position: "relative", textAlign: "center" }}>
+                          <div style={{ width: 36, height: 36, border: "3px solid rgba(0,212,255,0.2)", borderTopColor: "#00D4FF", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 12px" }} />
+                          <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Generating with AI…</p>
+                          <p style={{ fontSize: 11, color: "#64748b", margin: "4px 0 0" }}>This may take 10–20 seconds</p>
+                        </div>
+                      </>
+                    ) : (
+                      /* CSS preview */
+                      <>
+                        <div style={{ position: "absolute", inset: 0, opacity: 0.08, backgroundImage: "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+                        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "75%", height: "50%", borderRadius: "50%", filter: "blur(40px)", background: effectiveAccent, opacity: 0.25 }} />
+                        <div style={{ position: "relative", textAlign: "center", padding: "0 32px" }}>
+                          <p style={{ fontWeight: 800, color: textColor, lineHeight: 1.2, margin: "0 0 8px", fontSize: "clamp(14px, 3vw, 36px)", textShadow: `0 0 40px ${effectiveAccent}` }}>
+                            {titleText || "Your Title Here"}
+                          </p>
+                          {subtitleText && (
+                            <p style={{ fontWeight: 600, color: effectiveAccent, fontSize: "clamp(10px, 1.8vw, 22px)", margin: 0, opacity: 0.85 }}>
+                              {subtitleText}
+                            </p>
+                          )}
+                        </div>
+                        <div style={{ position: "absolute", bottom: 10, right: 10, display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                          <ImageIcon size={10} color="#64748b" />
+                          <span style={{ fontSize: 10, color: "#64748b" }}>Preview — click Generate for AI image</span>
+                        </div>
+                      </>
+                    )}
+                    {generateError && (
+                      <div style={{ position: "absolute", bottom: 10, left: 10, right: 10, padding: "6px 10px", borderRadius: 8, background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.25)", textAlign: "center" }}>
+                        <span style={{ fontSize: 11, color: "#f87171" }}>{generateError}</span>
                       </div>
                     )}
                   </div>
@@ -185,7 +248,7 @@ export default function ThumbnailsPage() {
                     <button style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
                       <ZoomIn size={12} /> Zoom
                     </button>
-                    <button onClick={() => { setTitleText("Why 99% of YouTube Channels FAIL"); setSubtitleText("(And How to Be the 1%)"); setSelectedStyle("bold"); setAccentColor(""); setTextColor("#FFFFFF"); setGenerated(false); }}
+                    <button onClick={() => { setTitleText("Why 99% of YouTube Channels FAIL"); setSubtitleText("(And How to Be the 1%)"); setSelectedStyle("bold"); setAccentColor(""); setTextColor("#FFFFFF"); setGenerated(false); setGeneratedImageUrl(null); setGenerateError(null); }}
                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
                       <RotateCcw size={12} /> Reset
                     </button>
@@ -328,7 +391,7 @@ export default function ThumbnailsPage() {
                 }}
               >
                 <Wand2 size={15} />
-                {generating ? "Creating thumbnail…" : "Generate Thumbnail"}
+                {generating ? "Generating with AI…" : generatedImageUrl ? "Regenerate" : "Generate with AI"}
               </button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Bell } from "lucide-react";
 
 interface TopbarProps {
@@ -21,7 +22,7 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
     }}>
       <div>
         <h1 style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.3px" }}>{title}</h1>
-        {subtitle && <p style={{ fontSize: 11, color: "#334155", margin: "2px 0 0" }}>{subtitle}</p>}
+        {subtitle && <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>{subtitle}</p>}
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -58,7 +59,19 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
           cursor: "pointer",
         }}>T</div>
 
-        {action && (
+        {action && (action.href ? (
+          <Link href={action.href} style={{
+            display: "flex", alignItems: "center", gap: 7,
+            padding: "8px 16px", borderRadius: 9,
+            background: "linear-gradient(135deg, #00D4FF, #0080cc)",
+            color: "#04080F", fontSize: 12,
+            fontWeight: 700, textDecoration: "none",
+            boxShadow: "0 0 16px rgba(0,212,255,0.25)",
+          }}>
+            {action.icon}
+            {action.label}
+          </Link>
+        ) : (
           <button
             onClick={action.onClick}
             style={{
@@ -76,7 +89,7 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
             {action.icon}
             {action.label}
           </button>
-        )}
+        ))}
       </div>
     </header>
   );
