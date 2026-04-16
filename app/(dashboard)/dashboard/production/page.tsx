@@ -216,7 +216,7 @@ export default function ProductionPage() {
                       justifyContent: "center", color: "#94a3b8",
                     }}>{colTasks.length}</div>
                   </div>
-                  <button style={{
+                  <button onClick={() => { setNewStage(col.id); setAddingTask(true); }} style={{
                     width: 22, height: 22, borderRadius: 6, background: "rgba(255,255,255,0.05)",
                     border: "none", display: "flex", alignItems: "center", justifyContent: "center",
                     color: "#94a3b8", cursor: "pointer",
