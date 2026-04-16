@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, Sparkles, Lightbulb, PenLine, ScrollText,
   Kanban, Image, Compass, Users, CreditCard, Settings,
-  LogOut, ChevronLeft, Mic, CalendarClock, Share2,
+  LogOut, ChevronLeft, Mic, CalendarClock, Share2, Bookmark,
 } from "lucide-react";
 
 function THMark({ size = 32 }: { size?: number }) {
@@ -51,6 +51,7 @@ const nav = [
       { href: "/dashboard/scheduler", label: "YT Scheduler", icon: CalendarClock },
       { href: "/dashboard/publish", label: "Social Channels", icon: Share2 },
       { href: "/dashboard/niche-finder", label: "Niche Finder", icon: Compass },
+      { href: "/dashboard/saved-channels", label: "Saved Channels", icon: Bookmark },
     ],
   },
   {

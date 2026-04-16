@@ -7,15 +7,25 @@ import { Topbar } from "@/components/dashboard/topbar";
 import {
   Plus, Calendar, Trash2, Check, X, PenLine, ExternalLink,
   Lightbulb, FileText, Mic, Film, Clock, CheckCircle2, Zap,
+  Image, Link2, MessageSquare, Upload,
 } from "lucide-react";
 
 type TaskStatus = "ideas" | "scripting" | "production" | "editing" | "scheduled" | "published";
 
 interface CheckItem { done: boolean; label: string; }
+interface TaskLink { label: string; url: string; }
+interface TaskComment { author: string; text: string; date: string; }
 interface Task {
   id: string; title: string; stage: TaskStatus;
   priority: "high" | "medium" | "low"; dueDate?: string;
   tags: string[]; checklist: CheckItem[];
+  assignedMembers: string[];
+  thumbnailUrl: string;
+  thumbnailPasteUrl: string;
+  narrationUrl: string;
+  finalVideoUrl: string;
+  links: TaskLink[];
+  comments: TaskComment[];
 }
 
 const COLUMNS: { id: TaskStatus; label: string; dot: string; headerBg: string; headerBorder: string }[] = [
@@ -59,12 +69,14 @@ const STAGE_ACTIONS: Record<TaskStatus, { icon: React.ReactNode; label: string; 
   ],
 };
 
+const TASK_DEFAULTS = { assignedMembers: [], thumbnailUrl: "", thumbnailPasteUrl: "", narrationUrl: "", finalVideoUrl: "", links: [], comments: [] };
+
 const INITIAL_TASKS: Task[] = [
-  { id: "1", title: "Why 99% of Faceless Channels Fail", stage: "scripting", priority: "high", dueDate: "2026-04-18", tags: ["YouTube Growth", "10 min"], checklist: [{ done: true, label: "Research competitors" }, { done: true, label: "Outline script" }, { done: false, label: "Write full script" }, { done: false, label: "Review & edit" }] },
-  { id: "2", title: "5 AI Tools That Actually Make Money", stage: "ideas", priority: "medium", tags: ["AI Tools", "8 min"], checklist: [{ done: false, label: "Validate idea" }, { done: false, label: "Keyword research" }] },
-  { id: "3", title: "Faceless Channel Niche Blueprint 2025", stage: "production", priority: "high", dueDate: "2026-04-22", tags: ["Niche Research", "15 min"], checklist: [{ done: true, label: "Script complete" }, { done: true, label: "Thumbnail designed" }, { done: false, label: "AI voiceover" }, { done: false, label: "B-roll footage" }] },
-  { id: "4", title: "How I Made $0 My First 90 Days", stage: "editing", priority: "low", dueDate: "2026-04-25", tags: ["Story", "12 min"], checklist: [{ done: true, label: "Script & VO done" }, { done: false, label: "Edit video" }, { done: false, label: "Add captions" }] },
-  { id: "5", title: "Top 10 Faceless Niches That Print Money", stage: "scheduled", priority: "medium", dueDate: "2026-04-28", tags: ["List Video", "10 min"], checklist: [{ done: true, label: "All production done" }, { done: false, label: "Schedule on YouTube" }] },
+  { id: "1", title: "Why 99% of Faceless Channels Fail", stage: "scripting", priority: "high", dueDate: "2026-04-18", tags: ["YouTube Growth", "10 min"], checklist: [{ done: true, label: "Research competitors" }, { done: true, label: "Outline script" }, { done: false, label: "Write full script" }, { done: false, label: "Review & edit" }], ...TASK_DEFAULTS },
+  { id: "2", title: "5 AI Tools That Actually Make Money", stage: "ideas", priority: "medium", tags: ["AI Tools", "8 min"], checklist: [{ done: false, label: "Validate idea" }, { done: false, label: "Keyword research" }], ...TASK_DEFAULTS },
+  { id: "3", title: "Faceless Channel Niche Blueprint 2025", stage: "production", priority: "high", dueDate: "2026-04-22", tags: ["Niche Research", "15 min"], checklist: [{ done: true, label: "Script complete" }, { done: true, label: "Thumbnail designed" }, { done: false, label: "AI voiceover" }, { done: false, label: "B-roll footage" }], ...TASK_DEFAULTS },
+  { id: "4", title: "How I Made $0 My First 90 Days", stage: "editing", priority: "low", dueDate: "2026-04-25", tags: ["Story", "12 min"], checklist: [{ done: true, label: "Script & VO done" }, { done: false, label: "Edit video" }, { done: false, label: "Add captions" }], ...TASK_DEFAULTS },
+  { id: "5", title: "Top 10 Faceless Niches That Print Money", stage: "scheduled", priority: "medium", dueDate: "2026-04-28", tags: ["List Video", "10 min"], checklist: [{ done: true, label: "All production done" }, { done: false, label: "Schedule on YouTube" }], ...TASK_DEFAULTS },
 ];
 
 const inputStyle: React.CSSProperties = { width: "100%", boxSizing: "border-box", background: "rgba(8,13,26,0.8)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "9px 12px", color: "#e2e8f0", fontSize: 13, outline: "none" };
@@ -139,6 +151,56 @@ function TaskDetailModal({ task, onClose, onUpdate, onDelete, onMove, onToggleCh
   const total = task.checklist.length;
   const progress = total > 0 ? Math.round((done / total) * 100) : 0;
   const actions = STAGE_ACTIONS[task.stage] || [];
+
+  // Media & Files local state
+  const [thumbPasteUrl, setThumbPasteUrl] = useState(task.thumbnailPasteUrl || "");
+  const [narrationUrl, setNarrationUrl] = useState(task.narrationUrl || "");
+  const [finalVideoUrl, setFinalVideoUrl] = useState(task.finalVideoUrl || "");
+
+  // Links local state
+  const [links, setLinks] = useState<{ label: string; url: string }[]>(task.links || []);
+  const [showAddLink, setShowAddLink] = useState(false);
+  const [newLinkLabel, setNewLinkLabel] = useState("");
+  const [newLinkUrl, setNewLinkUrl] = useState("");
+
+  const addLink = () => {
+    if (!newLinkUrl.trim()) return;
+    const updated = [...links, { label: newLinkLabel.trim() || newLinkUrl.trim(), url: newLinkUrl.trim() }];
+    setLinks(updated);
+    onUpdate(task.id, { links: updated });
+    setNewLinkLabel(""); setNewLinkUrl(""); setShowAddLink(false);
+  };
+  const removeLink = (idx: number) => {
+    const updated = links.filter((_, i) => i !== idx);
+    setLinks(updated);
+    onUpdate(task.id, { links: updated });
+  };
+
+  // Comments local state
+  const [comments, setComments] = useState<{ author: string; text: string; date: string }[]>(task.comments || []);
+  const [newComment, setNewComment] = useState("");
+  const [editingCommentIdx, setEditingCommentIdx] = useState<number | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+
+  const postComment = () => {
+    if (!newComment.trim()) return;
+    const updated = [...comments, { author: "You", text: newComment.trim(), date: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) }];
+    setComments(updated);
+    onUpdate(task.id, { comments: updated });
+    setNewComment("");
+  };
+  const deleteComment = (idx: number) => {
+    const updated = comments.filter((_, i) => i !== idx);
+    setComments(updated);
+    onUpdate(task.id, { comments: updated });
+  };
+  const saveEditComment = (idx: number) => {
+    if (!editingCommentText.trim()) return;
+    const updated = comments.map((c, i) => i === idx ? { ...c, text: editingCommentText.trim() } : c);
+    setComments(updated);
+    onUpdate(task.id, { comments: updated });
+    setEditingCommentIdx(null);
+  };
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }} onClick={onClose}>
@@ -280,6 +342,167 @@ function TaskDetailModal({ task, onClose, onUpdate, onDelete, onMove, onToggleCh
               </div>
             </div>
           </div>
+
+          {/* ── A. Media & Files ── */}
+          <div>
+            <label style={{ ...labelStyle, display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+              <Image size={12} /> Media &amp; Files
+            </label>
+
+            {/* Thumbnail */}
+            <div style={{ marginBottom: 14 }}>
+              <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 8px" }}>Thumbnail / Cover Image</p>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <label style={{
+                  display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 9,
+                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#94a3b8", fontSize: 12, cursor: "pointer",
+                }}>
+                  <Upload size={12} /> Upload Image
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const url = URL.createObjectURL(file);
+                      setThumbPasteUrl(url);
+                      onUpdate(task.id, { thumbnailUrl: url, thumbnailPasteUrl: url });
+                    }
+                  }} />
+                </label>
+                <input value={thumbPasteUrl} onChange={e => { setThumbPasteUrl(e.target.value); onUpdate(task.id, { thumbnailPasteUrl: e.target.value }); }}
+                  placeholder="or paste URL…"
+                  style={{ ...inputStyle, flex: 1, minWidth: 140, fontSize: 12, padding: "7px 11px" }} />
+              </div>
+              {thumbPasteUrl && (
+                <div style={{ marginTop: 10, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", maxWidth: 200 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={thumbPasteUrl} alt="Thumbnail preview" style={{ width: "100%", display: "block" }} onError={e => (e.currentTarget.style.display = "none")} />
+                </div>
+              )}
+            </div>
+
+            {/* Narration */}
+            <div style={{ marginBottom: 12 }}>
+              <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 8px" }}>Narration (Google Drive)</p>
+              <div style={{ position: "relative" }}>
+                <Link2 size={12} color="#475569" style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+                <input value={narrationUrl} onChange={e => { setNarrationUrl(e.target.value); onUpdate(task.id, { narrationUrl: e.target.value }); }}
+                  placeholder="Paste Google Drive link…"
+                  style={{ ...inputStyle, width: "100%", paddingLeft: 32, fontSize: 12, padding: "7px 11px 7px 32px" }} />
+              </div>
+            </div>
+
+            {/* Final Video */}
+            <div>
+              <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 8px" }}>Final Video (Google Drive)</p>
+              <div style={{ position: "relative" }}>
+                <Link2 size={12} color="#475569" style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+                <input value={finalVideoUrl} onChange={e => { setFinalVideoUrl(e.target.value); onUpdate(task.id, { finalVideoUrl: e.target.value }); }}
+                  placeholder="Paste Google Drive link…"
+                  style={{ ...inputStyle, width: "100%", paddingLeft: 32, fontSize: 12, padding: "7px 11px 7px 32px" }} />
+              </div>
+            </div>
+          </div>
+
+          {/* ── B. Links ── */}
+          <div>
+            <label style={{ ...labelStyle, display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+              <Link2 size={12} /> Links
+            </label>
+
+            {links.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 10 }}>
+                {links.map((link, idx) => (
+                  <div key={idx} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 8, background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.15)" }}>
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#00D4FF", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
+                      <ExternalLink size={10} /> {link.label}
+                    </a>
+                    <button onClick={() => removeLink(idx)} style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 0, display: "flex" }}>
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {showAddLink ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <input value={newLinkLabel} onChange={e => setNewLinkLabel(e.target.value)} placeholder="Label (optional)"
+                  style={{ ...inputStyle, fontSize: 12, padding: "7px 11px" }} />
+                <input value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} placeholder="https://…"
+                  onKeyDown={e => e.key === "Enter" && addLink()}
+                  style={{ ...inputStyle, fontSize: 12, padding: "7px 11px" }} />
+                <div style={{ display: "flex", gap: 7 }}>
+                  <button onClick={() => { setShowAddLink(false); setNewLinkLabel(""); setNewLinkUrl(""); }} style={{ flex: 1, padding: "6px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "#64748b", fontSize: 12, cursor: "pointer" }}>Cancel</button>
+                  <button onClick={addLink} style={{ flex: 1, padding: "6px", borderRadius: 8, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "#00D4FF", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Save</button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setShowAddLink(true)} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#00D4FF", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.15)", borderRadius: 8, padding: "6px 12px", cursor: "pointer" }}>
+                <Plus size={12} /> Add Link
+              </button>
+            )}
+          </div>
+
+          {/* ── C. Discussion ── */}
+          <div>
+            <label style={{ ...labelStyle, display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+              <MessageSquare size={12} /> Discussion {comments.length > 0 && `(${comments.length})`}
+            </label>
+
+            {comments.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+                {comments.map((c, idx) => (
+                  <div key={idx} style={{ display: "flex", gap: 10, padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}
+                    onMouseEnter={e => {
+                      const btns = e.currentTarget.querySelectorAll<HTMLButtonElement>(".comment-action");
+                      btns.forEach(b => b.style.opacity = "1");
+                    }}
+                    onMouseLeave={e => {
+                      const btns = e.currentTarget.querySelectorAll<HTMLButtonElement>(".comment-action");
+                      btns.forEach(b => b.style.opacity = "0");
+                    }}
+                  >
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(0,212,255,0.15)", border: "1px solid rgba(0,212,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: "#00D4FF", flexShrink: 0 }}>
+                      {c.author[0].toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0" }}>{c.author}</span>
+                        <span style={{ fontSize: 10, color: "#64748b" }}>{c.date}</span>
+                        <button className="comment-action" onClick={() => { setEditingCommentIdx(idx); setEditingCommentText(c.text); }} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#475569", fontSize: 11, opacity: 0, transition: "opacity 0.15s" }}>Edit</button>
+                        <button className="comment-action" onClick={() => deleteComment(idx)} style={{ background: "none", border: "none", cursor: "pointer", color: "#f87171", fontSize: 11, opacity: 0, transition: "opacity 0.15s" }}>Delete</button>
+                      </div>
+                      {editingCommentIdx === idx ? (
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <input value={editingCommentText} onChange={e => setEditingCommentText(e.target.value)}
+                            onKeyDown={e => { if (e.key === "Enter") saveEditComment(idx); if (e.key === "Escape") setEditingCommentIdx(null); }}
+                            style={{ ...inputStyle, flex: 1, fontSize: 12, padding: "5px 9px" }} autoFocus />
+                          <button onClick={() => saveEditComment(idx)} style={{ padding: "5px 10px", borderRadius: 7, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "#00D4FF", fontSize: 11, cursor: "pointer" }}>Save</button>
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: 12, color: "#94a3b8", margin: 0, lineHeight: 1.5 }}>{c.text}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+              <textarea value={newComment} onChange={e => setNewComment(e.target.value)} rows={2}
+                placeholder="Add a comment…"
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); postComment(); } }}
+                style={{ ...inputStyle, flex: 1, resize: "none", fontFamily: "inherit", fontSize: 12, padding: "8px 11px", lineHeight: 1.5 }} />
+              <button onClick={postComment} disabled={!newComment.trim()} style={{
+                padding: "8px 14px", borderRadius: 9, fontSize: 12, fontWeight: 700,
+                background: newComment.trim() ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.02)",
+                border: newComment.trim() ? "1px solid rgba(0,212,255,0.2)" : "1px solid rgba(255,255,255,0.06)",
+                color: newComment.trim() ? "#00D4FF" : "#475569",
+                cursor: newComment.trim() ? "pointer" : "not-allowed", flexShrink: 0,
+              }}>Post</button>
+            </div>
+          </div>
+
         </div>
 
         {/* Footer */}
@@ -313,6 +536,7 @@ export default function ProductionPage() {
           id: t.id, title: t.title, stage: t.stage as TaskStatus,
           priority: t.priority as "high" | "medium" | "low",
           dueDate: t.due_date, tags: t.tags || [], checklist: t.checklist || [],
+          ...TASK_DEFAULTS,
         })));
       }
     };
@@ -383,7 +607,7 @@ export default function ProductionPage() {
 
   const addTask = async () => {
     if (!newTitle.trim()) return;
-    const task: Task = { id: Date.now().toString(), title: newTitle.trim(), stage: newStage, priority: newPriority, tags: [], checklist: [] };
+    const task: Task = { id: Date.now().toString(), title: newTitle.trim(), stage: newStage, priority: newPriority, tags: [], checklist: [], ...TASK_DEFAULTS };
     setTasks(prev => [task, ...prev]);
     const supabase = createClient();
     await supabase.from("production_tasks").insert({ id: task.id, title: task.title, stage: task.stage, priority: task.priority, tags: [], checklist: [], position: 0 });
