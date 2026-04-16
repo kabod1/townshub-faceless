@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, Sparkles, Lightbulb, PenLine, ScrollText,
   Kanban, Image, Compass, Users, CreditCard, Settings,
-  LogOut, ChevronLeft, Mic, Youtube,
+  LogOut, ChevronLeft, Mic, CalendarClock,
 } from "lucide-react";
 
 function THMark({ size = 32 }: { size?: number }) {
@@ -47,7 +47,7 @@ const nav = [
       { href: "/dashboard/production", label: "Production Board", icon: Kanban },
       { href: "/dashboard/thumbnails", label: "Thumbnails", icon: Image },
       { href: "/dashboard/voiceover", label: "AI Voiceover", icon: Mic },
-      { href: "/dashboard/scheduler", label: "YT Scheduler", icon: Youtube },
+      { href: "/dashboard/scheduler", label: "YT Scheduler", icon: CalendarClock },
       { href: "/dashboard/niche-finder", label: "Niche Finder", icon: Compass },
     ],
   },

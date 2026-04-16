@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Topbar } from "@/components/dashboard/topbar";
 import { useLocalStorage } from "@/lib/use-local-storage";
 import {
-  Youtube,
+  Video,
   Calendar,
   Clock,
   Tag,
@@ -223,7 +223,7 @@ export default function SchedulerPage() {
             {/* Video Details Card */}
             <div style={CARD_STYLE}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-                <Youtube size={15} color="#ff0000" />
+                <Video size={15} color="#ff0000" />
                 <span style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0" }}>Video Details</span>
               </div>
 
@@ -514,7 +514,7 @@ export default function SchedulerPage() {
                   transition: "all 0.15s",
                 }}
               >
-                <Youtube size={14} />
+                <Video size={14} />
                 Open YouTube Studio
                 <ExternalLink size={11} />
               </a>
@@ -537,7 +537,7 @@ export default function SchedulerPage() {
             {/* Setup Guide */}
             <div id="setup" style={CARD_STYLE}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <Youtube size={15} color="#ff0000" />
+                <Video size={15} color="#ff0000" />
                 <h3 style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>Connect YouTube API</h3>
               </div>
               {[
