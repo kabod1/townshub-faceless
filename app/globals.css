@@ -156,3 +156,38 @@ body {
   height: 1px;
   background: var(--border-light);
 }
+
+/* ── Mobile Dashboard ────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Bottom padding so content clears the mobile nav bar */
+  .dashboard-main {
+    padding-bottom: 80px;
+  }
+
+  /* Boost base text contrast and size for small screens */
+  body {
+    font-size: 15px;
+  }
+
+  /* Prevent any element shrinking text below readable size */
+  * {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Force readable minimum contrast on muted text */
+  .dashboard-main span,
+  .dashboard-main p,
+  .dashboard-main label,
+  .dashboard-main li {
+    min-font-size: 12px; /* hint only */
+  }
+
+  /* Page content horizontal padding on mobile */
+  .dashboard-main > div {
+    overflow-x: hidden;
+  }
+
+  /* Scrollbar off on mobile */
+  ::-webkit-scrollbar { width: 0; }
+}

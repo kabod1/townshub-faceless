@@ -77,6 +77,14 @@ export default function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="alternate icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/logo.svg" />
+        <meta name="application-name" content="Townshub" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Townshub" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="theme-color" content="#080D1A" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="format-detection" content="telephone=no" />
       </head>
       <body className="min-h-screen bg-[#080D1A] text-[#E8F0FF] font-dm antialiased">
         {children}
