@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Topbar } from "@/components/dashboard/topbar";
 import {
@@ -107,7 +107,7 @@ const CARD: React.CSSProperties = {
 type PublishStatus = "idle" | "uploading" | "publishing" | "done" | "error";
 type PlatformResult = { status: "pending" | "publishing" | "done" | "error"; message?: string };
 
-export default function PublishPage() {
+function PublishPageInner() {
   const searchParams = useSearchParams();
 
   // Video source
@@ -704,5 +704,13 @@ export default function PublishPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PublishPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#080D1A" }} />}>
+      <PublishPageInner />
+    </Suspense>
   );
 }
