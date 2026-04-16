@@ -34,6 +34,10 @@ export default function ThumbnailsPage() {
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [textColor, setTextColor] = useState("#FFFFFF");
   const [accentColor, setAccentColor] = useState("");
+  const [textAlign, setTextAlign] = useState<"left" | "center">("center");
+  const [isBold, setIsBold] = useState(true);
+  const [isItalic, setIsItalic] = useState(false);
+  const [zoom, setZoom] = useState(100);
   const [savedAssets, setSavedAssets] = useLocalStorage<ThumbnailAsset[]>("th_thumbnails", []);
 
   const style = stylePresets.find(s => s.id === selectedStyle)!;
@@ -54,17 +58,22 @@ export default function ThumbnailsPage() {
       ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
     }
     const titleSize = Math.min(96, Math.floor(1280 / (titleText.length * 0.55 + 4)));
-    ctx.font = `bold ${titleSize}px Syne, sans-serif`; ctx.fillStyle = textColor;
-    ctx.textAlign = "center"; ctx.shadowColor = effectiveAccent; ctx.shadowBlur = 40;
-    ctx.fillText(titleText || "Your Title Here", 640, subtitleText ? 320 : 380);
+    const fontStyle = isItalic ? "italic " : "";
+    const fontWeight = isBold ? "bold" : "600";
+    ctx.font = `${fontStyle}${fontWeight} ${titleSize}px Syne, sans-serif`;
+    ctx.fillStyle = textColor;
+    ctx.textAlign = textAlign === "left" ? "left" : "center";
+    ctx.shadowColor = effectiveAccent; ctx.shadowBlur = 40;
+    const xPos = textAlign === "left" ? 80 : 640;
+    ctx.fillText(titleText || "Your Title Here", xPos, subtitleText ? 320 : 380);
     if (subtitleText) {
       ctx.shadowBlur = 0;
       const subSize = Math.round(titleSize * 0.55);
       ctx.font = `600 ${subSize}px Syne, sans-serif`; ctx.fillStyle = effectiveAccent;
-      ctx.fillText(subtitleText, 640, 320 + titleSize * 0.7 + 16);
+      ctx.fillText(subtitleText, xPos, 320 + titleSize * 0.7 + 16);
     }
     return canvas.toDataURL("image/png");
-  }, [style, effectiveAccent, textColor, titleText, subtitleText]);
+  }, [style, effectiveAccent, textColor, titleText, subtitleText, textAlign, isBold, isItalic]);
 
   const handleGenerate = async () => {
     if (!titleText.trim()) return;
@@ -192,8 +201,13 @@ export default function ThumbnailsPage() {
                   <div style={{
                     position: "relative", width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
                     background: `linear-gradient(135deg, ${style.bg[0]}, ${style.bg[1]})`,
-                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    display: "flex", flexDirection: "column",
+                    alignItems: textAlign === "left" ? "flex-start" : "center",
+                    justifyContent: "center",
                     userSelect: "none",
+                    transform: `scale(${zoom / 100})`,
+                    transformOrigin: "top left",
+                    transition: "transform 0.2s",
                   }}>
                     {generatedImageUrl ? (
                       /* AI-generated image */
@@ -213,8 +227,14 @@ export default function ThumbnailsPage() {
                       <>
                         <div style={{ position: "absolute", inset: 0, opacity: 0.08, backgroundImage: "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
                         <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "75%", height: "50%", borderRadius: "50%", filter: "blur(40px)", background: effectiveAccent, opacity: 0.25 }} />
-                        <div style={{ position: "relative", textAlign: "center", padding: "0 32px" }}>
-                          <p style={{ fontWeight: 800, color: textColor, lineHeight: 1.2, margin: "0 0 8px", fontSize: "clamp(14px, 3vw, 36px)", textShadow: `0 0 40px ${effectiveAccent}` }}>
+                        <div style={{ position: "relative", textAlign: textAlign, padding: "0 32px", width: "100%" }}>
+                          <p style={{
+                            fontWeight: isBold ? 800 : 400,
+                            fontStyle: isItalic ? "italic" : "normal",
+                            color: textColor, lineHeight: 1.2, margin: "0 0 8px",
+                            fontSize: "clamp(14px, 3vw, 36px)",
+                            textShadow: `0 0 40px ${effectiveAccent}`,
+                          }}>
                             {titleText || "Your Title Here"}
                           </p>
                           {subtitleText && (
@@ -239,16 +259,25 @@ export default function ThumbnailsPage() {
                   {/* Toolbar */}
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
                     <div style={{ display: "flex", gap: 2, padding: 4, borderRadius: 9, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                      {[AlignLeft, AlignCenter, Bold, Italic].map((Icon, i) => (
-                        <button key={i} style={{ padding: 6, borderRadius: 6, background: "transparent", border: "none", cursor: "pointer", color: "#94a3b8", display: "flex" }}>
+                      {([
+                        { Icon: AlignLeft,   active: textAlign === "left",   action: () => setTextAlign("left") },
+                        { Icon: AlignCenter, active: textAlign === "center", action: () => setTextAlign("center") },
+                        { Icon: Bold,        active: isBold,                 action: () => setIsBold(b => !b) },
+                        { Icon: Italic,      active: isItalic,               action: () => setIsItalic(it => !it) },
+                      ] as const).map(({ Icon, active, action }, i) => (
+                        <button key={i} onClick={action} style={{
+                          padding: 6, borderRadius: 6, border: "none", cursor: "pointer", display: "flex",
+                          background: active ? "rgba(0,212,255,0.15)" : "transparent",
+                          color: active ? "#00D4FF" : "#94a3b8",
+                        }}>
                           <Icon size={13} />
                         </button>
                       ))}
                     </div>
-                    <button style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
-                      <ZoomIn size={12} /> Zoom
+                    <button onClick={() => setZoom(z => Math.min(z + 10, 150))} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
+                      <ZoomIn size={12} /> {zoom}%
                     </button>
-                    <button onClick={() => { setTitleText("Why 99% of YouTube Channels FAIL"); setSubtitleText("(And How to Be the 1%)"); setSelectedStyle("bold"); setAccentColor(""); setTextColor("#FFFFFF"); setGenerated(false); setGeneratedImageUrl(null); setGenerateError(null); }}
+                    <button onClick={() => { setTitleText("Why 99% of YouTube Channels FAIL"); setSubtitleText("(And How to Be the 1%)"); setSelectedStyle("bold"); setAccentColor(""); setTextColor("#FFFFFF"); setTextAlign("center"); setIsBold(true); setIsItalic(false); setZoom(100); setGenerated(false); setGeneratedImageUrl(null); setGenerateError(null); }}
                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
                       <RotateCcw size={12} /> Reset
                     </button>
