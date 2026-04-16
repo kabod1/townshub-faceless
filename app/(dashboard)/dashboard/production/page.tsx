@@ -43,7 +43,7 @@ const STAGE_ACTIONS: Record<TaskStatus, { icon: React.ReactNode; label: string; 
     { icon: <FileText size={13} color="#94a3b8" />, label: "My Scripts", sub: "View and manage all your saved scripts", href: "/dashboard/scripts" },
   ],
   production: [
-    { icon: <Mic size={13} color="#a78bfa" />, label: "ElevenLabs Voiceover", sub: "Generate AI voiceover for your script", href: "https://elevenlabs.io", external: true },
+    { icon: <Mic size={13} color="#a78bfa" />, label: "AI Voiceover Studio", sub: "Generate voiceover from your script with ElevenLabs", href: "/dashboard/voiceover" },
     { icon: <Film size={13} color="#a78bfa" />, label: "Pexels B-Roll", sub: "Free stock footage for your video", href: "https://www.pexels.com/videos/", external: true },
   ],
   editing: [
@@ -51,7 +51,8 @@ const STAGE_ACTIONS: Record<TaskStatus, { icon: React.ReactNode; label: string; 
     { icon: <Film size={13} color="#fb923c" />, label: "DaVinci Resolve", sub: "Professional free video editor", href: "https://www.blackmagicdesign.com/products/davinciresolve", external: true },
   ],
   scheduled: [
-    { icon: <Clock size={13} color="#60a5fa" />, label: "YouTube Studio", sub: "Upload and schedule your video", href: "https://studio.youtube.com", external: true },
+    { icon: <Clock size={13} color="#60a5fa" />, label: "YouTube Scheduler", sub: "Schedule your video publish time", href: "/dashboard/scheduler" },
+    { icon: <Clock size={13} color="#60a5fa" />, label: "YouTube Studio", sub: "Upload your video file to YouTube", href: "https://studio.youtube.com", external: true },
   ],
   published: [
     { icon: <CheckCircle2 size={13} color="#34d399" />, label: "YouTube Analytics", sub: "Track your video performance", href: "https://studio.youtube.com/channel/analytics", external: true },
@@ -74,7 +75,6 @@ function TaskCard({ task, onClick, onMove }: { task: Task; onClick: () => void; 
   const total = task.checklist.length;
   const progress = total > 0 ? (done / total) * 100 : 0;
   const p = PRIORITY[task.priority];
-  const nextCols = COLUMNS.filter(c => c.id !== task.stage).slice(0, 2);
   const colIdx = COLUMNS.findIndex(c => c.id === task.stage);
   const nextStage = COLUMNS[colIdx + 1];
 
@@ -138,8 +138,6 @@ function TaskDetailModal({ task, onClose, onUpdate, onDelete, onMove, onToggleCh
   const done = task.checklist.filter(c => c.done).length;
   const total = task.checklist.length;
   const progress = total > 0 ? Math.round((done / total) * 100) : 0;
-  const col = COLUMNS.find(c => c.id === task.stage)!;
-  const p = PRIORITY[task.priority];
   const actions = STAGE_ACTIONS[task.stage] || [];
 
   return (

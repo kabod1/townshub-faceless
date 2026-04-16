@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, Sparkles, Lightbulb, PenLine, ScrollText,
   Kanban, Image, Compass, Users, CreditCard, Settings,
-  Zap, LogOut, ChevronLeft,
+  Zap, LogOut, ChevronLeft, Mic, Youtube,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -26,6 +26,8 @@ const nav = [
     items: [
       { href: "/dashboard/production", label: "Production Board", icon: Kanban },
       { href: "/dashboard/thumbnails", label: "Thumbnails", icon: Image },
+      { href: "/dashboard/voiceover", label: "AI Voiceover", icon: Mic },
+      { href: "/dashboard/scheduler", label: "YT Scheduler", icon: Youtube },
       { href: "/dashboard/niche-finder", label: "Niche Finder", icon: Compass },
     ],
   },
