@@ -6,7 +6,7 @@ import { Topbar } from "@/components/dashboard/topbar";
 import {
   Wand2, Download, Plus, Palette, Type, Layers,
   Sparkles, ZoomIn, RotateCcw, AlignLeft, AlignCenter,
-  Bold, Italic, Lock, Trash2, ImageIcon,
+  Bold, Italic, Trash2, ImageIcon,
 } from "lucide-react";
 
 const stylePresets = [
@@ -34,6 +34,10 @@ export default function ThumbnailsPage() {
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [textColor, setTextColor] = useState("#FFFFFF");
   const [accentColor, setAccentColor] = useState("");
+  const [bgPrompt, setBgPrompt] = useState("");
+  const [bgGenerating, setBgGenerating] = useState(false);
+  const [bgError, setBgError] = useState<string | null>(null);
+  const [bgImageUrl, setBgImageUrl] = useState<string | null>(null);
   const [textAlign, setTextAlign] = useState<"left" | "center">("center");
   const [isBold, setIsBold] = useState(true);
   const [isItalic, setIsItalic] = useState(false);
@@ -128,6 +132,30 @@ export default function ThumbnailsPage() {
     const dataUrl = renderToCanvas();
     const a = document.createElement("a");
     a.href = dataUrl; a.download = filename; a.click();
+  };
+
+  const handleGenerateBg = async () => {
+    if (!bgPrompt.trim()) return;
+    setBgGenerating(true);
+    setBgError(null);
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(
+      `${bgPrompt}, YouTube thumbnail background, cinematic, 4K, no text, wide angle, dramatic lighting, ultra detailed`
+    )}?width=1280&height=720&nologo=true&model=flux&seed=${Date.now()}`;
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => reject();
+        img.src = url;
+      });
+      setBgImageUrl(url);
+      setGeneratedImageUrl(url);
+      setGenerated(true);
+    } catch {
+      setBgError("Generation failed. Check connection and try again.");
+    } finally {
+      setBgGenerating(false);
+    }
   };
 
   const handleSaveToLibrary = () => {
@@ -293,10 +321,10 @@ export default function ThumbnailsPage() {
                 </div>
               </div>
 
-              {/* AI Background (locked) */}
+              {/* AI Background Generation */}
               <div style={S.card}>
                 <div style={S.cardBody}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
                     <div style={{ width: 38, height: 38, borderRadius: 11, background: "rgba(167,139,250,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <Sparkles size={16} color="#a78bfa" />
                     </div>
@@ -304,18 +332,43 @@ export default function ThumbnailsPage() {
                       <p style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", margin: "0 0 2px" }}>AI Background Generation</p>
                       <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Describe a scene and we&apos;ll generate a stunning background with Flux.1</p>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 99, background: "rgba(250,204,21,0.08)", border: "1px solid rgba(250,204,21,0.2)", flexShrink: 0 }}>
-                      <Lock size={10} color="#facc15" />
-                      <span style={{ fontSize: 10, fontWeight: 800, color: "#facc15" }}>PRO</span>
-                    </div>
+                    {bgImageUrl && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 99, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", flexShrink: 0 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e" }} />
+                        <span style={{ fontSize: 10, fontWeight: 800, color: "#22c55e" }}>Generated</span>
+                      </div>
+                    )}
                   </div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-                    <input placeholder="e.g. Dramatic mountain peak at golden hour, epic cinematic..." disabled
-                      style={{ flex: 1, background: "rgba(8,13,26,0.6)", border: "1px solid rgba(0,212,255,0.08)", borderRadius: 10, padding: "10px 14px", color: "#64748b", fontSize: 13, outline: "none", cursor: "not-allowed", opacity: 0.5 }} />
-                    <button disabled style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#64748b", fontSize: 12, fontWeight: 700, cursor: "not-allowed", opacity: 0.5 }}>
-                      <Wand2 size={13} /> Generate
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <input
+                      value={bgPrompt}
+                      onChange={e => setBgPrompt(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter") handleGenerateBg(); }}
+                      placeholder="e.g. Dramatic mountain peak at golden hour, epic cinematic..."
+                      style={{ flex: 1, background: "rgba(8,13,26,0.8)", border: "1px solid rgba(0,212,255,0.15)", borderRadius: 10, padding: "10px 14px", color: "#e2e8f0", fontSize: 13, outline: "none" }}
+                      onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.4)"}
+                      onBlur={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.15)"}
+                    />
+                    <button
+                      onClick={handleGenerateBg}
+                      disabled={bgGenerating || !bgPrompt.trim()}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10,
+                        border: "none", background: bgGenerating || !bgPrompt.trim() ? "rgba(167,139,250,0.15)" : "linear-gradient(135deg, #a78bfa, #7c3aed)",
+                        color: bgGenerating || !bgPrompt.trim() ? "#64748b" : "#fff",
+                        fontSize: 12, fontWeight: 700, cursor: bgGenerating || !bgPrompt.trim() ? "not-allowed" : "pointer",
+                        flexShrink: 0, whiteSpace: "nowrap" as const,
+                      }}
+                    >
+                      {bgGenerating
+                        ? <><div style={{ width: 12, height: 12, border: "2px solid rgba(255,255,255,0.2)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> Generating…</>
+                        : <><Wand2 size={13} /> Generate</>
+                      }
                     </button>
                   </div>
+                  {bgError && (
+                    <p style={{ fontSize: 11, color: "#f87171", margin: "8px 0 0" }}>{bgError}</p>
+                  )}
                 </div>
               </div>
             </div>
