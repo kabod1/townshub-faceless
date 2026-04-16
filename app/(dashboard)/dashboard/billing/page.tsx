@@ -189,7 +189,7 @@ export default function BillingPage() {
             <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Invoice History</span>
           </div>
           <div style={{ padding: "40px 22px", textAlign: "center" }}>
-            <CreditCard size={28} color="#334155" style={{ margin: "0 auto 12px" }} />
+            <CreditCard size={28} color="#64748b" style={{ margin: "0 auto 12px" }} />
             <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>No invoices yet</p>
             <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>Your billing history will appear here</p>
           </div>

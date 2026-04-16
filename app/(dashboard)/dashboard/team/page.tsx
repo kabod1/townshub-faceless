@@ -268,7 +268,7 @@ export default function TeamPage() {
                           onClick={() => setActiveMenu(activeMenu === member.id ? null : member.id)}
                           style={{ padding: 6, borderRadius: 8, background: "transparent", border: "none", color: "#64748b", cursor: "pointer", display: "flex" }}
                           onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#94a3b8"; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#334155"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#64748b"; }}
                         >
                           <MoreHorizontal size={14} />
                         </button>
@@ -352,7 +352,7 @@ export default function TeamPage() {
                         padding: 6, borderRadius: 8, background: "transparent", border: "none", color: "#64748b", cursor: "pointer", display: "flex",
                       }}
                         onMouseEnter={e => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.background = "rgba(239,68,68,0.08)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.color = "#334155"; e.currentTarget.style.background = "transparent"; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = "#64748b"; e.currentTarget.style.background = "transparent"; }}
                       >
                         <X size={13} />
                       </button>

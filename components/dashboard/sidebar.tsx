@@ -6,8 +6,28 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, Sparkles, Lightbulb, PenLine, ScrollText,
   Kanban, Image, Compass, Users, CreditCard, Settings,
-  Zap, LogOut, ChevronLeft, Mic, Youtube,
+  LogOut, ChevronLeft, Mic, Youtube,
 } from "lucide-react";
+
+function THMark({ size = 32 }: { size?: number }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: Math.round(size * 0.28), flexShrink: 0,
+      background: "linear-gradient(145deg, #0B1F4A 0%, #1B4080 60%, #1E5299 100%)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      boxShadow: "0 2px 12px rgba(27,64,128,0.5)",
+    }}>
+      <svg viewBox="0 0 64 64" fill="none" width={size * 0.62} height={size * 0.62}>
+        <rect x="3" y="3" width="34" height="11" fill="white"/>
+        <rect x="33" y="3" width="5" height="11" fill="white"/>
+        <rect x="3" y="14" width="12" height="47" fill="white"/>
+        <rect x="33" y="18" width="9" height="43" fill="white"/>
+        <rect x="33" y="30" width="28" height="10" fill="white"/>
+        <rect x="52" y="3" width="9" height="58" fill="white"/>
+      </svg>
+    </div>
+  );
+}
 import { useState } from "react";
 
 const nav = [
@@ -66,18 +86,11 @@ export function Sidebar() {
         justifyContent: collapsed ? "center" : "flex-start",
         borderBottom: "1px solid rgba(255,255,255,0.04)",
       }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-          background: "linear-gradient(135deg, #00D4FF, #0080cc)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 0 16px rgba(0,212,255,0.4)",
-        }}>
-          <Zap size={16} color="#04080F" fill="#04080F" />
-        </div>
+        <THMark size={32} />
         {!collapsed && (
           <div>
-            <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0, lineHeight: 1, letterSpacing: "-0.2px" }}>Townshub</p>
-            <p style={{ fontSize: 9, color: "#00D4FF", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", marginTop: 2 }}>FACELESS</p>
+            <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0, lineHeight: 1, letterSpacing: "-0.3px" }}>Townshub</p>
+            <p style={{ fontSize: 8, color: "#5B8DEF", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", marginTop: 2 }}>VIDEO STUDIO</p>
           </div>
         )}
       </div>
@@ -88,7 +101,7 @@ export function Sidebar() {
           <div key={section.section} style={{ marginBottom: 20 }}>
             {!collapsed && (
               <p style={{
-                fontSize: 9, fontWeight: 800, color: "#1e293b",
+                fontSize: 9, fontWeight: 800, color: "#2A3F5F",
                 letterSpacing: "0.16em", textTransform: "uppercase",
                 padding: "0 10px", marginBottom: 6, margin: "0 0 6px",
               }}>{section.section}</p>
@@ -162,7 +175,7 @@ export function Sidebar() {
             <div style={{ width: "100%", height: 3, borderRadius: 99, background: "rgba(0,212,255,0.08)", overflow: "hidden" }}>
               <div style={{ width: "20%", height: "100%", background: "linear-gradient(90deg, #00D4FF, #0080cc)", borderRadius: 99 }} />
             </div>
-            <p style={{ fontSize: 10, color: "#334155", marginTop: 6 }}>4 of 5 scripts remaining</p>
+            <p style={{ fontSize: 10, color: "#64748b", marginTop: 6 }}>4 of 5 scripts remaining</p>
           </div>
         </div>
       )}
@@ -182,7 +195,7 @@ export function Sidebar() {
             justifyContent: collapsed ? "center" : "flex-start",
             width: "100%", padding: collapsed ? "9px 0" : "8px 10px",
             borderRadius: 9, border: "none",
-            background: "transparent", color: "#334155",
+            background: "transparent", color: "#475569",
             cursor: "pointer", transition: "all 0.15s",
           }}
           onMouseEnter={e => {
@@ -191,7 +204,7 @@ export function Sidebar() {
           }}
           onMouseLeave={e => {
             (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-            (e.currentTarget as HTMLButtonElement).style.color = "#334155";
+            (e.currentTarget as HTMLButtonElement).style.color = "#475569";
           }}
         >
           <LogOut size={15} style={{ flexShrink: 0 }} />

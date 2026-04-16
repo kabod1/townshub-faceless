@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  Zap, PenLine, Kanban, Image as ImageIcon, Compass,
+  PenLine, Kanban, Image as ImageIcon, Compass,
   CheckCircle2, ArrowRight, Star, Play,
   Lightbulb, Sparkles, Users, Shield, Clock,
 } from "lucide-react";
@@ -186,12 +186,19 @@ export default function LandingPage() {
           <div className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: "linear-gradient(135deg,#06B6D4,#0891B2)", boxShadow: "0 0 16px rgba(6,182,212,0.35)" }}
+              style={{ background: "linear-gradient(145deg, #0B1F4A, #1B4080)", boxShadow: "0 2px 12px rgba(27,64,128,0.5)" }}
             >
-              <Zap size={16} fill="#fff" className="text-white" />
+              <svg viewBox="0 0 64 64" fill="none" width="18" height="18">
+                <rect x="3" y="3" width="34" height="11" fill="white"/>
+                <rect x="33" y="3" width="5" height="11" fill="white"/>
+                <rect x="3" y="14" width="12" height="47" fill="white"/>
+                <rect x="33" y="18" width="9" height="43" fill="white"/>
+                <rect x="33" y="30" width="28" height="10" fill="white"/>
+                <rect x="52" y="3" width="9" height="58" fill="white"/>
+              </svg>
             </div>
             <span className="font-bold" style={{ fontFamily: "var(--font-syne)", fontSize: "15px", letterSpacing: "-0.3px" }}>
-              Townshub <span style={{ color: "#06B6D4" }}>Faceless</span>
+              Townshub <span style={{ color: "#5B8DEF" }}>Faceless</span>
             </span>
           </div>
 
@@ -339,12 +346,19 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2 px-3 pb-4 mb-3"
                   style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ background: "linear-gradient(135deg,#06B6D4,#0891B2)" }}>
-                    <Zap size={13} fill="#fff" />
+                    style={{ background: "linear-gradient(145deg, #0B1F4A, #1B4080)" }}>
+                    <svg viewBox="0 0 64 64" fill="none" width="14" height="14">
+                      <rect x="3" y="3" width="34" height="11" fill="white"/>
+                      <rect x="33" y="3" width="5" height="11" fill="white"/>
+                      <rect x="3" y="14" width="12" height="47" fill="white"/>
+                      <rect x="33" y="18" width="9" height="43" fill="white"/>
+                      <rect x="33" y="30" width="28" height="10" fill="white"/>
+                      <rect x="52" y="3" width="9" height="58" fill="white"/>
+                    </svg>
                   </div>
                   <div>
                     <p className="text-xs font-bold text-white" style={{ fontFamily: "var(--font-syne)" }}>Townshub</p>
-                    <p className="text-[9px] font-bold tracking-widest uppercase" style={{ color: "#06B6D4" }}>Faceless</p>
+                    <p className="text-[9px] font-bold tracking-widest uppercase" style={{ color: "#5B8DEF" }}>Video Studio</p>
                   </div>
                 </div>
                 {mockSidebarItems.map((item) => (
@@ -622,11 +636,18 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg,#06B6D4,#0891B2)" }}>
-              <Zap size={12} fill="#fff" />
+              style={{ background: "linear-gradient(145deg, #0B1F4A, #1B4080)" }}>
+              <svg viewBox="0 0 64 64" fill="none" width="12" height="12">
+                <rect x="3" y="3" width="34" height="11" fill="white"/>
+                <rect x="33" y="3" width="5" height="11" fill="white"/>
+                <rect x="3" y="14" width="12" height="47" fill="white"/>
+                <rect x="33" y="18" width="9" height="43" fill="white"/>
+                <rect x="33" y="30" width="28" height="10" fill="white"/>
+                <rect x="52" y="3" width="9" height="58" fill="white"/>
+              </svg>
             </div>
             <span className="text-sm font-bold text-slate-400" style={{ fontFamily: "var(--font-syne)" }}>
-              Townshub Faceless
+              Townshub Video Studio
             </span>
           </div>
           <p className="text-xs text-slate-600">© 2026 Townshub. All rights reserved.</p>

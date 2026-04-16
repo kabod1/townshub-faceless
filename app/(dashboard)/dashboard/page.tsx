@@ -217,7 +217,7 @@ export default function DashboardPage() {
                         flexShrink: 0,
                       }} />
                       <span style={{ fontSize: 13, color: "#94a3b8", flex: 1 }}>{item.label}</span>
-                      <ArrowRight size={13} color="#334155" />
+                      <ArrowRight size={13} color="#64748b" />
                     </div>
                   </Link>
                 ))}

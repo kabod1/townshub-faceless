@@ -17,9 +17,9 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Townshub Faceless — AI YouTube Content Studio",
-  description: "Generate scripts, ideas, thumbnails and manage your faceless YouTube channel with AI.",
-  keywords: ["YouTube", "faceless channel", "AI scripts", "content creation", "thumbnails"],
+  title: "Townshub Faceless Video Studio — AI YouTube Content Studio",
+  description: "Generate scripts, ideas, thumbnails and manage your faceless YouTube channel with AI. Powered by Townshub.",
+  keywords: ["YouTube", "faceless channel", "AI scripts", "content creation", "thumbnails", "Townshub"],
 };
 
 export default function RootLayout({
