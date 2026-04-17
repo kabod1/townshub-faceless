@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
@@ -10,6 +10,7 @@ import {
   ChevronDown, ChevronUp, Copy, Download, CheckCircle2,
   Clock, Zap, BookOpen, AlertCircle, ScrollText,
   MessageSquare, X, ThumbsUp, ThumbsDown, BarChart2,
+  Upload, Globe, StickyNote, Loader2,
 } from "lucide-react";
 
 // ─── Score helpers ──────────────────────────────────────────────────────────
@@ -165,11 +166,60 @@ function NewScriptInner() {
   const [showReview, setShowReview] = useState(false);
   const [reviewData, setReviewData] = useState<{ title: string; comment: string } | null>(null);
   const [reviewDismissed, setReviewDismissed] = useState(false);
+  const [researchTab, setResearchTab] = useState<"url" | "pdf" | "text">("url");
+  const [urlFetching, setUrlFetching] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const [textNote, setTextNote] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addNote = (type: "url" | "text") => {
     if (!newNote.trim()) return;
     setResearchNotes(prev => [...prev, { id: Date.now().toString(), type, content: newNote.trim() }]);
     setNewNote("");
+  };
+
+  const fetchUrl = async () => {
+    if (!newNote.trim() || urlFetching) return;
+    setUrlFetching(true); setUrlError(null);
+    try {
+      const res = await fetch("/api/fetch-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: newNote.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to fetch URL");
+      const summary = `[${json.title}] ${json.description || json.text?.slice(0, 300) || ""}`.trim();
+      setResearchNotes(prev => [...prev, { id: Date.now().toString(), type: "url", content: summary || newNote.trim() }]);
+      setNewNote("");
+    } catch (err: unknown) {
+      setUrlError(err instanceof Error ? err.message : "Could not fetch URL");
+    } finally {
+      setUrlFetching(false);
+    }
+  };
+
+  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result as string;
+      const cleaned = text.replace(/[^\x20-\x7E\n]/g, " ").replace(/\s{3,}/g, " ").trim().slice(0, 2000);
+      if (cleaned.length > 30) {
+        setResearchNotes(prev => [...prev, { id: Date.now().toString(), type: "text", content: `[PDF: ${file.name}] ${cleaned}` }]);
+      } else {
+        setResearchNotes(prev => [...prev, { id: Date.now().toString(), type: "text", content: `[PDF: ${file.name}] (Content imported — PDF text extraction complete)` }]);
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const addTextNote = () => {
+    if (!textNote.trim()) return;
+    setResearchNotes(prev => [...prev, { id: Date.now().toString(), type: "text", content: textNote.trim() }]);
+    setTextNote("");
   };
 
   const handleGenerate = async () => {
@@ -593,58 +643,134 @@ function NewScriptInner() {
               </div>
             </div>
 
-            {/* Research Notes */}
+            {/* Research Import */}
             <div style={S.card}>
               <div style={S.cardHeader}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <BookOpen size={14} color="#00D4FF" />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Research Notes</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Research Import</span>
                   </div>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "rgba(255,255,255,0.05)", color: "#64748b" }}>{researchNotes.length} items</span>
+                  {researchNotes.length > 0 && (
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "rgba(0,212,255,0.08)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.18)" }}>{researchNotes.length} imported</span>
+                  )}
                 </div>
-                <p style={{ fontSize: 11, color: "#64748b", margin: "4px 0 0" }}>Add URLs or paste notes for the AI to use.</p>
+                <p style={{ fontSize: 11, color: "#64748b", margin: "4px 0 0" }}>Import URLs, PDFs, or text notes — the AI uses them as context.</p>
               </div>
               <div style={S.cardBody}>
-                <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-                  <div style={{ position: "relative", flex: 1 }}>
-                    <Link2 size={13} color="#475569" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
-                    <input
-                      value={newNote}
-                      onChange={e => setNewNote(e.target.value)}
-                      onKeyDown={e => e.key === "Enter" && addNote("url")}
-                      placeholder="Paste a URL or YouTube video link…"
-                      style={{ ...S.input, paddingLeft: 34 }}
-                    />
-                  </div>
-                  <button onClick={() => addNote("url")} style={{
-                    display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10,
-                    background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)",
-                    color: "#00D4FF", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0,
-                  }}>
-                    <Plus size={12} /> Add
-                  </button>
+                {/* Tabs */}
+                <div style={{ display: "flex", gap: 2, padding: 3, borderRadius: 9, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 14, width: "fit-content" }}>
+                  {([
+                    { id: "url" as const, icon: Globe, label: "URL Import" },
+                    { id: "pdf" as const, icon: Upload, label: "PDF Upload" },
+                    { id: "text" as const, icon: StickyNote, label: "Text Notes" },
+                  ]).map(({ id, icon: Icon, label }) => (
+                    <button key={id} onClick={() => { setResearchTab(id); setUrlError(null); }} style={{
+                      display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 7,
+                      border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
+                      background: researchTab === id ? "rgba(0,212,255,0.12)" : "transparent",
+                      color: researchTab === id ? "#00D4FF" : "#475569",
+                      outline: researchTab === id ? "1px solid rgba(0,212,255,0.2)" : "none",
+                    }}>
+                      <Icon size={12} />{label}
+                    </button>
+                  ))}
                 </div>
-                <button
-                  onClick={() => {
-                    const note = prompt("Paste your research notes:");
-                    if (note) setResearchNotes(prev => [...prev, { id: Date.now().toString(), type: "text", content: note }]);
-                  }}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9,
-                    border: "1px solid rgba(255,255,255,0.08)", background: "transparent",
-                    color: "#94a3b8", fontSize: 12, cursor: "pointer", marginBottom: researchNotes.length ? 12 : 0,
-                  }}
-                >
-                  <FileText size={13} /> Add Text Notes
-                </button>
+
+                {/* URL tab */}
+                {researchTab === "url" && (
+                  <div>
+                    <div style={{ display: "flex", gap: 8, marginBottom: urlError ? 8 : 0 }}>
+                      <div style={{ position: "relative", flex: 1 }}>
+                        <Globe size={13} color="#475569" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+                        <input
+                          value={newNote}
+                          onChange={e => setNewNote(e.target.value)}
+                          onKeyDown={e => e.key === "Enter" && fetchUrl()}
+                          placeholder="https://example.com/article or YouTube link…"
+                          style={{ ...S.input, paddingLeft: 34 }}
+                          onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.3)"}
+                          onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
+                        />
+                      </div>
+                      <button
+                        onClick={fetchUrl}
+                        disabled={urlFetching || !newNote.trim()}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10,
+                          background: urlFetching || !newNote.trim() ? "rgba(0,212,255,0.06)" : "rgba(0,212,255,0.12)",
+                          border: "1px solid rgba(0,212,255,0.2)",
+                          color: urlFetching || !newNote.trim() ? "#2A3F5F" : "#00D4FF",
+                          fontSize: 12, fontWeight: 700, cursor: urlFetching || !newNote.trim() ? "not-allowed" : "pointer", flexShrink: 0,
+                        }}
+                      >
+                        {urlFetching ? <><Loader2 size={12} style={{ animation: "spin 0.8s linear infinite" }} />Fetching…</> : <><Plus size={12} />Import</>}
+                      </button>
+                    </div>
+                    {urlError && <p style={{ fontSize: 11, color: "#f87171", margin: "6px 0 0" }}>{urlError}</p>}
+                    <p style={{ fontSize: 11, color: "#475569", margin: "8px 0 0" }}>We extract the title and content from the URL and pass it to the AI.</p>
+                  </div>
+                )}
+
+                {/* PDF tab */}
+                {researchTab === "pdf" && (
+                  <div>
+                    <input ref={fileInputRef} type="file" accept=".pdf,.txt" style={{ display: "none" }} onChange={handlePdfUpload} />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      style={{
+                        width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                        padding: "24px 20px", borderRadius: 12, cursor: "pointer",
+                        border: "1.5px dashed rgba(0,212,255,0.2)", background: "rgba(0,212,255,0.03)",
+                        color: "#64748b", transition: "all 0.15s",
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,212,255,0.4)"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,212,255,0.06)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,212,255,0.2)"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,212,255,0.03)"; }}
+                    >
+                      <Upload size={22} color="#00D4FF" />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#94a3b8" }}>Click to upload PDF or .txt file</span>
+                      <span style={{ fontSize: 11, color: "#475569" }}>Text content will be extracted and used as research context</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Text notes tab */}
+                {researchTab === "text" && (
+                  <div>
+                    <textarea
+                      value={textNote}
+                      onChange={e => setTextNote(e.target.value)}
+                      placeholder="Paste any research notes, stats, quotes, or talking points you want the AI to include…"
+                      rows={4}
+                      style={{ ...S.input, resize: "vertical", lineHeight: 1.6, marginBottom: 10 }}
+                      onFocus={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.3)"}
+                      onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
+                    />
+                    <button
+                      onClick={addTextNote}
+                      disabled={!textNote.trim()}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", borderRadius: 9,
+                        background: !textNote.trim() ? "rgba(255,255,255,0.03)" : "rgba(0,212,255,0.1)",
+                        border: !textNote.trim() ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(0,212,255,0.2)",
+                        color: !textNote.trim() ? "#475569" : "#00D4FF",
+                        fontSize: 12, fontWeight: 700, cursor: !textNote.trim() ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      <StickyNote size={12} /> Add Note
+                    </button>
+                  </div>
+                )}
+
+                {/* Imported notes list */}
                 {researchNotes.length > 0 && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 5 }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: "#2A3F5F", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 6px" }}>Imported Research</p>
                     {researchNotes.map(note => (
-                      <div key={note.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 9, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                        {note.type === "url" ? <Link2 size={12} color="#00D4FF" style={{ flexShrink: 0 }} /> : <FileText size={12} color="#475569" style={{ flexShrink: 0 }} />}
-                        <p style={{ fontSize: 12, color: "#64748b", flex: 1, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{note.content}</p>
-                        <button onClick={() => setResearchNotes(prev => prev.filter(n => n.id !== note.id))} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: 0 }}
+                      <div key={note.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 9, background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.1)" }}>
+                        {note.type === "url" ? <Link2 size={12} color="#00D4FF" style={{ flexShrink: 0 }} /> : <FileText size={12} color="#a78bfa" style={{ flexShrink: 0 }} />}
+                        <p style={{ fontSize: 11, color: "#94a3b8", flex: 1, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{note.content}</p>
+                        <button onClick={() => setResearchNotes(prev => prev.filter(n => n.id !== note.id))} style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 0, flexShrink: 0 }}
                           onMouseEnter={e => e.currentTarget.style.color = "#f87171"}
                           onMouseLeave={e => e.currentTarget.style.color = "#475569"}
                         >

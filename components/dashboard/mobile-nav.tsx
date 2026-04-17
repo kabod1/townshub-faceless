@@ -6,19 +6,27 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, ScrollText, PenLine, Kanban, X,
   Lightbulb, Image, Mic, CalendarClock, Share2,
-  Compass, Bookmark, Sparkles, Settings,
+  Compass, Bookmark, Sparkles, Settings, GitMerge,
+  Bot, Monitor, Headphones, Users, CreditCard,
 } from "lucide-react";
 
 const MORE_LINKS = [
-  { href: "/dashboard/ideas",          label: "Video Ideas",     icon: Lightbulb,     color: "#facc15" },
-  { href: "/dashboard/style",          label: "My Style",        icon: Sparkles,      color: "#a78bfa" },
-  { href: "/dashboard/thumbnails",     label: "Thumbnails",      icon: Image,         color: "#fb923c" },
-  { href: "/dashboard/voiceover",      label: "AI Voiceover",    icon: Mic,           color: "#a78bfa" },
-  { href: "/dashboard/scheduler",      label: "YT Scheduler",    icon: CalendarClock, color: "#60a5fa" },
-  { href: "/dashboard/publish",        label: "Social Channels", icon: Share2,        color: "#34d399" },
-  { href: "/dashboard/niche-finder",   label: "Niche Finder",    icon: Compass,       color: "#34d399" },
-  { href: "/dashboard/saved-channels", label: "Saved Channels",  icon: Bookmark,      color: "#a855f7" },
-  { href: "/dashboard/settings",       label: "Settings",        icon: Settings,      color: "#94a3b8" },
+  { href: "/dashboard/ideas",            label: "Video Ideas",       icon: Lightbulb,     color: "#facc15" },
+  { href: "/dashboard/style",            label: "My Style",          icon: Sparkles,      color: "#a78bfa" },
+  { href: "/dashboard/thumbnails",       label: "Thumbnails",        icon: Image,         color: "#fb923c" },
+  { href: "/dashboard/voiceover",        label: "AI Voiceover",      icon: Mic,           color: "#a78bfa" },
+  { href: "/dashboard/scheduler",        label: "YT Scheduler",      icon: CalendarClock, color: "#60a5fa" },
+  { href: "/dashboard/publish",          label: "Social Channels",   icon: Share2,        color: "#34d399" },
+  { href: "/dashboard/niche-finder",     label: "Niche Finder",      icon: Compass,       color: "#34d399" },
+  { href: "/dashboard/niche-bending",    label: "Niche Bending",     icon: GitMerge,      color: "#a78bfa" },
+  { href: "/dashboard/similar-channels", label: "Similar Channels",  icon: Users,         color: "#00D4FF" },
+  { href: "/dashboard/saved-channels",   label: "Saved Channels",    icon: Bookmark,      color: "#a855f7" },
+  { href: "/dashboard/consulting",       label: "AI Consulting",     icon: Bot,           color: "#00D4FF" },
+  { href: "/dashboard/extension",        label: "Chrome Extension",  icon: Monitor,       color: "#fb923c" },
+  { href: "/dashboard/team",             label: "Team",              icon: Users,         color: "#64748b" },
+  { href: "/dashboard/billing",          label: "Billing",           icon: CreditCard,    color: "#facc15" },
+  { href: "/dashboard/support",          label: "Support",           icon: Headphones,    color: "#34d399" },
+  { href: "/dashboard/settings",         label: "Settings",          icon: Settings,      color: "#94a3b8" },
 ];
 
 // Grid icon for "More" button

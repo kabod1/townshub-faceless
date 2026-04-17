@@ -7,6 +7,7 @@ import {
   LayoutDashboard, Sparkles, Lightbulb, PenLine, ScrollText,
   Kanban, Image, Compass, Users, CreditCard, Settings,
   LogOut, ChevronLeft, Mic, CalendarClock, Share2, Bookmark,
+  Bot, GitMerge, Headphones, Monitor,
 } from "lucide-react";
 
 function THMark({ size = 32 }: { size?: number }) {
@@ -45,21 +46,36 @@ const nav = [
   {
     section: "PRODUCTION",
     items: [
-      { href: "/dashboard/production", label: "Production Board", icon: Kanban },
-      { href: "/dashboard/thumbnails", label: "Thumbnails", icon: Image },
-      { href: "/dashboard/voiceover", label: "AI Voiceover", icon: Mic },
-      { href: "/dashboard/scheduler", label: "YT Scheduler", icon: CalendarClock },
-      { href: "/dashboard/publish", label: "Social Channels", icon: Share2 },
-      { href: "/dashboard/niche-finder", label: "Niche Finder", icon: Compass },
-      { href: "/dashboard/saved-channels", label: "Saved Channels", icon: Bookmark },
+      { href: "/dashboard/production",      label: "Production Board",   icon: Kanban },
+      { href: "/dashboard/thumbnails",       label: "Thumbnails",         icon: Image },
+      { href: "/dashboard/voiceover",        label: "AI Voiceover",       icon: Mic },
+      { href: "/dashboard/scheduler",        label: "YT Scheduler",       icon: CalendarClock },
+      { href: "/dashboard/publish",          label: "Social Channels",    icon: Share2 },
+    ],
+  },
+  {
+    section: "RESEARCH",
+    items: [
+      { href: "/dashboard/niche-finder",     label: "Niche Finder",       icon: Compass },
+      { href: "/dashboard/niche-bending",    label: "Niche Bending",      icon: GitMerge },
+      { href: "/dashboard/similar-channels", label: "Similar Channels",   icon: Users },
+      { href: "/dashboard/saved-channels",   label: "Saved Channels",     icon: Bookmark },
+    ],
+  },
+  {
+    section: "ELITE",
+    items: [
+      { href: "/dashboard/consulting",       label: "AI Consulting",      icon: Bot },
+      { href: "/dashboard/extension",        label: "Chrome Extension",   icon: Monitor },
     ],
   },
   {
     section: "ACCOUNT",
     items: [
-      { href: "/dashboard/team", label: "Team", icon: Users },
-      { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
-      { href: "/dashboard/settings", label: "Settings", icon: Settings },
+      { href: "/dashboard/team",             label: "Team",               icon: Users },
+      { href: "/dashboard/billing",          label: "Billing",            icon: CreditCard },
+      { href: "/dashboard/support",          label: "Support",            icon: Headphones },
+      { href: "/dashboard/settings",         label: "Settings",           icon: Settings },
     ],
   },
 ];
