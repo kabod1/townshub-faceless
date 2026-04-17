@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Topbar } from "@/components/dashboard/topbar";
 import { usePlan } from "@/lib/hooks/use-plan";
 import { PLAN_LIMITS } from "@/lib/plan-config";
@@ -68,10 +69,18 @@ const plans = [
 
 export default function BillingPage() {
   const { plan: currentPlan, scriptsUsed, scriptsLimit, currentPeriodEnd, status, loading } = usePlan();
+  const searchParams = useSearchParams();
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  // Clear stale errors on mount; detect post-checkout success redirect
+  useEffect(() => {
+    setError(null);
+    if (searchParams.get("success") === "1") setSuccess(true);
+  }, [searchParams]);
 
   const currentLimits = PLAN_LIMITS[currentPlan];
 
@@ -125,6 +134,20 @@ export default function BillingPage() {
 
       <div style={{ padding: "28px 32px", maxWidth: 1100, margin: "0 auto" }}>
 
+        {/* Success banner */}
+        {success && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderRadius: 12,
+            background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.25)", marginBottom: 24,
+          }}>
+            <CheckCircle2 size={15} color="#34d399" />
+            <span style={{ fontSize: 13, color: "#34d399", flex: 1, fontWeight: 600 }}>
+              You&apos;re all set! Your subscription is now active. Welcome to {currentLimits.label}.
+            </span>
+            <button onClick={() => setSuccess(false)} style={{ background: "none", border: "none", color: "#34d399", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>×</button>
+          </div>
+        )}
+
         {/* Error banner */}
         {error && (
           <div style={{
@@ -132,7 +155,11 @@ export default function BillingPage() {
             background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", marginBottom: 24,
           }}>
             <AlertCircle size={15} color="#f87171" />
-            <span style={{ fontSize: 13, color: "#f87171", flex: 1 }}>{error}</span>
+            <span style={{ fontSize: 13, color: "#f87171", flex: 1 }}>
+              {error.includes("connection to Stripe")
+                ? "Could not reach Stripe. Please check your connection and try again."
+                : error}
+            </span>
             <button onClick={() => setError(null)} style={{ background: "none", border: "none", color: "#f87171", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>×</button>
           </div>
         )}

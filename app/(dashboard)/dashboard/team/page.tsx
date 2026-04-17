@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Topbar } from "@/components/dashboard/topbar";
 import { usePlan } from "@/lib/hooks/use-plan";
-import { createClient } from "@/lib/supabase/client";
 import {
   Users, Crown, Lock, ArrowRight, UserPlus, Mail,
   MoreHorizontal, Shield, Eye, PenLine, Trash2,
@@ -84,13 +83,8 @@ export default function TeamPage() {
   const { isPro, isElite } = usePlan();
   const canManageTeam = isPro || isElite;
 
-  // Determine current user — owner always has full access
-  const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
-  useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
-      setOwnerEmail(data.user?.email ?? null);
-    });
-  }, []);
+  // Admin email — owner always has full access
+  const OWNER_EMAIL = "townshub1@gmail.com";
 
   const [members, setMembers] = useState<Member[]>([
     { id: "1", name: "Towns Hub", email: "townshub1@gmail.com", role: "admin", status: "active", joinedAt: "Apr 1, 2026", avatar: "T" },
@@ -117,7 +111,7 @@ export default function TeamPage() {
           email: inviteEmail.trim(),
           role: inviteRole,
           inviterName: "Towns Hub",
-          inviterEmail: ownerEmail ?? "townshub1@gmail.com",
+          inviterEmail: OWNER_EMAIL,
         }),
       });
       const data = await res.json();
@@ -316,7 +310,7 @@ export default function TeamPage() {
           <div>
             {members.map((member, idx) => {
               const cfg = roleConfig[member.role];
-              const isOwner = ownerEmail ? member.email === ownerEmail : member.id === "1";
+              const isOwner = member.email === OWNER_EMAIL;
               return (
                 <div key={member.id} style={{
                   display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",

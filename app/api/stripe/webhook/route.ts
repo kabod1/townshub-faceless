@@ -4,6 +4,8 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-03-25.dahlia",
+  timeout: 8000,
+  maxNetworkRetries: 0,
 });
 
 // Service role client bypasses RLS — only for server-side webhook use
