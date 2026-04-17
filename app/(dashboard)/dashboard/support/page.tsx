@@ -324,7 +324,7 @@ export default function SupportPage() {
                   { label: "Billing & Plans",   href: "/dashboard/billing" },
                   { label: "Account Settings",  href: "/dashboard/settings" },
                   { label: "Chrome Extension",  href: "/dashboard/extension" },
-                  { label: "AI Consulting (Caleb)", href: "/dashboard/consulting" },
+                  { label: "AI Consulting", href: "/dashboard/consulting" },
                 ].map(({ label, href }) => (
                   <Link key={href} href={href} style={{
                     display: "flex", alignItems: "center", justifyContent: "space-between",

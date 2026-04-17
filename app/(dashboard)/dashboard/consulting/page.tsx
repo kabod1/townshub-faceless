@@ -5,7 +5,7 @@ import { Topbar } from "@/components/dashboard/topbar";
 import {
   Send, Sparkles, Crown, RotateCcw, Copy, Check,
   TrendingUp, Target, DollarSign, Lightbulb, BarChart2,
-  Lock, ArrowRight,
+  ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -111,7 +111,7 @@ export default function ConsultingPage() {
     {
       id: "welcome",
       role: "assistant",
-      content: `Hey — I'm Caleb, your AI YouTube growth consultant.\n\nI specialise in faceless channels: niche strategy, scripting, thumbnails, monetisation, and everything in between. Think of me as your on-demand growth team.\n\nWhat do you want to work on today?`,
+      content: `Hey — I'm Townshub AI, your AI YouTube growth consultant.\n\nI specialise in faceless channels: niche strategy, scripting, thumbnails, monetisation, and everything in between. Think of me as your on-demand growth team.\n\nWhat do you want to work on today?`,
       ts: Date.now(),
     },
   ]);
@@ -203,7 +203,7 @@ export default function ConsultingPage() {
           30% { transform: translateY(-5px); opacity: 1; }
         }
       `}</style>
-      <Topbar title="AI Consulting" subtitle="Caleb — your personal YouTube growth mentor" />
+      <Topbar title="AI Consulting" subtitle="Townshub AI — your personal YouTube growth mentor" />
 
       <div style={{ display: "flex", height: "calc(100vh - 64px)", overflow: "hidden" }}>
 
@@ -214,7 +214,7 @@ export default function ConsultingPage() {
           padding: "20px 14px",
           overflowY: "auto",
         }}>
-          {/* Caleb card */}
+          {/* Townshub AI card */}
           <div style={{
             borderRadius: 14, padding: "18px 16px", marginBottom: 20,
             background: "linear-gradient(135deg, rgba(0,212,255,0.07), rgba(0,128,204,0.04))",
@@ -229,7 +229,7 @@ export default function ConsultingPage() {
                 fontSize: 12, fontWeight: 900, color: "#00D4FF",
               }}>AI</div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>Caleb</p>
+                <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>Townshub AI</p>
                 <p style={{ fontSize: 10, color: "#00D4FF", margin: 0, fontWeight: 600 }}>YouTube Growth AI</p>
               </div>
               <div style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 6px #22c55e" }} />
@@ -357,7 +357,7 @@ export default function ConsultingPage() {
                 </div>
                 <p style={{ fontSize: 14, fontWeight: 800, color: "#fde68a", margin: "0 0 6px" }}>Upgrade to Elite AI for unlimited consulting</p>
                 <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 auto 18px", maxWidth: 380, lineHeight: 1.6 }}>
-                  You&apos;ve used your {FREE_LIMIT} free messages. Elite gives you unlimited Caleb sessions, priority responses, and advanced growth strategy tools.
+                  You&apos;ve used your {FREE_LIMIT} free messages. Elite gives you unlimited Townshub AI sessions, priority responses, and advanced growth strategy tools.
                 </p>
                 <Link href="/dashboard/billing" style={{
                   display: "inline-flex", alignItems: "center", gap: 7, padding: "10px 22px", borderRadius: 11,
@@ -399,7 +399,7 @@ export default function ConsultingPage() {
                   }
                 }}
                 disabled={loading || atLimit}
-                placeholder={atLimit ? "Upgrade to Elite to continue…" : "Ask Caleb anything about your channel…"}
+                placeholder={atLimit ? "Upgrade to Elite to continue…" : "Ask Townshub AI anything about your channel…"}
                 rows={1}
                 style={{
                   flex: 1, resize: "none", overflow: "hidden",
@@ -433,7 +433,7 @@ export default function ConsultingPage() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
               <Sparkles size={10} color="#475569" />
-              <span style={{ fontSize: 10, color: "#475569" }}>Caleb is powered by Claude · Enter to send, Shift+Enter for new line</span>
+              <span style={{ fontSize: 10, color: "#475569" }}>Townshub AI is powered by Claude · Enter to send, Shift+Enter for new line</span>
             </div>
           </div>
         </div>
