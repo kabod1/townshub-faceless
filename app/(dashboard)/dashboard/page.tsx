@@ -1,18 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   PenLine, Kanban, ScrollText, Image, Compass, Zap,
-  ArrowRight, Star, Clock, CheckCircle2,
+  ArrowRight, Star, Clock,
   Lightbulb, BarChart2, ChevronRight, Flame, Sparkles, TrendingUp
 } from "lucide-react";
-
-const stats = [
-  { label: "Scripts Remaining", value: "4", trend: "+0 this week", icon: PenLine, glow: "rgba(0,212,255,0.25)", color: "#00D4FF", bg: "rgba(0,212,255,0.08)" },
-  { label: "Video Ideas", value: "∞", trend: "AI-generated daily", icon: Lightbulb, glow: "rgba(250,204,21,0.25)", color: "#facc15", bg: "rgba(250,204,21,0.08)" },
-  { label: "Active Tasks", value: "0", trend: "Production board", icon: Kanban, glow: "rgba(167,139,250,0.25)", color: "#a78bfa", bg: "rgba(167,139,250,0.08)" },
-  { label: "Avg Outlier Score", value: "—", trend: "Connect a channel", icon: BarChart2, glow: "rgba(52,211,153,0.25)", color: "#34d399", bg: "rgba(52,211,153,0.08)" },
-];
+import { createClient } from "@/lib/supabase/client";
+import { usePlan } from "@/lib/hooks/use-plan";
 
 const tools = [
   { label: "Write Script", desc: "AI-powered, research-backed scripts", href: "/dashboard/new-script", icon: PenLine, color: "#00D4FF", glow: "rgba(0,212,255,0.15)" },
@@ -37,6 +33,27 @@ const checklist = [
 ];
 
 export default function DashboardPage() {
+  const { scriptsUsed, scriptsLimit, isPro, isElite, loading: planLoading } = usePlan();
+  const [activeTasks, setActiveTasks] = useState<number | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("production_tasks")
+      .select("id", { count: "exact", head: true })
+      .neq("stage", "published")
+      .then(({ count }) => setActiveTasks(count ?? 0));
+  }, []);
+
+  const scriptsRemaining = planLoading ? "…" : String(Math.max(0, scriptsLimit - scriptsUsed));
+
+  const stats = [
+    { label: "Scripts Remaining", value: scriptsRemaining, trend: `${scriptsUsed} used this month`, icon: PenLine, glow: "rgba(0,212,255,0.25)", color: "#00D4FF", bg: "rgba(0,212,255,0.08)" },
+    { label: "Video Ideas", value: "∞", trend: "AI-generated daily", icon: Lightbulb, glow: "rgba(250,204,21,0.25)", color: "#facc15", bg: "rgba(250,204,21,0.08)" },
+    { label: "Active Tasks", value: activeTasks === null ? "…" : String(activeTasks), trend: "Production board", icon: Kanban, glow: "rgba(167,139,250,0.25)", color: "#a78bfa", bg: "rgba(167,139,250,0.08)" },
+    { label: "Avg Outlier Score", value: "—", trend: "Connect a channel", icon: BarChart2, glow: "rgba(52,211,153,0.25)", color: "#34d399", bg: "rgba(52,211,153,0.08)" },
+  ];
+
   return (
     <div style={{ minHeight: "100vh", background: "#080D1A", color: "#E8F4FF" }}>
 
@@ -228,8 +245,8 @@ export default function DashboardPage() {
           {/* Right column */}
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-            {/* Upgrade card */}
-            <div style={{
+            {/* Upgrade card — hidden for Pro/Elite users */}
+            {!isPro && !isElite && <div style={{
               borderRadius: 16, padding: "22px",
               background: "linear-gradient(135deg, rgba(250,204,21,0.07), rgba(251,146,60,0.05))",
               border: "1px solid rgba(250,204,21,0.15)",
@@ -258,7 +275,7 @@ export default function DashboardPage() {
                 Upgrade to Pro
                 <ArrowRight size={12} />
               </Link>
-            </div>
+            </div>}
 
             {/* News & Updates */}
             <div>

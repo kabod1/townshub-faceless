@@ -31,6 +31,8 @@ function THMark({ size = 32 }: { size?: number }) {
   );
 }
 import { useState, useEffect } from "react";
+import { usePlan } from "@/lib/hooks/use-plan";
+import { PLAN_LIMITS } from "@/lib/plan-config";
 
 const nav = [
   {
@@ -85,6 +87,8 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { plan, scriptsUsed, scriptsLimit, loading: planLoading } = usePlan();
+  const planLimits = PLAN_LIMITS[plan];
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -209,21 +213,43 @@ export function Sidebar() {
         <div style={{ padding: "0 10px 12px" }}>
           <div style={{
             borderRadius: 12, padding: "12px 14px",
-            background: "linear-gradient(135deg, rgba(0,212,255,0.07), rgba(0,212,255,0.03))",
-            border: "1px solid rgba(0,212,255,0.12)",
+            background: plan === "elite"
+              ? "linear-gradient(135deg, rgba(250,204,21,0.07), rgba(250,204,21,0.03))"
+              : "linear-gradient(135deg, rgba(0,212,255,0.07), rgba(0,212,255,0.03))",
+            border: plan === "elite"
+              ? "1px solid rgba(250,204,21,0.15)"
+              : "1px solid rgba(0,212,255,0.12)",
           }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#00D4FF" }}>Starter Plan</span>
-              <Link href="/dashboard/billing" style={{
-                fontSize: 10, fontWeight: 700, color: "#fb923c", textDecoration: "none",
-                padding: "2px 8px", borderRadius: 5,
-                background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.2)",
-              }}>Upgrade</Link>
+              <span style={{ fontSize: 11, fontWeight: 700, color: plan === "elite" ? "#facc15" : "#00D4FF" }}>
+                {planLoading ? "Loading…" : planLimits.label + " Plan"}
+              </span>
+              {plan !== "elite" && (
+                <Link href="/dashboard/billing" style={{
+                  fontSize: 10, fontWeight: 700, color: "#fb923c", textDecoration: "none",
+                  padding: "2px 8px", borderRadius: 5,
+                  background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.2)",
+                }}>Upgrade</Link>
+              )}
             </div>
-            <div style={{ width: "100%", height: 3, borderRadius: 99, background: "rgba(0,212,255,0.08)", overflow: "hidden" }}>
-              <div style={{ width: "20%", height: "100%", background: "linear-gradient(90deg, #00D4FF, #0080cc)", borderRadius: 99 }} />
-            </div>
-            <p style={{ fontSize: 10, color: "#64748b", marginTop: 6 }}>4 of 5 scripts remaining</p>
+            {!planLoading && (
+              <>
+                <div style={{ width: "100%", height: 3, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                  <div style={{
+                    width: `${Math.min((scriptsUsed / scriptsLimit) * 100, 100)}%`,
+                    height: "100%", borderRadius: 99,
+                    background: scriptsUsed >= scriptsLimit
+                      ? "linear-gradient(90deg, #f87171, #ef4444)"
+                      : plan === "elite"
+                        ? "linear-gradient(90deg, #facc15, #f59e0b)"
+                        : "linear-gradient(90deg, #00D4FF, #0080cc)",
+                  }} />
+                </div>
+                <p style={{ fontSize: 10, color: "#64748b", marginTop: 6 }}>
+                  {scriptsLimit - scriptsUsed} of {scriptsLimit} scripts remaining
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}
