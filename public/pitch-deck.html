@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Townshub Faceless Video Studio — ElevenLabs Grant Application</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @page { size: A4; margin: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #070B14;
+    color: #E8F0FF;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    background: #070B14;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 36px 44px 32px;
+  }
+
+  /* Background glow */
+  .page::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: -80px; right: -80px;
+    height: 340px;
+    background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(6,182,212,0.13), transparent);
+    pointer-events: none;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    margin-bottom: 28px;
+    position: relative;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-mark {
+    width: 44px; height: 44px;
+    border-radius: 11px;
+    background: linear-gradient(145deg, #0B1F4A 0%, #1B4080 60%, #1E5299 100%);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(27,64,128,0.6);
+    flex-shrink: 0;
+  }
+
+  .logo-text h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.4px;
+    line-height: 1;
+  }
+
+  .logo-text p {
+    font-family: 'Syne', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #5B8DEF;
+    margin-top: 3px;
+  }
+
+  .header-right {
+    text-align: right;
+  }
+
+  .header-right .grant-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 99px;
+    background: rgba(6,182,212,0.08);
+    border: 1px solid rgba(6,182,212,0.22);
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #06B6D4;
+  }
+
+  .header-right .url {
+    font-size: 11px;
+    color: #475569;
+    margin-top: 6px;
+    font-family: 'Syne', sans-serif;
+  }
+
+  /* ── Hero tagline ── */
+  .tagline {
+    text-align: center;
+    margin-bottom: 28px;
+    position: relative;
+  }
+
+  .tagline h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .tagline h2 span { color: #06B6D4; }
+
+  .tagline p {
+    font-size: 13px;
+    color: #94a3b8;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ── 3-col stat row ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    border-radius: 12px;
+    padding: 16px 18px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+    text-align: center;
+  }
+
+  .stat-card .val {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #06B6D4;
+    letter-spacing: -0.5px;
+  }
+
+  .stat-card .lbl {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 3px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── 2-col sections ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .section-box {
+    border-radius: 14px;
+    padding: 18px 20px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .section-box h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #06B6D4;
+    margin-bottom: 12px;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 9px;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .feature-item p {
+    font-size: 12px;
+    color: #cbd5e1;
+    line-height: 1.5;
+  }
+
+  .feature-item p strong {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ── ElevenLabs use-case box ── */
+  .el-box {
+    border-radius: 14px;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, rgba(6,182,212,0.07), rgba(91,141,239,0.05));
+    border: 1px solid rgba(6,182,212,0.2);
+    margin-bottom: 20px;
+  }
+
+  .el-box h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #06B6D4;
+    margin-bottom: 10px;
+  }
+
+  .el-box p {
+    font-size: 12.5px;
+    color: #cbd5e1;
+    line-height: 1.65;
+  }
+
+  .el-box p strong { color: #22D3EE; }
+
+  /* ── Team + Company ── */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: auto;
+  }
+
+  .footer p { font-size: 10px; color: #475569; font-family: 'Syne', sans-serif; }
+  .footer p span { color: #94a3b8; }
+
+  .cyprus-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: #5B8DEF;
+  }
+
+  .cyprus-badge .flag { font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-row">
+      <div class="logo-mark">
+        <svg viewBox="0 0 64 64" fill="none" width="26" height="26">
+          <rect x="3"  y="3"  width="34" height="11" fill="white"/>
+          <rect x="33" y="3"  width="5"  height="11" fill="white"/>
+          <rect x="3"  y="14" width="12" height="47" fill="white"/>
+          <rect x="33" y="18" width="9"  height="43" fill="white"/>
+          <rect x="33" y="30" width="28" height="10" fill="white"/>
+          <rect x="52" y="3"  width="9"  height="58" fill="white"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <h1>Townshub</h1>
+        <p>Faceless Video Studio</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="grant-badge">
+        <span style="width:6px;height:6px;border-radius:50%;background:#06B6D4;display:inline-block;"></span>
+        ElevenLabs Grant Application
+      </div>
+      <p class="url">faceless.townshub.com</p>
+    </div>
+  </div>
+
+  <!-- Tagline -->
+  <div class="tagline">
+    <h2>The All-in-One AI Studio for<br /><span>Faceless YouTube Creators</span></h2>
+    <p>Scripts, viral ideas, thumbnails, voiceovers, and production management — everything a faceless channel needs, powered by AI, in one platform.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="val">6+</div>
+      <div class="lbl">AI-Powered Tools</div>
+    </div>
+    <div class="stat-card">
+      <div class="val">&lt; 30s</div>
+      <div class="lbl">Script Generation</div>
+    </div>
+    <div class="stat-card">
+      <div class="val">50+</div>
+      <div class="lbl">Supported Niches</div>
+    </div>
+  </div>
+
+  <!-- Features + Problem -->
+  <div class="two-col">
+    <div class="section-box">
+      <h3>Platform Features</h3>
+
+      <div class="feature-item">
+        <div class="dot" style="background:#06B6D4;"></div>
+        <p><strong>AI Script Writer</strong> — Research-backed scripts with retention-optimised hooks, generated in seconds.</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#FACC15;"></div>
+        <p><strong>Viral Ideas Engine</strong> — AI surfaces ranked video ideas based on niche and competitor analysis.</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#EC4899;"></div>
+        <p><strong>Thumbnail Studio</strong> — Flux.1-powered AI image generation with style presets.</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#34D399;"></div>
+        <p><strong>Niche Finder</strong> — RPM data, competition scores, and growth trend analysis.</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#A78BFA;"></div>
+        <p><strong>Production Board</strong> — Kanban pipeline tracking every video from idea to upload.</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#FB923C;"></div>
+        <p><strong>AI Voiceover Studio</strong> — Integrated TTS for full faceless video production.</p>
+      </div>
+    </div>
+
+    <div class="section-box">
+      <h3>The Problem We Solve</h3>
+      <div class="feature-item">
+        <div class="dot" style="background:#f87171;"></div>
+        <p>Faceless creators manage <strong>5–8 separate tools</strong> — wasting hours switching between script writers, thumbnail tools, schedulers, and trackers.</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#f87171;"></div>
+        <p><strong>Voiceover costs</strong> eat into margins for solo operators who cannot record themselves.</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#f87171;"></div>
+        <p><strong>No unified workspace</strong> exists that handles the full production pipeline for AI-assisted faceless content.</p>
+      </div>
+      <div class="feature-item" style="margin-top:10px;">
+        <div class="dot" style="background:#34D399;"></div>
+        <p><strong>Our solution:</strong> One platform, every tool, built specifically for faceless YouTube operations.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ElevenLabs Integration -->
+  <div class="el-box">
+    <h3>Why ElevenLabs — Intended Integration</h3>
+    <p>
+      Townshub Faceless Video Studio integrates <strong>ElevenLabs AI voiceover</strong> directly into the content production pipeline. After a script is generated, creators can instantly synthesise a studio-quality voiceover using their chosen ElevenLabs voice — removing the final barrier to fully automated faceless video production. This closes the loop: <strong>idea → script → voiceover → thumbnail → upload</strong>, all within one platform. The ElevenLabs grant would allow us to offer premium voice generation to our users at scale and deeply embed voice AI as a core feature.
+    </p>
+  </div>
+
+  <!-- Team + Company -->
+  <div class="bottom-row">
+    <div class="section-box">
+      <h3>Team</h3>
+      <div class="feature-item">
+        <div class="dot" style="background:#5B8DEF;"></div>
+        <p><strong>Founder / Lead Developer</strong> — Full-stack development, product design, and AI integration. Building and iterating the platform end-to-end.</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#5B8DEF;"></div>
+        <p><strong>Tech stack:</strong> Next.js 16, Supabase, n8n automation, Vercel deployment, Flux.1 image AI, ElevenLabs TTS.</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#5B8DEF;"></div>
+        <p>Lean startup model with AI-assisted workflows enabling fast iteration. Expansion planned as the product scales.</p>
+      </div>
+    </div>
+
+    <div class="section-box">
+      <h3>Company Info</h3>
+      <div class="feature-item">
+        <div class="dot" style="background:#A78BFA;"></div>
+        <p><strong>Townshub Limited</strong><br/>Registered in Cyprus 🇨🇾</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#A78BFA;"></div>
+        <p>Limited Liability Company<br/>Sector: Information Technology &amp; Software Development</p>
+      </div>
+      <div class="feature-item">
+        <div class="dot" style="background:#A78BFA;"></div>
+        <p>Product live at:<br/><strong style="color:#06B6D4;">faceless.townshub.com</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>Townshub Limited · Cyprus · IT &amp; Software Development</p>
+    <div class="cyprus-badge">
+      <span class="flag">🇨🇾</span> Registered in Cyprus
+    </div>
+    <p><span>faceless.townshub.com</span> · childrenfromlight@gmail.com</p>
+  </div>
+
+</div>
+</body>
+</html>
