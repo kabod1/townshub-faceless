@@ -81,13 +81,16 @@ export default function ExtensionPage() {
   const [searchInput, setSearchInput] = useState("personal+finance");
   const [videos, setVideos] = useState(DEFAULT_VIDEOS);
 
-  function handleSearch(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "Enter") return;
-    const q = searchInput.trim();
+  function doSearch(raw: string) {
+    const q = raw.trim();
     if (!q) return;
     setSearchQuery(q);
     setVideos(generateMockVideos(q.replace(/\+/g, " ")));
     setImportedIdx(null);
+  }
+
+  function handleSearch(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") doSearch(searchInput);
   }
 
   function handleNotify() {
@@ -208,15 +211,21 @@ export default function ExtensionPage() {
         }}>
           <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", gap: 8 }}>
             {["#f87171", "#facc15", "#34d399"].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c }} />)}
-            <div style={{ flex: 1, height: 24, borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", paddingLeft: 10 }}>
-              <span style={{ fontSize: 11, color: "#475569", marginRight: 4 }}>youtube.com/results?search_query=</span>
+            <div style={{ flex: 1, height: 30, borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", paddingLeft: 10, gap: 4 }}>
+              <span style={{ fontSize: 11, color: "#475569", whiteSpace: "nowrap" }}>youtube.com/results?search_query=</span>
               <input
                 value={searchInput}
                 onChange={e => setSearchInput(e.target.value)}
                 onKeyDown={handleSearch}
-                style={{ fontSize: 11, color: "#94a3b8", background: "transparent", border: "none", outline: "none", flex: 1 }}
+                style={{ fontSize: 11, color: "#e2e8f0", background: "transparent", border: "none", outline: "none", flex: 1, minWidth: 60 }}
                 placeholder="personal+finance"
               />
+              <button
+                onClick={() => doSearch(searchInput)}
+                style={{ padding: "3px 10px", borderRadius: 5, background: "rgba(0,212,255,0.15)", border: "1px solid rgba(0,212,255,0.3)", color: "#00D4FF", fontSize: 10, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", marginRight: 4 }}
+              >
+                Search
+              </button>
             </div>
             <Monitor size={16} color="#00D4FF" />
           </div>
