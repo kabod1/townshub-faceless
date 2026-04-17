@@ -1,44 +1,71 @@
 "use client";
 
+import { useState } from "react";
 import { Topbar } from "@/components/dashboard/topbar";
 import {
   Monitor, BarChart3, Tag, TrendingUp, Eye, Zap, Download,
-  Star, CheckCircle2, Shield, Clock, Crown,
+  Star, CheckCircle2, Shield, Clock, Bell,
 } from "lucide-react";
-import Link from "next/link";
 
 const FEATURES = [
   {
     icon: BarChart3, color: "#00D4FF",
     title: "Outlier Score™",
     desc: "See a performance score on every YouTube video comparing it to the channel average. Instantly spot which videos are outliers — viral content worth studying.",
+    plan: "starter",
   },
   {
     icon: Tag, color: "#fb923c",
     title: "Tag Extraction",
     desc: "View the hidden tags and keywords any video is optimised for. Copy competitor tags directly into your niche research workflow in one click.",
-  },
-  {
-    icon: TrendingUp, color: "#34d399",
-    title: "Analytics Overlay",
-    desc: "See estimated views-per-hour, engagement rates, and upload velocity overlaid directly on YouTube search results and channel pages.",
+    plan: "starter",
   },
   {
     icon: Eye, color: "#a78bfa",
     title: "Thumbnail Inspector",
     desc: "Hover any thumbnail to see full-size preview, contrast score, and text readability rating. Understand what makes high-CTR thumbnails at a glance.",
+    plan: "starter",
   },
   {
-    icon: Zap, color: "#facc15",
-    title: "One-Click Import",
-    desc: "Found a video worth studying? Click the Townshub button to import its title, tags, and description straight into your Research Notes in New Script.",
+    icon: TrendingUp, color: "#34d399",
+    title: "Analytics Overlay",
+    desc: "See estimated views-per-hour, engagement rates, and upload velocity overlaid directly on YouTube search results and channel pages.",
+    plan: "pro",
   },
   {
     icon: Shield, color: "#f87171",
     title: "Competition Guard",
     desc: "Get a real-time competition assessment when browsing any search results page. Know before you script whether the space is too crowded.",
+    plan: "pro",
+  },
+  {
+    icon: Zap, color: "#facc15",
+    title: "One-Click Import",
+    desc: "Found a video worth studying? Click the Townshub button to import its title, tags, and description straight into your Research Notes in New Script.",
+    plan: "elite",
   },
 ];
+
+const DEFAULT_VIDEOS = [
+  { title: "How I Saved $50K on a $45K Salary (Full System)", channel: "Finance Unlocked", views: "892K views", score: 94, color: "#34d399", vph: "4.2k/hr" },
+  { title: "5 Money Habits That Changed My Life", channel: "Wealth Daily", views: "234K views", score: 61, color: "#facc15", vph: "1.1k/hr" },
+  { title: "The Truth About Index Funds Nobody Tells You", channel: "InvestSmart", views: "1.4M views", score: 88, color: "#34d399", vph: "6.8k/hr" },
+];
+
+function generateMockVideos(query: string) {
+  const q = query.trim() || "personal finance";
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const scores = [91, 57, 83, 74, 95, 62];
+  const vphs = ["3.1k/hr", "890/hr", "5.4k/hr"];
+  const views = ["1.2M views", "187K views", "654K views"];
+  const channels = ["TopChannel", "GrowthStudio", "TrendMakers"];
+  return [
+    { title: `Why ${cap(q)} Is Changing Everything in 2026`, channel: channels[0], views: views[0], score: scores[0], color: "#34d399", vph: vphs[0] },
+    { title: `The Beginner's Guide to ${cap(q)} (Step by Step)`, channel: channels[1], views: views[1], score: scores[1], color: "#facc15", vph: vphs[1] },
+    { title: `${cap(q)}: What Nobody Tells You`, channel: channels[2], views: views[2], score: scores[2], color: "#34d399", vph: vphs[2] },
+  ];
+}
+
 
 const REVIEWS = [
   { name: "Jamie O.", stars: 5, text: "The outlier score alone is worth it. I can now see in 2 seconds which videos I should study vs ignore." },
@@ -46,7 +73,36 @@ const REVIEWS = [
   { name: "Carl T.", stars: 4, text: "Clean overlay, doesn't slow down YouTube at all. The import to research notes is brilliant." },
 ];
 
+
 export default function ExtensionPage() {
+  const [notified, setNotified] = useState(false);
+  const [importedIdx, setImportedIdx] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("personal+finance");
+  const [searchInput, setSearchInput] = useState("personal+finance");
+  const [videos, setVideos] = useState(DEFAULT_VIDEOS);
+
+  function handleSearch(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    const q = searchInput.trim();
+    if (!q) return;
+    setSearchQuery(q);
+    setVideos(generateMockVideos(q.replace(/\+/g, " ")));
+    setImportedIdx(null);
+  }
+
+  function handleNotify() {
+    setNotified(true);
+  }
+
+  function handleImport(idx: number) {
+    const video = videos[idx];
+    setImportedIdx(idx);
+    setTimeout(() => {
+      setImportedIdx(null);
+      window.location.href = `/dashboard/new-script?idea=${encodeURIComponent(video.title)}`;
+    }, 600);
+  }
+
   return (
     <div style={{ minHeight: "100vh", background: "#080D1A" }}>
       <Topbar title="Monitor Extension" subtitle="Supercharge YouTube with analytics and competitor intelligence" />
@@ -76,7 +132,7 @@ export default function ExtensionPage() {
               <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>YouTube intelligence layer — analytics, tags, outlier scores, and one-click import</p>
             </div>
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 99, background: "rgba(251,146,60,0.12)", border: "1px solid rgba(251,146,60,0.25)" }}>
-              <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#fb923c", animation: "pulse 2s infinite" }} />
+              <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#fb923c" }} />
               <span style={{ fontSize: 11, fontWeight: 700, color: "#fb923c" }}>Coming Soon</span>
             </div>
           </div>
@@ -85,7 +141,7 @@ export default function ExtensionPage() {
             {[
               { icon: Star, val: "4.9/5", sub: "Rating" },
               { icon: Download, val: "2,400+", sub: "Installs" },
-              { icon: Monitor, val: "Monitor", sub: "Supported" },
+              { icon: Monitor, val: "Chrome", sub: "Supported" },
               { icon: Clock, val: "Free", sub: "For Starter" },
             ].map(({ icon: Icon, val, sub }) => (
               <div key={sub} style={{ padding: "12px 16px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", textAlign: "center", flex: 1 }}>
@@ -96,27 +152,28 @@ export default function ExtensionPage() {
             ))}
           </div>
 
-          <div style={{ display: "flex", gap: 12 }}>
-            <button
-              disabled
-              style={{
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {notified ? (
+              <div style={{
                 display: "flex", alignItems: "center", gap: 8, padding: "13px 26px",
-                borderRadius: 12, border: "none",
-                background: "linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,128,204,0.2))",
-                color: "#7dd3fc", fontSize: 13, fontWeight: 800, cursor: "not-allowed",
-                opacity: 0.7,
-              }}
-            >
-              <Download size={15} /> Install Extension — Coming Soon
-            </button>
-            <Link href="/dashboard/billing" style={{
-              display: "flex", alignItems: "center", gap: 7, padding: "13px 22px",
-              borderRadius: 12, border: "1px solid rgba(250,204,21,0.25)",
-              background: "rgba(250,204,21,0.06)", color: "#facc15",
-              fontSize: 13, fontWeight: 700, textDecoration: "none",
-            }}>
-              <Crown size={14} /> Unlock with Pro
-            </Link>
+                borderRadius: 12, background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.25)",
+                color: "#34d399", fontSize: 13, fontWeight: 800,
+              }}>
+                <CheckCircle2 size={15} /> You&apos;re on the list — we&apos;ll notify you on launch
+              </div>
+            ) : (
+              <button
+                onClick={handleNotify}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8, padding: "13px 26px",
+                  borderRadius: 12, border: "1px solid rgba(0,212,255,0.3)",
+                  background: "linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,128,204,0.08))",
+                  color: "#7dd3fc", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                }}
+              >
+                <Bell size={15} /> Notify Me at Launch
+              </button>
+            )}
           </div>
         </div>
 
@@ -129,7 +186,6 @@ export default function ExtensionPage() {
                 padding: "20px 20px", borderRadius: 14,
                 background: "linear-gradient(135deg, rgba(15,24,42,0.95), rgba(8,13,26,0.98))",
                 border: "1px solid rgba(255,255,255,0.06)",
-                transition: "border-color 0.2s",
               }}
                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = `${color}30`}
                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)"}
@@ -153,27 +209,28 @@ export default function ExtensionPage() {
           <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", gap: 8 }}>
             {["#f87171", "#facc15", "#34d399"].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c }} />)}
             <div style={{ flex: 1, height: 24, borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", paddingLeft: 10 }}>
-              <span style={{ fontSize: 11, color: "#475569" }}>youtube.com/results?search_query=personal+finance</span>
+              <span style={{ fontSize: 11, color: "#475569", marginRight: 4 }}>youtube.com/results?search_query=</span>
+              <input
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                onKeyDown={handleSearch}
+                style={{ fontSize: 11, color: "#94a3b8", background: "transparent", border: "none", outline: "none", flex: 1 }}
+                placeholder="personal+finance"
+              />
             </div>
             <Monitor size={16} color="#00D4FF" />
           </div>
 
-          {/* Fake YouTube search results with extension overlay */}
           <div style={{ padding: "20px 24px" }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: "#475569", margin: "0 0 14px", textTransform: "uppercase", letterSpacing: "0.1em" }}>YouTube search results + Townshub overlay</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {[
-                { title: "How I Saved $50K on a $45K Salary (Full System)", channel: "Finance Unlocked", views: "892K views", score: 94, color: "#34d399" },
-                { title: "5 Money Habits That Changed My Life", channel: "Wealth Daily", views: "234K views", score: 61, color: "#facc15" },
-                { title: "The Truth About Index Funds Nobody Tells You", channel: "InvestSmart", views: "1.4M views", score: 88, color: "#34d399" },
-              ].map(v => (
+              {videos.map((v, idx) => (
                 <div key={v.title} style={{ display: "flex", gap: 12, padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <div style={{ width: 120, height: 68, borderRadius: 7, background: "rgba(255,255,255,0.06)", flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0", margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.title}</p>
                     <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 7px" }}>{v.channel} · {v.views}</p>
-                    <div style={{ display: "flex", gap: 7 }}>
-                      {/* Extension overlay badges */}
+                    <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 5, background: `${v.color}18`, border: `1px solid ${v.color}35` }}>
                         <Zap size={9} color={v.color} />
                         <span style={{ fontSize: 10, fontWeight: 800, color: v.color }}>Score {v.score}</span>
@@ -182,10 +239,28 @@ export default function ExtensionPage() {
                         <Tag size={9} color="#fb923c" />
                         <span style={{ fontSize: 10, fontWeight: 700, color: "#fb923c" }}>14 tags</span>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 5, background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.18)" }}>
-                        <Download size={9} color="#00D4FF" />
-                        <span style={{ fontSize: 10, fontWeight: 700, color: "#00D4FF" }}>Import</span>
-                      </div>
+                      {(
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 5, background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                          <TrendingUp size={9} color="#34d399" />
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#34d399" }}>{v.vph}</span>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => handleImport(idx)}
+                        title="Import to New Script"
+                        style={{
+                          display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 5,
+                          background: importedIdx === idx ? "rgba(52,211,153,0.15)" : "rgba(0,212,255,0.08)",
+                          border: importedIdx === idx ? "1px solid rgba(52,211,153,0.3)" : "1px solid rgba(0,212,255,0.18)",
+                          cursor: "pointer",
+                          opacity: 1,
+                        }}
+                      >
+                        {importedIdx === idx
+                          ? <><CheckCircle2 size={9} color="#34d399" /><span style={{ fontSize: 10, fontWeight: 700, color: "#34d399" }}>Imported</span></>
+                          : <><Download size={9} color="#00D4FF" /><span style={{ fontSize: 10, fontWeight: 700, color: "#00D4FF" }}>Import</span></>
+                        }
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -206,16 +281,16 @@ export default function ExtensionPage() {
             </div>
             <div style={{ padding: "14px 18px" }}>
               {[
-                { plan: "Starter",  features: ["Outlier scores", "Tag extraction", "Thumbnail inspector"], color: "#00D4FF" },
-                { plan: "Pro",      features: ["Everything in Starter", "Analytics overlay", "Competition guard"], color: "#00D4FF" },
-                { plan: "Elite AI", features: ["Everything in Pro", "One-click research import", "Priority data refresh"], color: "#facc15" },
-              ].map(({ plan, features, color }) => (
-                <div key={plan} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color, display: "inline-block", marginBottom: 8 }}>{plan}</span>
+                { label: "Starter", features: ["Outlier scores", "Tag extraction", "Thumbnail inspector"], color: "#00D4FF" },
+                { label: "Pro",     features: ["Everything in Starter", "Analytics overlay", "Competition guard"], color: "#00D4FF" },
+                { label: "Elite AI", features: ["Everything in Pro", "One-click research import", "Priority data refresh"], color: "#facc15" },
+              ].map(({ label, features, color }) => (
+                <div key={label} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color, display: "block", marginBottom: 8 }}>{label}</span>
                   {features.map(f => (
                     <div key={f} style={{ display: "flex", gap: 8, marginBottom: 5 }}>
-                      <CheckCircle2 size={12} color="#475569" style={{ flexShrink: 0, marginTop: 1 }} />
-                      <span style={{ fontSize: 12, color: "#64748b" }}>{f}</span>
+                      <CheckCircle2 size={12} color="#34d399" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ fontSize: 12, color: "#94a3b8" }}>{f}</span>
                     </div>
                   ))}
                 </div>
