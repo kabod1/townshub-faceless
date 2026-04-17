@@ -149,7 +149,7 @@ export function Sidebar() {
           <div key={section.section} style={{ marginBottom: 20 }}>
             {!collapsed && (
               <p style={{
-                fontSize: 9, fontWeight: 800, color: "#2A3F5F",
+                fontSize: 9, fontWeight: 800, color: "#4A6080",
                 letterSpacing: "0.16em", textTransform: "uppercase",
                 padding: "0 10px", marginBottom: 6, margin: "0 0 6px",
               }}>{section.section}</p>
@@ -168,20 +168,20 @@ export function Sidebar() {
                         borderRadius: 9,
                         background: active ? "rgba(0,212,255,0.1)" : "transparent",
                         border: active ? "1px solid rgba(0,212,255,0.16)" : "1px solid transparent",
-                        color: active ? "#00D4FF" : "#475569",
+                        color: active ? "#00D4FF" : "#C8D6F0",
                         transition: "all 0.15s",
                         cursor: "pointer",
                       }}
                         onMouseEnter={e => {
                           if (!active) {
-                            (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.04)";
-                            (e.currentTarget as HTMLDivElement).style.color = "#94a3b8";
+                            (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.06)";
+                            (e.currentTarget as HTMLDivElement).style.color = "#ffffff";
                           }
                         }}
                         onMouseLeave={e => {
                           if (!active) {
                             (e.currentTarget as HTMLDivElement).style.background = "transparent";
-                            (e.currentTarget as HTMLDivElement).style.color = "#475569";
+                            (e.currentTarget as HTMLDivElement).style.color = "#C8D6F0";
                           }
                         }}
                       >
@@ -243,7 +243,7 @@ export function Sidebar() {
             justifyContent: collapsed ? "center" : "flex-start",
             width: "100%", padding: collapsed ? "9px 0" : "8px 10px",
             borderRadius: 9, border: "none",
-            background: "transparent", color: "#475569",
+            background: "transparent", color: "#C8D6F0",
             cursor: "pointer", transition: "all 0.15s",
           }}
           onMouseEnter={e => {
@@ -252,7 +252,7 @@ export function Sidebar() {
           }}
           onMouseLeave={e => {
             (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-            (e.currentTarget as HTMLButtonElement).style.color = "#475569";
+            (e.currentTarget as HTMLButtonElement).style.color = "#C8D6F0";
           }}
         >
           <LogOut size={15} style={{ flexShrink: 0 }} />
