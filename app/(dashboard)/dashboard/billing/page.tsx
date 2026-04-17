@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Topbar } from "@/components/dashboard/topbar";
 import { usePlan } from "@/lib/hooks/use-plan";
@@ -67,7 +67,7 @@ const plans = [
   },
 ];
 
-export default function BillingPage() {
+function BillingPageInner() {
   const { plan: currentPlan, scriptsUsed, scriptsLimit, currentPeriodEnd, status, loading } = usePlan();
   const searchParams = useSearchParams();
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
@@ -399,5 +399,13 @@ export default function BillingPage() {
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     </div>
+  );
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#080D1A" }} />}>
+      <BillingPageInner />
+    </Suspense>
   );
 }
