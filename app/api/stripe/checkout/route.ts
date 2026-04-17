@@ -46,7 +46,10 @@ export async function POST(req: NextRequest) {
         ? { customer: sub.stripe_customer_id }
         : { customer_email: user.email ?? undefined }),
       metadata: { user_id: user.id, plan, billing },
-      subscription_data: { metadata: { user_id: user.id, plan } },
+      subscription_data: {
+        metadata: { user_id: user.id, plan },
+        trial_period_days: 3,
+      },
       success_url: `${appUrl}/dashboard/billing?session_id={CHECKOUT_SESSION_ID}&success=1`,
       cancel_url: `${appUrl}/dashboard/billing`,
     });

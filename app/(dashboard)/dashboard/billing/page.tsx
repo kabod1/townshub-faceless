@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Topbar } from "@/components/dashboard/topbar";
 import { usePlan } from "@/lib/hooks/use-plan";
 import { PLAN_LIMITS } from "@/lib/plan-config";
@@ -17,9 +16,10 @@ const plans = [
     features: [
       "4 full AI scripts/month",
       "120 AI thumbnail assets",
-      "Chrome Extension",
-      "Outlier scores & analytics",
+      "Chrome Extension (analytics, tags, outlier scores)",
+      "Score review & analysis",
       "Style profiles",
+      "Research import (URLs, PDFs)",
       "Production board",
     ],
     accentColor: "#00D4FF",
@@ -36,6 +36,8 @@ const plans = [
       "Everything in Starter",
       "Niche Finder database",
       "Similar Channels finder",
+      "Saved Channels",
+      "Niche Bending tool",
       "Team collaboration (5 seats)",
       "Multiple channel profiles",
       "Priority generation",
@@ -46,15 +48,16 @@ const plans = [
   },
   {
     id: "elite" as const,
-    name: "Elite AI",
+    name: "Townshub AI",
     tag: "Premium",
     features: [
       "30 full AI scripts/month",
       "600 AI thumbnail assets",
       "Everything in Pro",
-      "Unlimited AI Consulting chat",
+      "Townshub AI consulting chat",
       "Personal YouTube mentor",
       "Strategy & growth advice",
+      "Niche & trend analysis",
       "Priority support",
     ],
     accentColor: "#facc15",
@@ -64,7 +67,6 @@ const plans = [
 ];
 
 export default function BillingPage() {
-  const router = useRouter();
   const { plan: currentPlan, scriptsUsed, scriptsLimit, currentPeriodEnd, status, loading } = usePlan();
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);

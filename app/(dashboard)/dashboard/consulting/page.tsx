@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useLocalStorage } from "@/lib/use-local-storage";
+import { usePlan } from "@/lib/hooks/use-plan";
 import { Topbar } from "@/components/dashboard/topbar";
 import {
   Send, Sparkles, Crown, RotateCcw, Copy, Check,
@@ -124,7 +125,7 @@ function formatDateLabel(ts: number): string {
 }
 
 export default function ConsultingPage() {
-  const isElite = false; // TODO: replace with real plan check
+  const { isElite } = usePlan();
   const [messages, setMessages] = useLocalStorage<Message[]>("th_consulting_messages", [WELCOME_MSG]);
   const [msgCount, setMsgCount] = useLocalStorage<number>("th_consulting_count", 0);
   const [input, setInput] = useState("");

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { usePlan } from "@/lib/hooks/use-plan";
 import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
 import Link from "next/link";
@@ -148,7 +149,7 @@ const S = {
 function NewScriptInner() {
   const searchParams = useSearchParams();
   const ideaParam = searchParams.get("idea") || "";
-  const isPro = false; // TODO: wire to real plan
+  const { isPro } = usePlan();
   const [videoIdea, setVideoIdea] = useState(ideaParam);
   useEffect(() => { if (ideaParam) setVideoIdea(ideaParam); }, [ideaParam]);
 
