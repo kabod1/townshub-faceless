@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Topbar } from "@/components/dashboard/topbar";
+import { usePlan } from "@/lib/hooks/use-plan";
+import { createClient } from "@/lib/supabase/client";
 import {
   Users, Crown, Lock, ArrowRight, UserPlus, Mail,
   MoreHorizontal, Shield, Eye, PenLine, Trash2,
@@ -34,9 +36,34 @@ const roleConfig: Record<Role, { label: string; color: string; bg: string; borde
   },
 };
 
-const mockMembers: Member[] = [
-  { id: "1", name: "Towns Hub", email: "townshub1@gmail.com", role: "admin", status: "active", joinedAt: "Apr 1, 2026", avatar: "T" },
-];
+// Feature access by role
+const roleAccess: Record<Role, string[]> = {
+  admin: [
+    "Full access to all features",
+    "Write scripts & generate ideas",
+    "Thumbnail Studio & Voiceover",
+    "Niche Finder, Niche Bending, Similar Channels",
+    "Production Board",
+    "AI Consulting (Townshub AI)",
+    "Team management & billing",
+    "Analytics & Chrome Extension",
+  ],
+  editor: [
+    "Write scripts & generate ideas",
+    "Thumbnail Studio",
+    "Production Board",
+    "View Niche Finder & analytics",
+    "Cannot manage billing or team",
+    "No AI Consulting access",
+  ],
+  viewer: [
+    "View scripts & ideas (read-only)",
+    "View production board",
+    "View shared content",
+    "No editing, billing, or team access",
+    "No AI Consulting access",
+  ],
+};
 
 const S = {
   card: {
@@ -54,9 +81,20 @@ const S = {
 };
 
 export default function TeamPage() {
-  const isPro = false;
+  const { isPro, isElite } = usePlan();
+  const canManageTeam = isPro || isElite;
 
-  const [members, setMembers] = useState<Member[]>(mockMembers);
+  // Determine current user — owner always has full access
+  const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      setOwnerEmail(data.user?.email ?? null);
+    });
+  }, []);
+
+  const [members, setMembers] = useState<Member[]>([
+    { id: "1", name: "Towns Hub", email: "townshub1@gmail.com", role: "admin", status: "active", joinedAt: "Apr 1, 2026", avatar: "T" },
+  ]);
   const [invites, setInvites] = useState<{ email: string; role: Role; sentAt: string }[]>([]);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -65,6 +103,8 @@ export default function TeamPage() {
   const [inviting, setInviting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  const maxMembers = isElite ? 10 : isPro ? 5 : 1;
 
   const handleInvite = async () => {
     if (!inviteEmail.trim() || inviting) return;
@@ -77,7 +117,7 @@ export default function TeamPage() {
           email: inviteEmail.trim(),
           role: inviteRole,
           inviterName: "Towns Hub",
-          inviterEmail: "townshub1@gmail.com",
+          inviterEmail: ownerEmail ?? "townshub1@gmail.com",
         }),
       });
       const data = await res.json();
@@ -87,7 +127,6 @@ export default function TeamPage() {
       setSent(true);
       setTimeout(() => { setSent(false); setShowInvite(false); setEmailSent(false); }, 3000);
     } catch {
-      // Still record locally even if API failed
       setInvites(prev => [...prev, { email: inviteEmail.trim(), role: inviteRole, sentAt: "Just now" }]);
       setInviteEmail("");
       setSent(true);
@@ -106,13 +145,13 @@ export default function TeamPage() {
       <Topbar
         title="Team"
         subtitle="Manage your content team"
-        action={isPro ? { label: "Invite Member", icon: <UserPlus size={13} /> } : undefined}
+        action={canManageTeam ? { label: "Invite Member", icon: <UserPlus size={13} /> } : undefined}
       />
 
       <div style={{ padding: "28px 32px", maxWidth: 860, margin: "0 auto" }}>
 
-        {/* Pro gate banner */}
-        {!isPro && (
+        {/* Upgrade banner — only for non-Pro non-Elite users */}
+        {!canManageTeam && (
           <div style={{
             display: "flex", alignItems: "center", gap: 16, padding: "18px 22px",
             borderRadius: 14, marginBottom: 24,
@@ -147,26 +186,32 @@ export default function TeamPage() {
                 {members.length} member{members.length !== 1 ? "s" : ""}
                 {invites.length > 0 && <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 400, color: "#94a3b8" }}>· {invites.length} pending</span>}
               </p>
-              <p style={{ fontSize: 11, color: "#64748b", margin: 0 }}>{isPro ? "Up to 5 members on Pro" : "Upgrade to add team members"}</p>
+              <p style={{ fontSize: 11, color: "#64748b", margin: 0 }}>
+                {canManageTeam
+                  ? `${members.length} / ${maxMembers} seats used`
+                  : "Upgrade to add team members"}
+              </p>
             </div>
           </div>
-          {!isPro ? (
+          {!canManageTeam ? (
             <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#facc15", fontWeight: 600 }}>
               <Lock size={12} /> Pro feature
             </div>
           ) : (
-            <button onClick={() => setShowInvite(true)} style={{
+            <button onClick={() => setShowInvite(true)} disabled={members.length >= maxMembers} style={{
               display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 9,
-              background: "linear-gradient(135deg, #00D4FF, #0080cc)", border: "none",
-              color: "#04080F", fontSize: 12, fontWeight: 700, cursor: "pointer",
+              background: members.length >= maxMembers ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
+              border: members.length >= maxMembers ? "1px solid rgba(255,255,255,0.08)" : "none",
+              color: members.length >= maxMembers ? "#475569" : "#04080F",
+              fontSize: 12, fontWeight: 700, cursor: members.length >= maxMembers ? "not-allowed" : "pointer",
             }}>
-              <UserPlus size={13} /> Invite Member
+              <UserPlus size={13} /> {members.length >= maxMembers ? `Seat limit reached` : "Invite Member"}
             </button>
           )}
         </div>
 
         {/* Invite Form */}
-        {showInvite && (
+        {showInvite && canManageTeam && (
           <div style={{ ...S.card, marginBottom: 16 }}>
             <div style={S.cardHeader}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -271,7 +316,7 @@ export default function TeamPage() {
           <div>
             {members.map((member, idx) => {
               const cfg = roleConfig[member.role];
-              const isOwner = member.id === "1";
+              const isOwner = ownerEmail ? member.email === ownerEmail : member.id === "1";
               return (
                 <div key={member.id} style={{
                   display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
@@ -279,10 +324,12 @@ export default function TeamPage() {
                 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
-                    background: "linear-gradient(135deg, #fb923c, #f97316)",
+                    background: isOwner
+                      ? "linear-gradient(135deg, #00D4FF, #0080cc)"
+                      : "linear-gradient(135deg, #fb923c, #f97316)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     color: "#fff", fontSize: 14, fontWeight: 700,
-                    boxShadow: "0 0 12px rgba(251,146,60,0.25)",
+                    boxShadow: isOwner ? "0 0 12px rgba(0,212,255,0.25)" : "0 0 12px rgba(251,146,60,0.25)",
                   }}>
                     {member.avatar}
                   </div>
@@ -300,7 +347,7 @@ export default function TeamPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
                     <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 99, background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}>{cfg.label}</span>
                     <span style={{ fontSize: 11, color: "#64748b" }}>Joined {member.joinedAt}</span>
-                    {!isOwner && (
+                    {!isOwner && canManageTeam && (
                       <div style={{ position: "relative" }}>
                         <button
                           onClick={() => setActiveMenu(activeMenu === member.id ? null : member.id)}
@@ -402,7 +449,7 @@ export default function TeamPage() {
           </div>
         )}
 
-        {/* Role Permissions */}
+        {/* Role Permissions — expanded with feature access */}
         <div style={S.card}>
           <div style={S.cardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -414,14 +461,27 @@ export default function TeamPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
               {(["admin", "editor", "viewer"] as Role[]).map(role => {
                 const cfg = roleConfig[role];
+                const access = roleAccess[role];
+                const isAdmin = role === "admin";
                 return (
-                  <div key={role} style={{ borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", padding: "16px" }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 99, background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`, display: "inline-block", marginBottom: 12 }}>{cfg.label}</span>
-                    <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
-                      {cfg.perms.map(perm => (
-                        <li key={perm} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                          <CheckCircle2 size={12} color="#475569" style={{ flexShrink: 0, marginTop: 1 }} />
-                          <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.4 }}>{perm}</span>
+                  <div key={role} style={{
+                    borderRadius: 12, padding: "16px",
+                    border: isAdmin ? "1px solid rgba(0,212,255,0.15)" : "1px solid rgba(255,255,255,0.06)",
+                    background: isAdmin ? "rgba(0,212,255,0.03)" : "rgba(255,255,255,0.02)",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 99, background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`, display: "inline-block" }}>{cfg.label}</span>
+                      {isAdmin && <span style={{ fontSize: 9, fontWeight: 700, color: "#34d399", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)", padding: "1px 7px", borderRadius: 99 }}>FULL ACCESS</span>}
+                    </div>
+                    <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 7 }}>
+                      {access.map(item => (
+                        <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+                          <CheckCircle2
+                            size={11}
+                            color={isAdmin ? "#00D4FF" : role === "editor" ? "#facc15" : "#475569"}
+                            style={{ flexShrink: 0, marginTop: 2 }}
+                          />
+                          <span style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.4 }}>{item}</span>
                         </li>
                       ))}
                     </ul>
@@ -432,8 +492,8 @@ export default function TeamPage() {
           </div>
         </div>
 
-        {/* Upgrade CTA */}
-        {!isPro && (
+        {/* Upgrade CTA — only for non-Pro */}
+        {!canManageTeam && (
           <div style={{
             borderRadius: 16, border: "1px solid rgba(167,139,250,0.15)",
             background: "linear-gradient(135deg, rgba(167,139,250,0.07), transparent)",
@@ -444,7 +504,7 @@ export default function TeamPage() {
             </div>
             <p style={{ fontSize: 15, fontWeight: 700, color: "#fff", margin: "0 0 8px" }}>Collaborate with your team</p>
             <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6, margin: "0 auto 20px", maxWidth: 420 }}>
-              Upgrade to Pro to invite editors, assign roles, and build a full content team around your faceless channel.
+              Upgrade to Pro to invite up to 5 editors, or Elite for 10 seats with full AI Consulting access for your whole team.
             </p>
             <Link href="/dashboard/billing" style={{
               display: "inline-flex", alignItems: "center", gap: 7, padding: "11px 22px", borderRadius: 11,
@@ -456,6 +516,8 @@ export default function TeamPage() {
             </Link>
           </div>
         )}
+
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     </div>
   );
