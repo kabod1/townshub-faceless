@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useLocalStorage } from "@/lib/use-local-storage";
 import { Topbar } from "@/components/dashboard/topbar";
 import {
   Send, Sparkles, Crown, RotateCcw, Copy, Check,
@@ -105,21 +106,31 @@ function MessageBubble({ msg, onCopy }: { msg: Message; onCopy: (text: string) =
   );
 }
 
+const WELCOME_MSG: Message = {
+  id: "welcome",
+  role: "assistant",
+  content: `Hey — I'm Townshub AI, your AI YouTube growth consultant.\n\nI specialise in faceless channels: niche strategy, scripting, thumbnails, monetisation, and everything in between. Think of me as your on-demand growth team.\n\nWhat do you want to work on today?`,
+  ts: Date.now(),
+};
+
+function formatDateLabel(ts: number): string {
+  const d = new Date(ts);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}
+
 export default function ConsultingPage() {
   const isElite = false; // TODO: replace with real plan check
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: `Hey — I'm Townshub AI, your AI YouTube growth consultant.\n\nI specialise in faceless channels: niche strategy, scripting, thumbnails, monetisation, and everything in between. Think of me as your on-demand growth team.\n\nWhat do you want to work on today?`,
-      ts: Date.now(),
-    },
-  ]);
+  const [messages, setMessages] = useLocalStorage<Message[]>("th_consulting_messages", [WELCOME_MSG]);
+  const [msgCount, setMsgCount] = useLocalStorage<number>("th_consulting_count", 0);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [msgCount, setMsgCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -191,6 +202,7 @@ export default function ConsultingPage() {
     }]);
     setMsgCount(0);
     setError(null);
+    setInput("");
   };
 
   const atLimit = !isElite && msgCount >= FREE_LIMIT;
@@ -312,9 +324,24 @@ export default function ConsultingPage() {
 
           {/* Messages */}
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px" }}>
-            {messages.map(msg => (
-              <MessageBubble key={msg.id} msg={msg} onCopy={handleCopy} />
-            ))}
+            {messages.map((msg, i) => {
+              const prev = messages[i - 1];
+              const showDateSep = !prev || formatDateLabel(msg.ts) !== formatDateLabel(prev.ts);
+              return (
+                <div key={msg.id}>
+                  {showDateSep && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "12px 0 20px" }}>
+                      <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                        {formatDateLabel(msg.ts)}
+                      </span>
+                      <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+                    </div>
+                  )}
+                  <MessageBubble msg={msg} onCopy={handleCopy} />
+                </div>
+              );
+            })}
 
             {loading && (
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 20 }}>
