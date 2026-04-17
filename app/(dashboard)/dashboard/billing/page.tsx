@@ -155,11 +155,7 @@ function BillingPageInner() {
             background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", marginBottom: 24,
           }}>
             <AlertCircle size={15} color="#f87171" />
-            <span style={{ fontSize: 13, color: "#f87171", flex: 1 }}>
-              {error.includes("connection to Stripe")
-                ? "Could not reach Stripe. Please check your connection and try again."
-                : error}
-            </span>
+            <span style={{ fontSize: 13, color: "#f87171", flex: 1 }}>{error}</span>
             <button onClick={() => setError(null)} style={{ background: "none", border: "none", color: "#f87171", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>×</button>
           </div>
         )}
