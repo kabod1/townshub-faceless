@@ -18,7 +18,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
 };
 
 /** Returns the Stripe Price ID for the given plan + billing cycle from env vars. */
-export function getStripePriceId(plan: "pro" | "elite", billing: "monthly" | "annual"): string {
+export function getStripePriceId(plan: Plan, billing: "monthly" | "annual"): string {
   const key = `STRIPE_PRICE_${plan.toUpperCase()}_${billing.toUpperCase()}`;
   return process.env[key] ?? "";
 }

@@ -77,7 +77,7 @@ export default function BillingPage() {
     ? new Date(currentPeriodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : null;
 
-  async function handleUpgrade(planId: "pro" | "elite") {
+  async function handleUpgrade(planId: "starter" | "pro" | "elite") {
     setError(null);
     setLoadingPlan(planId);
     try {
@@ -305,17 +305,9 @@ export default function BillingPage() {
                     }}>
                       ✓ Current Plan
                     </button>
-                  ) : p.id === "starter" ? (
-                    <button disabled style={{
-                      width: "100%", padding: "11px", borderRadius: 11,
-                      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
-                      color: "#475569", fontSize: 13, fontWeight: 700, cursor: "not-allowed",
-                    }}>
-                      Free Tier
-                    </button>
                   ) : (
                     <button
-                      onClick={() => handleUpgrade(p.id as "pro" | "elite")}
+                      onClick={() => handleUpgrade(p.id as "starter" | "pro" | "elite")}
                       disabled={!!loadingPlan}
                       style={{
                         width: "100%", padding: "11px", borderRadius: 11,
@@ -334,7 +326,7 @@ export default function BillingPage() {
                     >
                       {isLoading
                         ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Redirecting…</>
-                        : <>{currentPlan !== "starter" ? "Switch to" : "Upgrade to"} {p.name} <ArrowRight size={14} /></>}
+                        : <>{p.id === "starter" ? "Get Started" : currentPlan !== "starter" ? `Switch to ${p.name}` : `Upgrade to ${p.name}`} <ArrowRight size={14} /></>}
                     </button>
                   )}
 

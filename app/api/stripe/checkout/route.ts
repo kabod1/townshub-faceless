@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   try {
     const { plan, billing = "monthly" } = await req.json();
 
-    if (!["pro", "elite"].includes(plan)) {
+    if (!["starter", "pro", "elite"].includes(plan)) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const priceId = getStripePriceId(plan as "pro" | "elite", billing as "monthly" | "annual");
+    const priceId = getStripePriceId(plan as "starter" | "pro" | "elite", billing as "monthly" | "annual");
     if (!priceId) {
       return NextResponse.json(
         { error: `Stripe price not configured. Add STRIPE_PRICE_${plan.toUpperCase()}_${(billing as string).toUpperCase()} to your environment variables.` },

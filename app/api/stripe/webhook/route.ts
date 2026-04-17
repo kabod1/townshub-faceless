@@ -15,6 +15,10 @@ function getServiceSupabase() {
 }
 
 function planFromPriceId(priceId: string): "pro" | "elite" | "starter" {
+  const starterIds = [
+    process.env.STRIPE_PRICE_STARTER_MONTHLY,
+    process.env.STRIPE_PRICE_STARTER_ANNUAL,
+  ].filter(Boolean);
   const proIds = [
     process.env.STRIPE_PRICE_PRO_MONTHLY,
     process.env.STRIPE_PRICE_PRO_ANNUAL,
@@ -23,6 +27,7 @@ function planFromPriceId(priceId: string): "pro" | "elite" | "starter" {
     process.env.STRIPE_PRICE_ELITE_MONTHLY,
     process.env.STRIPE_PRICE_ELITE_ANNUAL,
   ].filter(Boolean);
+  if (starterIds.includes(priceId)) return "starter";
   if (proIds.includes(priceId)) return "pro";
   if (eliteIds.includes(priceId)) return "elite";
   return "starter";
