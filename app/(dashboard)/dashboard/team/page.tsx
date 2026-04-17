@@ -6,7 +6,7 @@ import { Topbar } from "@/components/dashboard/topbar";
 import {
   Users, Crown, Lock, ArrowRight, UserPlus, Mail,
   MoreHorizontal, Shield, Eye, PenLine, Trash2,
-  CheckCircle2, Clock, X, Star,
+  CheckCircle2, Clock, X, Star, Loader2, Send,
 } from "lucide-react";
 
 type Role = "admin" | "editor" | "viewer";
@@ -62,14 +62,39 @@ export default function TeamPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<Role>("editor");
   const [sent, setSent] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  const handleInvite = () => {
-    if (!inviteEmail.trim()) return;
-    setInvites(prev => [...prev, { email: inviteEmail.trim(), role: inviteRole, sentAt: "Just now" }]);
-    setInviteEmail("");
-    setSent(true);
-    setTimeout(() => { setSent(false); setShowInvite(false); }, 2000);
+  const handleInvite = async () => {
+    if (!inviteEmail.trim() || inviting) return;
+    setInviting(true);
+    try {
+      const res = await fetch("/api/team-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: inviteEmail.trim(),
+          role: inviteRole,
+          inviterName: "Towns Hub",
+          inviterEmail: "townshub1@gmail.com",
+        }),
+      });
+      const data = await res.json();
+      setEmailSent(!!data.emailSent);
+      setInvites(prev => [...prev, { email: inviteEmail.trim(), role: inviteRole, sentAt: "Just now" }]);
+      setInviteEmail("");
+      setSent(true);
+      setTimeout(() => { setSent(false); setShowInvite(false); setEmailSent(false); }, 3000);
+    } catch {
+      // Still record locally even if API failed
+      setInvites(prev => [...prev, { email: inviteEmail.trim(), role: inviteRole, sentAt: "Just now" }]);
+      setInviteEmail("");
+      setSent(true);
+      setTimeout(() => { setSent(false); setShowInvite(false); }, 2000);
+    } finally {
+      setInviting(false);
+    }
   };
 
   const removeInvite = (email: string) => setInvites(prev => prev.filter(i => i.email !== email));
@@ -198,20 +223,33 @@ export default function TeamPage() {
                   })}
                 </div>
               </div>
+              {sent && (
+                <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: 10, background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <CheckCircle2 size={14} color="#34d399" />
+                  <span style={{ fontSize: 12, color: "#34d399", fontWeight: 600 }}>
+                    {emailSent ? "Invite email sent successfully!" : "Invite recorded — add RESEND_API_KEY to send emails."}
+                  </span>
+                </div>
+              )}
               <div style={{ display: "flex", gap: 8 }}>
                 <button
                   onClick={handleInvite}
-                  disabled={!inviteEmail.trim()}
+                  disabled={!inviteEmail.trim() || inviting}
                   style={{
                     display: "flex", alignItems: "center", gap: 7, padding: "10px 18px", borderRadius: 10, border: "none",
                     background: sent ? "rgba(52,211,153,0.1)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
                     color: sent ? "#34d399" : "#04080F", fontSize: 13, fontWeight: 700,
-                    cursor: !inviteEmail.trim() ? "not-allowed" : "pointer",
+                    cursor: (!inviteEmail.trim() || inviting) ? "not-allowed" : "pointer",
                     outline: sent ? "1px solid rgba(52,211,153,0.3)" : "none",
-                    opacity: !inviteEmail.trim() ? 0.5 : 1,
+                    opacity: (!inviteEmail.trim() || inviting) ? 0.6 : 1,
+                    minWidth: 130,
                   }}
                 >
-                  {sent ? <><CheckCircle2 size={14} /> Invite Sent!</> : <><Mail size={14} /> Send Invite</>}
+                  {inviting
+                    ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Sending…</>
+                    : sent
+                    ? <><CheckCircle2 size={14} /> Invite Sent!</>
+                    : <><Send size={14} /> Send Invite</>}
                 </button>
                 <button onClick={() => setShowInvite(false)} style={{
                   padding: "10px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)",

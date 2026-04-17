@@ -120,6 +120,7 @@ function pollinationsUrl(prompt: string): string {
 
 export default function VoiceoverPage() {
   const router = useRouter();
+  const isPro = false; // TODO: wire to real plan
   const [text, setText] = useState("");
   const [voiceId, setVoiceId] = useState("pNInz6obpgDQGcFmaJgB");
   const [stability, setStability] = useState(0.5);
@@ -590,20 +591,30 @@ export default function VoiceoverPage() {
         <div style={{ width: 320, flexShrink: 0 }}>
 
           {/* Generate Button */}
-          <button onClick={handleGenerate} disabled={!text.trim() || generating} style={{
-            width: "100%", padding: "14px 20px",
-            background: (!text.trim() || generating) ? "rgba(0,212,255,0.15)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
-            border: "none", borderRadius: 12, cursor: (!text.trim() || generating) ? "not-allowed" : "pointer",
-            color: (!text.trim() || generating) ? "rgba(0,212,255,0.5)" : "#04080F",
-            fontSize: 14, fontWeight: 800,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            marginBottom: 16,
-            boxShadow: (!text.trim() || generating) ? "none" : "0 0 20px rgba(0,212,255,0.3)",
-            transition: "all 0.2s",
-          }}>
-            <Wand2 size={16} />
-            {generating ? "Generating…" : "Generate Voiceover"}
-          </button>
+          <div style={{ position: "relative", marginBottom: 16 }}>
+            {isPro && !generating && (
+              <span style={{
+                position: "absolute", top: -8, right: 10, zIndex: 1,
+                fontSize: 9, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
+                padding: "2px 7px", borderRadius: 99,
+                background: "linear-gradient(135deg, #facc15, #f59e0b)",
+                color: "#1a0a00", boxShadow: "0 2px 8px rgba(250,204,21,0.4)",
+              }}>Priority</span>
+            )}
+            <button onClick={handleGenerate} disabled={!text.trim() || generating} style={{
+              width: "100%", padding: "14px 20px",
+              background: (!text.trim() || generating) ? "rgba(0,212,255,0.15)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
+              border: "none", borderRadius: 12, cursor: (!text.trim() || generating) ? "not-allowed" : "pointer",
+              color: (!text.trim() || generating) ? "rgba(0,212,255,0.5)" : "#04080F",
+              fontSize: 14, fontWeight: 800,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              boxShadow: (!text.trim() || generating) ? "none" : "0 0 20px rgba(0,212,255,0.3)",
+              transition: "all 0.2s",
+            }}>
+              <Wand2 size={16} />
+              {generating ? "Generating…" : "Generate Voiceover"}
+            </button>
+          </div>
 
           {/* Spinner */}
           {generating && (

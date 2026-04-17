@@ -24,6 +24,7 @@ interface ThumbnailAsset {
 }
 
 export default function ThumbnailsPage() {
+  const isPro = false; // TODO: wire to real plan
   const [activeTab, setActiveTab] = useState<"create" | "library">("create");
   const [titleText, setTitleText] = useState("Why 99% of YouTube Channels FAIL");
   const [subtitleText, setSubtitleText] = useState("(And How to Be the 1%)");
@@ -466,20 +467,31 @@ export default function ThumbnailsPage() {
                 </div>
               </div>
 
-              <button
-                onClick={handleGenerate}
-                disabled={generating}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  padding: "13px", borderRadius: 12, border: "none",
-                  background: "linear-gradient(135deg, #00D4FF, #0080cc)", color: "#04080F",
-                  fontSize: 13, fontWeight: 800, cursor: generating ? "not-allowed" : "pointer",
-                  opacity: generating ? 0.7 : 1,
-                }}
-              >
-                <Wand2 size={15} />
-                {generating ? "Generating with AI…" : generatedImageUrl ? "Regenerate" : "Generate with AI"}
-              </button>
+              <div style={{ position: "relative" }}>
+                {isPro && !generating && (
+                  <span style={{
+                    position: "absolute", top: -8, right: 10, zIndex: 1,
+                    fontSize: 9, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
+                    padding: "2px 7px", borderRadius: 99,
+                    background: "linear-gradient(135deg, #facc15, #f59e0b)",
+                    color: "#1a0a00", boxShadow: "0 2px 8px rgba(250,204,21,0.4)",
+                  }}>Priority</span>
+                )}
+                <button
+                  onClick={handleGenerate}
+                  disabled={generating}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    padding: "13px", borderRadius: 12, border: "none",
+                    background: "linear-gradient(135deg, #00D4FF, #0080cc)", color: "#04080F",
+                    fontSize: 13, fontWeight: 800, cursor: generating ? "not-allowed" : "pointer",
+                    opacity: generating ? 0.7 : 1,
+                  }}
+                >
+                  <Wand2 size={15} />
+                  {generating ? "Generating with AI…" : generatedImageUrl ? "Regenerate" : "Generate with AI"}
+                </button>
+              </div>
             </div>
           </div>
         ) : (

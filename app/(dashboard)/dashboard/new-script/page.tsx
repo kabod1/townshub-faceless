@@ -148,6 +148,7 @@ const S = {
 function NewScriptInner() {
   const searchParams = useSearchParams();
   const ideaParam = searchParams.get("idea") || "";
+  const isPro = false; // TODO: wire to real plan
   const [videoIdea, setVideoIdea] = useState(ideaParam);
   useEffect(() => { if (ideaParam) setVideoIdea(ideaParam); }, [ideaParam]);
 
@@ -792,10 +793,20 @@ function NewScriptInner() {
                 background: !videoIdea.trim() ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #00D4FF, #0080cc)",
                 color: !videoIdea.trim() ? "#64748b" : "#04080F",
                 fontSize: 14, fontWeight: 800, cursor: !videoIdea.trim() ? "not-allowed" : "pointer",
+                position: "relative",
               }}
             >
               <Sparkles size={16} />
               {generating ? STEPS[generatingStep] : "Generate Script with AI"}
+              {isPro && !generating && (
+                <span style={{
+                  position: "absolute", top: -8, right: 10,
+                  fontSize: 9, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
+                  padding: "2px 7px", borderRadius: 99,
+                  background: "linear-gradient(135deg, #facc15, #f59e0b)",
+                  color: "#1a0a00", boxShadow: "0 2px 8px rgba(250,204,21,0.4)",
+                }}>Priority</span>
+              )}
             </button>
           </div>
 
