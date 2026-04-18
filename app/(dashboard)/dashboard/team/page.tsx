@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Topbar } from "@/components/dashboard/topbar";
 import { usePlan } from "@/lib/hooks/use-plan";
+import { createClient } from "@/lib/supabase/client";
 import {
   Users, Crown, Lock, ArrowRight, UserPlus, Mail,
   MoreHorizontal, Shield, Eye, PenLine, Trash2,
@@ -79,15 +80,26 @@ const S = {
   label: { fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.1em", textTransform: "uppercase" as const, display: "block", marginBottom: 7 } as React.CSSProperties,
 };
 
+const OWNER_EMAIL = "townshub1@gmail.com";
+
 export default function TeamPage() {
   const { isPro, isElite } = usePlan();
-  const canManageTeam = isPro || isElite;
+  const [userEmail, setUserEmail] = useState("");
+  const [authReady, setAuthReady] = useState(false);
 
-  // Admin email — owner always has full access
-  const OWNER_EMAIL = "townshub1@gmail.com";
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) setUserEmail(session.user.email);
+      setAuthReady(true);
+    });
+  }, []);
+
+  const isOwner = userEmail === OWNER_EMAIL;
+  const canManageTeam = isOwner || isPro || isElite;
 
   const [members, setMembers] = useState<Member[]>([
-    { id: "1", name: "Towns Hub", email: "townshub1@gmail.com", role: "admin", status: "active", joinedAt: "Apr 1, 2026", avatar: "T" },
+    { id: "1", name: "Towns Hub", email: OWNER_EMAIL, role: "admin", status: "active", joinedAt: "Apr 1, 2026", avatar: "T" },
   ]);
   const [invites, setInvites] = useState<{ email: string; role: Role; sentAt: string }[]>([]);
   const [showInvite, setShowInvite] = useState(false);
@@ -98,7 +110,7 @@ export default function TeamPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  const maxMembers = isElite ? 10 : isPro ? 5 : 1;
+  const maxMembers = isOwner ? 99 : isElite ? 10 : isPro ? 5 : 1;
 
   const handleInvite = async () => {
     if (!inviteEmail.trim() || inviting) return;
@@ -145,7 +157,7 @@ export default function TeamPage() {
       <div style={{ padding: "28px 32px", maxWidth: 860, margin: "0 auto" }}>
 
         {/* Upgrade banner — only for non-Pro non-Elite users */}
-        {!canManageTeam && (
+        {authReady && !canManageTeam && (
           <div style={{
             display: "flex", alignItems: "center", gap: 16, padding: "18px 22px",
             borderRadius: 14, marginBottom: 24,
@@ -187,7 +199,7 @@ export default function TeamPage() {
               </p>
             </div>
           </div>
-          {!canManageTeam ? (
+          {(authReady && !canManageTeam) ? (
             <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#facc15", fontWeight: 600 }}>
               <Lock size={12} /> Pro feature
             </div>
@@ -487,7 +499,7 @@ export default function TeamPage() {
         </div>
 
         {/* Upgrade CTA — only for non-Pro */}
-        {!canManageTeam && (
+        {authReady && !canManageTeam && (
           <div style={{
             borderRadius: 16, border: "1px solid rgba(167,139,250,0.15)",
             background: "linear-gradient(135deg, rgba(167,139,250,0.07), transparent)",
