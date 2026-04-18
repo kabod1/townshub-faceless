@@ -19,9 +19,11 @@ interface Niche {
 }
 
 const CATEGORIES = [
-  "All Categories", "Technology", "Finance", "Lifestyle",
-  "Education", "Entertainment", "Health & Fitness", "Gaming",
-  "Food & Cooking", "Travel", "Beauty", "Business",
+  "All Categories", "Knowledge", "Lifestyle (sociology)", "Entertainment",
+  "Society", "Film", "Health", "Sport", "Technology", "Basketball",
+  "Food", "Politics", "Religion", "Music", "Hobby", "Video game culture",
+  "Vehicle", "Association football", "Physical fitness", "Military",
+  "Finance", "Education", "Gaming", "Travel", "Beauty", "Business",
 ];
 
 const MONETIZATION = ["All", "Monetized", "Not Monetized", "High RPM"];
@@ -223,6 +225,7 @@ export default function NicheFinderPage() {
             ].map(({ label, val, set, ph }) => (
               <div key={label} style={{ flex: "1 1 120px", minWidth: 100 }}>
                 <input value={val} onChange={e => set(e.target.value)} placeholder={ph}
+                  className="no-spinner"
                   style={{ ...inputStyle, fontSize: 11 }}
                   onFocus={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.4)"}
                   onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"}
@@ -397,7 +400,12 @@ export default function NicheFinderPage() {
           </div>
         )}
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .no-spinner::-webkit-outer-spin-button,
+        .no-spinner::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .no-spinner[type=number] { -moz-appearance: textfield; }
+      `}</style>
     </div>
   );
 }
