@@ -402,22 +402,33 @@ export default function NicheFinderPage() {
                   <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: compBg[ch.competition], color: compColor[ch.competition], whiteSpace: "nowrap" }}>
                     {ch.competition}
                   </span>
-                  <button onClick={() => toggleSave(ch.id)} title={ch.saved ? "Unsave" : "Save"} style={{
-                    padding: 5, borderRadius: 6,
-                    background: ch.saved ? "rgba(0,212,255,0.1)" : "transparent",
-                    border: ch.saved ? "1px solid rgba(0,212,255,0.2)" : "1px solid rgba(255,255,255,0.06)",
-                    color: ch.saved ? "#00D4FF" : "#475569", cursor: "pointer", display: "flex",
-                  }}>
-                    {ch.saved ? <BookmarkCheck size={12} /> : <BookmarkPlus size={12} />}
-                  </button>
-                  <button title="Analyze niche" style={{
-                    padding: 5, borderRadius: 6, background: "transparent",
-                    border: "1px solid rgba(255,255,255,0.06)", color: "#475569", cursor: "pointer", display: "flex",
-                  }}
-                    onMouseEnter={e => { e.currentTarget.style.color = "#a78bfa"; e.currentTarget.style.borderColor = "rgba(167,139,250,0.3)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = "#475569"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}
+                  <button
+                    onClick={() => toggleSave(ch.id)}
+                    title={ch.saved ? "Unsave" : "Save niche"}
+                    style={{
+                      padding: "5px 8px", borderRadius: 6, cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                      background: ch.saved ? "rgba(0,212,255,0.18)" : "rgba(255,255,255,0.05)",
+                      border: ch.saved ? "1px solid rgba(0,212,255,0.5)" : "1px solid rgba(255,255,255,0.12)",
+                      color: ch.saved ? "#00D4FF" : "#cbd5e1",
+                      transition: "all 0.15s",
+                    }}
                   >
-                    <ExternalLink size={12} />
+                    {ch.saved ? <BookmarkCheck size={13} /> : <BookmarkPlus size={13} />}
+                  </button>
+                  <button
+                    onClick={() => window.open(`/dashboard/new-script?idea=${encodeURIComponent(ch.name)}`, '_blank')}
+                    title="Analyse this niche — open in New Script"
+                    style={{
+                      padding: "5px 8px", borderRadius: 6, cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                      background: "rgba(167,139,250,0.08)",
+                      border: "1px solid rgba(167,139,250,0.25)",
+                      color: "#a78bfa",
+                      transition: "all 0.15s",
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(167,139,250,0.18)"; e.currentTarget.style.borderColor = "rgba(167,139,250,0.5)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(167,139,250,0.08)"; e.currentTarget.style.borderColor = "rgba(167,139,250,0.25)"; }}
+                  >
+                    <ExternalLink size={13} />
                   </button>
                 </div>
               </div>
