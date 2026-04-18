@@ -156,6 +156,20 @@ export default function ExtensionPage() {
           </div>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {/* Download button */}
+            <a
+              href="/townshub-extension.zip"
+              download="townshub-extension.zip"
+              style={{
+                display: "flex", alignItems: "center", gap: 8, padding: "13px 26px",
+                borderRadius: 12, textDecoration: "none",
+                background: "linear-gradient(135deg, #00D4FF, #0080cc)",
+                color: "#04080F", fontSize: 13, fontWeight: 800,
+              }}
+            >
+              <Download size={15} /> Download Extension
+            </a>
+
             {notified ? (
               <div style={{
                 display: "flex", alignItems: "center", gap: 8, padding: "13px 26px",
@@ -177,6 +191,26 @@ export default function ExtensionPage() {
                 <Bell size={15} /> Notify Me at Launch
               </button>
             )}
+          </div>
+
+          {/* Install instructions */}
+          <div style={{
+            marginTop: 18, padding: "14px 18px", borderRadius: 12,
+            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
+          }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: "#475569", margin: "0 0 10px", textTransform: "uppercase", letterSpacing: "0.1em" }}>How to install</p>
+            {[
+              "Download the extension ZIP above",
+              "Unzip to a folder on your computer",
+              'Open Chrome → chrome://extensions → Enable "Developer mode"',
+              'Click "Load unpacked" → select the unzipped folder',
+              "Pin the Townshub icon in your Chrome toolbar",
+            ].map((step, i) => (
+              <div key={i} style={{ display: "flex", gap: 10, marginBottom: 7 }}>
+                <span style={{ width: 18, height: 18, borderRadius: "50%", background: "rgba(0,212,255,0.12)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#00D4FF", flexShrink: 0 }}>{i + 1}</span>
+                <span style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>{step}</span>
+              </div>
+            ))}
           </div>
         </div>
 

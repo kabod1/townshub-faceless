@@ -1,0 +1,19 @@
+/* Townshub Monitor — YouTube overlay styles */
+
+.th-badge {
+  animation: th-fade-in 0.2s ease-out;
+}
+
+@keyframes th-fade-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.th-import {
+  animation: th-fade-in 0.25s ease-out;
+}
+
+/* Hide our badges on thumbnail hover so they don't block the native preview */
+ytd-thumbnail:hover .th-badge:not(.th-import) {
+  opacity: 0.6;
+}

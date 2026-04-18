@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Townshub Monitor</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+        <rect x="3"  y="3"  width="34" height="11" fill="white"/>
+        <rect x="33" y="3"  width="5"  height="11" fill="white"/>
+        <rect x="3"  y="14" width="12" height="47" fill="white"/>
+        <rect x="33" y="18" width="9"  height="43" fill="white"/>
+        <rect x="33" y="30" width="28" height="10" fill="white"/>
+        <rect x="52" y="3"  width="9"  height="58" fill="white"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <span class="brand">Townshub Monitor</span>
+      <span class="version">v1.0.0</span>
+    </div>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
+
+  <div class="page-info" id="pageInfo">
+    <span id="pageStatus">Checking page…</span>
+  </div>
+
+  <div class="stats" id="stats" style="display:none">
+    <div class="stat">
+      <div class="stat-val" id="statVideos">0</div>
+      <div class="stat-label">Videos analysed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="statLow">0</div>
+      <div class="stat-label">Low competition</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="statImported">0</div>
+      <div class="stat-label">Imported</div>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feature"><span class="dot green"></span> Outlier Score™ overlay</div>
+    <div class="feature"><span class="dot orange"></span> Tag extraction</div>
+    <div class="feature"><span class="dot cyan"></span> Analytics (views/hr)</div>
+    <div class="feature"><span class="dot cyan"></span> One-click import</div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" id="btnDashboard">Open Dashboard</button>
+    <button class="btn-secondary" id="btnNewScript">New Script</button>
+  </div>
+
+  <div class="footer">
+    <span>Only active on YouTube • </span>
+    <a href="https://faceless.townshub.com/dashboard/extension" target="_blank">Settings</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
