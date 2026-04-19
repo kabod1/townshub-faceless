@@ -1,19 +1,195 @@
-/* Townshub Monitor — YouTube overlay styles */
-
-.th-badge {
-  animation: th-fade-in 0.2s ease-out;
-}
+/* Townshub Monitor — Content Styles v2 */
 
 @keyframes th-fade-in {
-  from { opacity: 0; transform: scale(0.92); }
-  to   { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.th-import {
-  animation: th-fade-in 0.25s ease-out;
+.th-badge {
+  animation: th-fade-in 0.2s ease forwards;
+  pointer-events: none;
 }
 
-/* Hide our badges on thumbnail hover so they don't block the native preview */
-ytd-thumbnail:hover .th-badge:not(.th-import) {
-  opacity: 0.6;
+/* ── Import button ─────────────────────────────────────── */
+.th-import-btn {
+  position: absolute;
+  bottom: 6px; right: 6px;
+  z-index: 9999;
+  background: rgba(4,8,16,0.88);
+  border: 1px solid rgba(0,212,255,0.4);
+  border-radius: 5px;
+  padding: 3px 9px;
+  cursor: pointer;
+  pointer-events: all;
+  backdrop-filter: blur(6px);
+  transition: background 0.15s, border-color 0.15s;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  color: #00D4FF;
+  line-height: 1.3;
 }
+.th-import-btn:hover {
+  background: rgba(0,212,255,0.15);
+  border-color: rgba(0,212,255,0.7);
+}
+
+/* ── Floating panels ───────────────────────────────────── */
+.th-float-panel {
+  position: fixed;
+  z-index: 99999;
+  background: rgba(8,13,26,0.97);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  backdrop-filter: blur(16px);
+  animation: th-fade-in 0.15s ease forwards;
+  width: 250px;
+}
+
+.th-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 11px;
+}
+
+.th-copy-btn {
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: rgba(251,146,60,0.12);
+  border: 1px solid rgba(251,146,60,0.35);
+  color: #fb923c;
+  cursor: pointer;
+  font-weight: 700;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+.th-copy-btn:hover { opacity: 0.8; }
+
+.th-tag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.th-tag {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #94a3b8;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.th-panel-note {
+  margin-top: 10px;
+  font-size: 10px;
+  color: #475569;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 8px;
+}
+
+/* ── Thumbnail inspector ───────────────────────────────── */
+.th-thumb-panel {
+  border-color: rgba(0,212,255,0.2);
+}
+
+.th-thumb-preview {
+  width: 100%;
+  border-radius: 7px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.th-inspect-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.th-inspect-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #94a3b8;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Competition guard banner ──────────────────────────── */
+#th-comp-guard {
+  position: fixed;
+  top: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99998;
+  background: rgba(8,13,26,0.96);
+  border-radius: 10px;
+  padding: 9px 18px;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.6);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  backdrop-filter: blur(14px);
+  max-width: 740px;
+  width: calc(100% - 40px);
+  animation: th-fade-in 0.2s ease forwards;
+}
+
+.th-guard-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.th-guard-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #e2e8f0;
+  font-family: inherit;
+}
+
+.th-guard-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.th-guard-divider {
+  width: 1px; height: 16px;
+  background: rgba(255,255,255,0.08);
+}
+
+.th-guard-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-right: 4px;
+}
+
+.th-guard-query {
+  font-size: 11px;
+  color: #475569;
+  font-family: inherit;
+}
+
+.th-guard-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+.th-guard-close:hover { color: #94a3b8; }

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Topbar } from "@/components/dashboard/topbar";
 import {
-  Search, RefreshCw, Zap, AlertCircle, TrendingUp,
-  Users, DollarSign, Eye, BookmarkPlus, BookmarkCheck,
+  Search, RefreshCw, Zap, AlertCircle,
+  Users, Eye, BookmarkPlus, BookmarkCheck,
   X, ChevronUp, ChevronDown, Minus, ExternalLink,
 } from "lucide-react";
 
@@ -239,16 +239,18 @@ export default function NicheFinderPage() {
           {/* Range filters */}
           <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
             {[
-              { label: "Min Subs",        val: minSubs,     set: setMinSubs,     ph: "e.g. 1000" },
-              { label: "Max Subs",        val: maxSubs,     set: setMaxSubs,     ph: "e.g. 1M" },
-              { label: "Min Views/mo",    val: minViews,    set: setMinViews,    ph: "e.g. 10000" },
-              { label: "Max Views/mo",    val: maxViews,    set: setMaxViews,    ph: "e.g. 10M" },
-              { label: "Min Earnings/mo", val: minEarnings, set: setMinEarnings, ph: "e.g. 500" },
-              { label: "Max Earnings/mo", val: maxEarnings, set: setMaxEarnings, ph: "e.g. 50000" },
-            ].map(({ label, val, set, ph }) => (
+              { label: "Min Subs",        val: minSubs,     set: setMinSubs,     min: 0,  step: 1000  },
+              { label: "Max Subs",        val: maxSubs,     set: setMaxSubs,     min: 0,  step: 1000  },
+              { label: "Min Views/mo",    val: minViews,    set: setMinViews,    min: 0,  step: 10000 },
+              { label: "Max Views/mo",    val: maxViews,    set: setMaxViews,    min: 0,  step: 10000 },
+              { label: "Min Earnings/mo", val: minEarnings, set: setMinEarnings, min: 0,  step: 100   },
+              { label: "Max Earnings/mo", val: maxEarnings, set: setMaxEarnings, min: 0,  step: 100   },
+            ].map(({ label, val, set, min, step }) => (
               <div key={label} style={{ flex: "1 1 110px", minWidth: 95 }}>
                 <label style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", display: "block", marginBottom: 5, whiteSpace: "nowrap" }}>{label}</label>
-                <input value={val} onChange={e => set(e.target.value)} placeholder={ph} className="no-spinner"
+                <input
+                  type="number" min={min} step={step}
+                  value={val} onChange={e => set(e.target.value)}
                   style={{ ...inputStyle, fontSize: 11 }}
                   onFocus={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.45)"}
                   onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"}

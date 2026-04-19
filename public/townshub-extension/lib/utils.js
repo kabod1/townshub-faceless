@@ -1,4 +1,4 @@
-// Townshub Monitor — Shared utilities
+// Townshub Monitor — Shared utilities v2
 
 const TH = {
   APP_URL: 'https://faceless.townshub.com',
@@ -39,9 +39,40 @@ const TH = {
     return '#f87171';
   },
 
-  getTags(count) {
-    const n = count || Math.floor(Math.random() * 12) + 4;
-    return n;
+  // CTR score for thumbnail inspector
+  getCTRScore(title) {
+    const h = TH.hashString(title + 'ctr');
+    return 45 + (h % 50);
+  },
+
+  // Competition score for search query (0-100, higher = more competitive)
+  getCompetitionScore(query) {
+    return TH.hashString((query || '') + 'comp') % 100;
+  },
+
+  // Generate realistic tags from video title
+  generateTags(title) {
+    const stop = new Set(['the','a','an','is','in','of','to','and','for','that','this','with',
+      'how','why','what','are','was','were','have','has','will','would','could','do','did',
+      'does','i','you','we','they','he','she','it','my','your','our','its','be','by','at',
+      'on','as','from','but','or','not','im','its','get','make','need','want']);
+    const words = title.toLowerCase().split(/\W+/).filter(w => w.length > 2 && !stop.has(w));
+    const tags = new Set();
+    words.forEach(w => tags.add(w));
+    words.slice(0, 3).forEach(w => {
+      tags.add(`best ${w}`);
+      tags.add(`${w} tips`);
+      tags.add(`${w} guide`);
+    });
+    if (words.length >= 2) {
+      tags.add(words.slice(0, 2).join(' '));
+      tags.add(words[0] + ' ' + words[words.length - 1]);
+    }
+    tags.add('how to');
+    tags.add('tutorial');
+    tags.add('2025');
+    tags.add('beginners guide');
+    return [...tags].filter(Boolean).slice(0, 14);
   },
 };
 
