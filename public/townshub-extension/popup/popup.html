@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Townshub Monitor</title>
+  <title>Townshub</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
+
+  <!-- Header -->
   <div class="header">
     <div class="logo">
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="26" height="26">
         <rect x="3"  y="3"  width="34" height="11" fill="white"/>
         <rect x="33" y="3"  width="5"  height="11" fill="white"/>
         <rect x="3"  y="14" width="12" height="47" fill="white"/>
@@ -19,47 +21,18 @@
       </svg>
     </div>
     <div class="header-text">
-      <span class="brand">Townshub Monitor</span>
-      <span class="version">v2.0.0</span>
+      <span class="brand">Townshub</span>
+      <span class="sub" id="headerSub">CHANNEL ANALYZER</span>
     </div>
     <div class="status-dot" id="statusDot"></div>
   </div>
 
-  <div class="page-info" id="pageInfo">
-    <span id="pageStatus">Checking page…</span>
-  </div>
+  <!-- Dynamic content injected by popup.js -->
+  <div id="mainContent"></div>
 
-  <div class="stats" id="stats" style="display:none">
-    <div class="stat">
-      <div class="stat-val" id="statVideos">0</div>
-      <div class="stat-label">Videos</div>
-    </div>
-    <div class="stat">
-      <div class="stat-val" id="statLow">0</div>
-      <div class="stat-label">Low Comp.</div>
-    </div>
-    <div class="stat">
-      <div class="stat-val" id="statImported">0</div>
-      <div class="stat-label">Imported</div>
-    </div>
-  </div>
-
-  <div class="features">
-    <div class="feature"><span class="dot green"></span> Outlier Score™ — click badge to inspect thumbnail</div>
-    <div class="feature"><span class="dot orange"></span> Tag Extraction — click tag count to view &amp; copy tags</div>
-    <div class="feature"><span class="dot cyan"></span> Analytics Overlay — views/hr on every video</div>
-    <div class="feature"><span class="dot purple"></span> Competition Guard — search page analysis banner</div>
-    <div class="feature"><span class="dot cyan"></span> One-click Import — send video to New Script</div>
-  </div>
-
-  <div class="actions">
-    <button class="btn-primary" id="btnDashboard">Open Dashboard</button>
-    <button class="btn-secondary" id="btnNewScript">New Script</button>
-  </div>
-
-  <div class="footer">
-    <span>Active on YouTube • </span>
-    <a href="https://faceless.townshub.com/dashboard/extension" target="_blank">Settings</a>
+  <!-- Footer -->
+  <div class="footer" id="footerText">
+    Townshub Faceless — YouTube Growth Studio
   </div>
 
   <script src="popup.js"></script>
