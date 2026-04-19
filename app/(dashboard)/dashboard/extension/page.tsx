@@ -200,11 +200,11 @@ export default function ExtensionPage() {
           }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: "#475569", margin: "0 0 10px", textTransform: "uppercase", letterSpacing: "0.1em" }}>How to install</p>
             {[
-              "Download the extension ZIP above",
-              "Unzip to a folder on your computer",
-              'Open Chrome → chrome://extensions → Enable "Developer mode"',
-              'Click "Load unpacked" → select the unzipped folder',
-              "Pin the Townshub icon in your Chrome toolbar",
+              "Click Download Extension above to get the ZIP file",
+              'Right-click the ZIP → "Extract All" (Windows) or double-click (Mac) — you\'ll get a townshub-extension folder',
+              'Open Chrome and go to chrome://extensions — toggle on "Developer mode" (top right)',
+              'Click "Load unpacked" → select the townshub-extension folder you just extracted',
+              "Go to YouTube — you'll see Outlier Score, VPH, and tag badges on every video thumbnail",
             ].map((step, i) => (
               <div key={i} style={{ display: "flex", gap: 10, marginBottom: 7 }}>
                 <span style={{ width: 18, height: 18, borderRadius: "50%", background: "rgba(0,212,255,0.12)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#00D4FF", flexShrink: 0 }}>{i + 1}</span>
