@@ -3,10 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  Plus, Trash2, ChevronUp, ChevronDown, Sparkles,
+  Plus, ChevronUp, ChevronDown, Sparkles,
   Search, Film, Mic, Download, Wand2, X, Check,
-  Sliders, Type, Image as ImageIcon, Play, Layers,
-  ExternalLink,
+  Sliders, Type, Image as ImageIcon, Layers,
 } from "lucide-react";
 
 type Transition = "fade" | "cut" | "slide" | "zoom";
@@ -548,9 +547,9 @@ export default function VideoEditorPage() {
                               style={{
                                 aspectRatio: "16/9", borderRadius: 8, overflow: "hidden",
                                 cursor: "pointer", position: "relative",
+                                backgroundColor: "#0A1020",
                                 backgroundImage: `url(${v.thumb})`,
                                 backgroundSize: "cover", backgroundPosition: "center",
-                                background: "#0A1020",
                                 border: active.videoUrl === v.url ? "2px solid #00D4FF" : "2px solid transparent",
                               }}
                             >
