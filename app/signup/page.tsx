@@ -8,15 +8,15 @@ import { createClient } from "@/lib/supabase/client";
 export default function SignupPage() {
   const router = useRouter();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName]         = useState("");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [showPw, setShowPw]     = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState("");
+  const [emailSent, setEmailSent] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name || !email || !password) return;
     setLoading(true);
@@ -25,31 +25,37 @@ export default function SignupPage() {
     try {
       const supabase = createClient();
 
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { full_name: name } },
       });
 
       if (signUpError) {
-        setError(signUpError.message);
+        // "User already registered" → nudge them to login
+        if (signUpError.message.toLowerCase().includes("already")) {
+          setError("An account with this email already exists. Try signing in instead.");
+        } else {
+          setError(signUpError.message);
+        }
         setLoading(false);
         return;
       }
 
-      // Auto sign in
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      if (!signInError) {
-        setSuccess(true);
+      // If Supabase returned a session immediately → email confirmation OFF → go to dashboard
+      if (data.session) {
         router.push("/dashboard");
         router.refresh();
-      } else {
-        setError("Account created! Check your email or try signing in.");
-        setLoading(false);
+        return;
       }
+
+      // No session → email confirmation is required → show "check your email" screen
+      setEmailSent(true);
+      setLoading(false);
+
     } catch (err) {
       console.error("Signup error:", err);
-      setError("Connection failed. Check your internet and try again.");
+      setError("Connection failed. Please check your internet and try again.");
       setLoading(false);
     }
   };
@@ -63,19 +69,63 @@ export default function SignupPage() {
     outline: "none", transition: "border-color 0.2s",
   });
 
+  // ── Email confirmation sent screen ─────────────────────────
+  if (emailSent) {
+    return (
+      <div style={{
+        minHeight: "100vh", background: "#060B14",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "24px 16px",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      }}>
+        <div style={{ width: "100%", maxWidth: "400px", textAlign: "center" }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: "50%",
+            background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 24px", fontSize: 32,
+          }}>📧</div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.4px" }}>
+            Check your email
+          </h1>
+          <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 8px", lineHeight: 1.6 }}>
+            We sent a confirmation link to
+          </p>
+          <p style={{ fontSize: 15, fontWeight: 700, color: "#00D4FF", margin: "0 0 28px" }}>{email}</p>
+          <div style={{
+            background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.15)",
+            borderRadius: 14, padding: "16px 20px", marginBottom: 24, textAlign: "left",
+          }}>
+            <p style={{ fontSize: 12, color: "#94a3b8", margin: 0, lineHeight: 1.8 }}>
+              <strong style={{ color: "#e2e8f0" }}>1.</strong> Open the email from Townshub<br />
+              <strong style={{ color: "#e2e8f0" }}>2.</strong> Click the confirmation link<br />
+              <strong style={{ color: "#e2e8f0" }}>3.</strong> You&apos;ll be signed in automatically
+            </p>
+          </div>
+          <Link href="/login" style={{
+            display: "block", padding: "13px", borderRadius: 12,
+            background: "linear-gradient(135deg, #00D4FF, #0070BB)",
+            color: "#04080F", fontSize: 14, fontWeight: 700, textDecoration: "none",
+            marginBottom: 14,
+          }}>
+            Go to Sign In →
+          </Link>
+          <p style={{ fontSize: 12, color: "#334155" }}>
+            Didn&apos;t receive it? Check your spam folder.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Signup form ────────────────────────────────────────────
   return (
     <div style={{
-      minHeight: "100vh",
-      background: "#060B14",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "24px 16px",
-      position: "relative",
-      overflow: "hidden",
+      minHeight: "100vh", background: "#060B14",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "24px 16px", position: "relative", overflow: "hidden",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     }}>
-      {/* Background glows */}
       <div style={{
         position: "absolute", top: "-80px", left: "50%", transform: "translateX(-50%)",
         width: "460px", height: "260px", borderRadius: "50%",
@@ -111,40 +161,22 @@ export default function SignupPage() {
         {/* Card */}
         <div style={{
           background: "linear-gradient(135deg, rgba(20,30,50,0.98), rgba(10,18,34,1))",
-          border: "1px solid rgba(0,212,255,0.14)",
-          borderRadius: "20px",
-          padding: "32px",
+          border: "1px solid rgba(0,212,255,0.14)", borderRadius: "20px", padding: "32px",
           boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03)",
         }}>
 
-          {/* Error */}
           {error && (
             <div style={{
               display: "flex", alignItems: "flex-start", gap: "10px",
               padding: "12px 14px", borderRadius: "12px", marginBottom: "20px",
-              background: error.includes("created") ? "rgba(52,211,153,0.08)" : "rgba(239,68,68,0.08)",
-              border: `1px solid ${error.includes("created") ? "rgba(52,211,153,0.22)" : "rgba(239,68,68,0.22)"}`,
+              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)",
             }}>
-              <span style={{ color: error.includes("created") ? "#34D399" : "#F87171", fontSize: "15px" }}>
-                {error.includes("created") ? "✓" : "✕"}
-              </span>
-              <p style={{ fontSize: "13px", color: error.includes("created") ? "#34D399" : "#F87171", margin: 0, lineHeight: 1.4 }}>{error}</p>
-            </div>
-          )}
-
-          {success && !error && (
-            <div style={{
-              display: "flex", alignItems: "center", gap: "10px",
-              padding: "12px 14px", borderRadius: "12px", marginBottom: "20px",
-              background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.22)",
-            }}>
-              <span style={{ color: "#34D399", fontSize: "15px" }}>✓</span>
-              <p style={{ fontSize: "13px", color: "#34D399", margin: 0 }}>Account created! Taking you in…</p>
+              <span style={{ color: "#F87171", fontSize: "15px", flexShrink: 0 }}>✕</span>
+              <p style={{ fontSize: "13px", color: "#F87171", margin: 0, lineHeight: 1.4 }}>{error}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* Name */}
             <div style={{ marginBottom: "16px" }}>
               <label style={{
                 display: "block", fontSize: "11px", fontWeight: 700,
@@ -159,7 +191,6 @@ export default function SignupPage() {
               />
             </div>
 
-            {/* Email */}
             <div style={{ marginBottom: "16px" }}>
               <label style={{
                 display: "block", fontSize: "11px", fontWeight: 700,
@@ -174,7 +205,6 @@ export default function SignupPage() {
               />
             </div>
 
-            {/* Password */}
             <div style={{ marginBottom: "24px" }}>
               <label style={{
                 display: "block", fontSize: "11px", fontWeight: 700,
@@ -193,22 +223,24 @@ export default function SignupPage() {
                   background: "none", border: "none", cursor: "pointer", fontSize: "16px", color: "#475569",
                 }}>{showPw ? "🙈" : "👁"}</button>
               </div>
+              {password && password.length < 8 && (
+                <p style={{ fontSize: 11, color: "#f87171", marginTop: 6 }}>Password must be at least 8 characters</p>
+              )}
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
-              disabled={loading || success || !name || !email || !password}
+              disabled={loading || !name || !email || password.length < 8}
               style={{
                 width: "100%", padding: "14px",
-                background: loading || success ? "rgba(0,212,255,0.35)"
-                  : "linear-gradient(135deg, #00D4FF, #0070BB)",
+                background: loading ? "rgba(0,212,255,0.35)" : "linear-gradient(135deg, #00D4FF, #0070BB)",
                 border: "none", borderRadius: "12px",
                 fontSize: "14px", fontWeight: 700, color: "#04080F",
-                cursor: loading || success || !name || !email || !password ? "not-allowed" : "pointer",
-                opacity: !name || !email || !password ? 0.55 : 1,
+                cursor: loading || !name || !email || password.length < 8 ? "not-allowed" : "pointer",
+                opacity: !name || !email || password.length < 8 ? 0.55 : 1,
                 display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                 boxShadow: "0 0 24px rgba(0,212,255,0.28)",
+                transition: "opacity 0.15s",
               }}
             >
               {loading ? (
@@ -220,7 +252,7 @@ export default function SignupPage() {
                   }} />
                   Creating account…
                 </>
-              ) : success ? "Setting up…" : "Create Free Account"}
+              ) : "Create Free Account →"}
             </button>
           </form>
 
