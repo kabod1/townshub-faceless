@@ -24,21 +24,21 @@ const steps = [
 
 const testimonials = [
   { quote: "I went from 0 to 8,000 subscribers in 3 months. The script quality is insane — way better than anything I could write myself.", name: "Alex M.",  role: "Finance Niche · 8.2K subs",    avatar: "A" },
-  { quote: "The niche finder alone saved me months of research. Found a low-competition niche with $12 RPM in under 10 minutes.",            name: "Sarah K.", role: "Tech Explainer · 22K subs",   avatar: "S" },
+  { quote: "The niche finder alone saved me months of research. Found a low-competition niche with €12 RPM in under 10 minutes.",            name: "Sarah K.", role: "Tech Explainer · 22K subs",   avatar: "S" },
   { quote: "Production board keeps my whole team aligned. We're shipping 3 videos a week now without the chaos.",                            name: "James T.", role: "Motivation Niche · 41K subs", avatar: "J" },
 ];
 
 const plans = [
   {
-    id: "starter", name: "Starter", price: "$9.99",  desc: "4 scripts / month",  popular: false, cta: "Get Started",
+    id: "starter", name: "Starter", price: "€9.99",  desc: "4 scripts / month",  popular: false, cta: "Get Started",
     features: ["4 full AI scripts","120 AI thumbnail assets","Chrome Extension","Video Ideas AI","Production board","Style profiles"],
   },
   {
-    id: "pro",     name: "Pro",     price: "$29.99", desc: "15 scripts / month", popular: true,  cta: "Start Pro Trial",
+    id: "pro",     name: "Pro",     price: "€29.99", desc: "15 scripts / month", popular: true,  cta: "Start Pro Trial",
     features: ["15 full AI scripts","300 AI thumbnail assets","Everything in Starter","Niche Finder database","Similar Channels finder","Team collaboration","Multiple channel profiles"],
   },
   {
-    id: "elite",   name: "Elite AI",price: "$99.99", desc: "30 scripts / month", popular: false, cta: "Go Elite",
+    id: "elite",   name: "Elite AI",price: "€99.99", desc: "30 scripts / month", popular: false, cta: "Go Elite",
     features: ["30 full AI scripts","600 AI thumbnail assets","Everything in Pro","AI consulting chat","Personal YouTube mentor","Strategy & growth advice","Priority support"],
   },
 ];

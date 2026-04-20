@@ -193,8 +193,8 @@ function BillingPageInner() {
             {!loading && (
               <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>
                 {currentPlan === "starter"
-                  ? `$${currentLimits.priceMonthly}/month`
-                  : `$${billing === "annual" ? currentLimits.priceAnnual : currentLimits.priceMonthly}/month`}
+                  ? `€${currentLimits.priceMonthly}/month`
+                  : `€${billing === "annual" ? currentLimits.priceAnnual : currentLimits.priceMonthly}/month`}
                 {renewalDate ? ` · Renews ${renewalDate}` : ""}
               </p>
             )}
@@ -314,7 +314,7 @@ function BillingPageInner() {
 
                   <div style={{ marginBottom: 4 }}>
                     <span style={{ fontSize: 38, fontWeight: 800, color: "#fff", letterSpacing: "-1px" }}>
-                      ${price.toFixed(2)}
+                      €{price.toFixed(2)}
                     </span>
                     <span style={{ fontSize: 13, color: "#94a3b8" }}>/mo</span>
                   </div>
