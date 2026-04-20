@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useLocalStorage } from "@/lib/use-local-storage";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { usePlan } from "@/lib/hooks/use-plan";
+import { createClient } from "@/lib/supabase/client";
 import { Topbar } from "@/components/dashboard/topbar";
 import {
   Send, Sparkles, Crown, RotateCcw, Copy, Check,
@@ -126,8 +126,8 @@ function formatDateLabel(ts: number): string {
 
 export default function ConsultingPage() {
   const { isElite } = usePlan();
-  const [messages, setMessages] = useLocalStorage<Message[]>("th_consulting_messages", [WELCOME_MSG]);
-  const [msgCount, setMsgCount] = useLocalStorage<number>("th_consulting_count", 0);
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MSG]);
+  const [msgCount, setMsgCount] = useState(0);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,6 +136,57 @@ export default function ConsultingPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const FREE_LIMIT = 5;
+
+  // Load chat history — Supabase first, localStorage fallback
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      try {
+        if (user) {
+          const { data } = await supabase
+            .from("consulting_conversations")
+            .select("messages, msg_count")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+            setMessages(data.messages as Message[]);
+            setMsgCount(data.msg_count || 0);
+            return;
+          }
+        }
+      } catch { /* table may not exist yet */ }
+      // Fallback: localStorage
+      try {
+        const stored = localStorage.getItem("th_consulting_messages");
+        const count = localStorage.getItem("th_consulting_count");
+        if (stored) {
+          const msgs = JSON.parse(stored) as Message[];
+          if (Array.isArray(msgs) && msgs.length > 0) {
+            setMessages(msgs);
+            setMsgCount(Number(count) || 0);
+          }
+        }
+      } catch { /* ignore */ }
+    });
+  }, []);
+
+  const saveToSupabase = useCallback(async (msgs: Message[], count: number) => {
+    // Always save to localStorage
+    try {
+      localStorage.setItem("th_consulting_messages", JSON.stringify(msgs));
+      localStorage.setItem("th_consulting_count", String(count));
+    } catch { /* ignore */ }
+    // Also save to Supabase if table exists
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase.from("consulting_conversations").upsert(
+        { user_id: user.id, messages: msgs, msg_count: count, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
+    } catch { /* table may not exist yet */ }
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -158,7 +209,8 @@ export default function ConsultingPage() {
     setInput("");
     setLoading(true);
     setError(null);
-    setMsgCount(c => c + 1);
+    const newCount = msgCount + 1;
+    setMsgCount(newCount);
 
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -181,12 +233,15 @@ export default function ConsultingPage() {
       }
 
       const data = await res.json();
-      setMessages(prev => [...prev, {
+      const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: data.content || "I couldn't generate a response. Please try again.",
         ts: Date.now(),
-      }]);
+      };
+      const finalMessages = [...newMessages, assistantMsg];
+      setMessages(finalMessages);
+      saveToSupabase(finalMessages, newCount);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -195,15 +250,17 @@ export default function ConsultingPage() {
   };
 
   const clearChat = () => {
-    setMessages([{
+    const fresh: Message[] = [{
       id: "welcome-" + Date.now(),
       role: "assistant",
       content: "Hey — ready when you are. What do you want to work on?",
       ts: Date.now(),
-    }]);
+    }];
+    setMessages(fresh);
     setMsgCount(0);
     setError(null);
     setInput("");
+    saveToSupabase(fresh, 0);
   };
 
   const atLimit = !isElite && msgCount >= FREE_LIMIT;
@@ -218,10 +275,10 @@ export default function ConsultingPage() {
       `}</style>
       <Topbar title="AI Consulting" subtitle="Townshub AI — your personal YouTube growth mentor" />
 
-      <div style={{ display: "flex", height: "calc(100vh - 64px)", overflow: "hidden" }}>
+      <div className="consulting-layout" style={{ display: "flex", height: "calc(100vh - 64px)", overflow: "hidden" }}>
 
         {/* Sidebar */}
-        <div style={{
+        <div className="consulting-sidebar" style={{
           width: 260, flexShrink: 0, borderRight: "1px solid rgba(255,255,255,0.05)",
           background: "rgba(7,12,24,0.8)", display: "flex", flexDirection: "column",
           padding: "20px 14px",

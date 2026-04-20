@@ -309,4 +309,36 @@ a {
   .topbar-subtitle {
     display: none;
   }
+
+  /* ── Similar Channels: search form 4-col → 1-col ── */
+  .sc-search-form {
+    grid-template-columns: 1fr !important;
+  }
+  /* Card row: wrap so stats move below name */
+  .sc-card-row {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+  }
+  /* Stats block: show below name, full width */
+  .sc-stats {
+    flex-shrink: 1 !important;
+    gap: 12px !important;
+    order: 3;
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+  /* Actions: move to end */
+  .sc-actions {
+    order: 4;
+    flex-shrink: 1 !important;
+  }
+
+  /* ── Consulting: hide left sidebar, chat full width ── */
+  .consulting-sidebar {
+    display: none !important;
+  }
+  .consulting-layout {
+    height: calc(100vh - 64px - 60px) !important; /* account for mobile nav */
+  }
 }

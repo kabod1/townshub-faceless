@@ -133,7 +133,7 @@ export default function SimilarChannelsPage() {
           background: "linear-gradient(135deg, rgba(15,24,42,0.97), rgba(8,13,26,0.99))",
           border: "1px solid rgba(0,212,255,0.1)",
         }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 14, alignItems: "flex-end" }}>
+          <div className="sc-search-form" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 14, alignItems: "flex-end" }}>
             <div>
               <label style={S.label}>Channel name or topic</label>
               <input
@@ -237,7 +237,7 @@ export default function SimilarChannelsPage() {
                   <div key={ch.handle} style={S.card}>
                     {/* Main row */}
                     <div
-                      style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", cursor: "pointer" }}
+                      className="sc-card-row" style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", cursor: "pointer" }}
                       onClick={() => setExpanded(isOpen ? null : ch.handle)}
                     >
                       {/* Rank */}
@@ -265,7 +265,7 @@ export default function SimilarChannelsPage() {
                       </div>
 
                       {/* Stats */}
-                      <div style={{ display: "flex", gap: 20, flexShrink: 0, alignItems: "center" }}>
+                      <div className="sc-stats" style={{ display: "flex", gap: 20, flexShrink: 0, alignItems: "center" }}>
                         <div style={{ textAlign: "center" }}>
                           <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>{ch.subscribers}</p>
                           <p style={{ fontSize: 10, color: "#475569", margin: 0 }}>Subscribers</p>
@@ -285,7 +285,7 @@ export default function SimilarChannelsPage() {
                       </div>
 
                       {/* Actions */}
-                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                      <div className="sc-actions" style={{ display: "flex", gap: 6, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => saveChannel(ch)}
                           style={{
