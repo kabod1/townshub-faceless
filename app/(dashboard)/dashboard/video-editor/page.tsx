@@ -548,11 +548,17 @@ export default function VideoEditorPage() {
                                 aspectRatio: "16/9", borderRadius: 8, overflow: "hidden",
                                 cursor: "pointer", position: "relative",
                                 backgroundColor: "#0A1020",
-                                backgroundImage: `url(${v.thumb})`,
-                                backgroundSize: "cover", backgroundPosition: "center",
                                 border: active.videoUrl === v.url ? "2px solid #00D4FF" : "2px solid transparent",
                               }}
                             >
+                              {v.thumb && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={v.thumb}
+                                  alt=""
+                                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", position: "absolute", inset: 0 }}
+                                />
+                              )}
                               <div style={{
                                 position: "absolute", bottom: 2, right: 4,
                                 fontSize: 8, fontWeight: 700, color: "#fff",

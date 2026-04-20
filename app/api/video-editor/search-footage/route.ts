@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.PEXELS_API_KEY;
     if (!apiKey) {
       return NextResponse.json({
-        error: "PEXELS_API_KEY not configured. Add it to your environment variables.",
+        error: "PEXELS_API_KEY not configured.",
         videos: [],
       }, { status: 200 });
     }
@@ -28,21 +28,30 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json();
 
-    interface PexelsVideoFile { quality: string; link: string; }
+    interface PexelsVideoFile { quality: string; link: string; file_type: string; }
     interface PexelsVideo {
       id: number;
       duration: number;
+      image: string;
       user: { name: string };
       video_pictures: { picture: string }[];
       video_files: PexelsVideoFile[];
     }
 
     const videos = (data.videos ?? []).map((v: PexelsVideo) => {
-      const hd = v.video_files?.find((f: PexelsVideoFile) => f.quality === "hd") ?? v.video_files?.[0];
+      // Prefer SD for faster loading; fall back to first available
+      const file =
+        v.video_files?.find((f: PexelsVideoFile) => f.quality === "sd" && f.file_type === "video/mp4") ??
+        v.video_files?.find((f: PexelsVideoFile) => f.quality === "hd" && f.file_type === "video/mp4") ??
+        v.video_files?.[0];
+
+      // `image` is the top-level cover photo Pexels provides — most reliable thumbnail
+      const thumb = v.image || v.video_pictures?.[0]?.picture || "";
+
       return {
         id: v.id,
-        url: hd?.link ?? "",
-        thumb: v.video_pictures?.[0]?.picture ?? "",
+        url: file?.link ?? "",
+        thumb,
         duration: v.duration,
         author: v.user?.name ?? "",
       };
