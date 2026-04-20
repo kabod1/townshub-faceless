@@ -161,7 +161,7 @@ function BillingPageInner() {
         )}
 
         {/* Current plan card */}
-        <div style={{
+        <div className="billing-current-plan" style={{
           display: "flex", alignItems: "center", gap: 20, padding: "22px 26px",
           borderRadius: 16, marginBottom: 36,
           background: "linear-gradient(135deg, rgba(0,212,255,0.07), rgba(0,212,255,0.02))",
@@ -206,7 +206,7 @@ function BillingPageInner() {
                       Scripts: <strong style={{ color: "#e2e8f0" }}>{scriptsUsed} / {scriptsLimit} used</strong>
                     </span>
                   </div>
-                  <div style={{ width: 160, height: 4, borderRadius: 99, background: "rgba(0,212,255,0.08)", overflow: "hidden" }}>
+                  <div className="billing-progress-bar" style={{ width: 160, height: 4, borderRadius: 99, background: "rgba(0,212,255,0.08)", overflow: "hidden" }}>
                     <div style={{
                       height: "100%", borderRadius: 99,
                       width: `${Math.min((scriptsUsed / scriptsLimit) * 100, 100)}%`,
@@ -218,6 +218,7 @@ function BillingPageInner() {
             )}
           </div>
           <button
+            className="billing-manage-btn"
             onClick={handleManageSubscription}
             disabled={portalLoading || currentPlan === "starter"}
             style={{

@@ -237,4 +237,76 @@ a {
 
   /* Scrollbar off on mobile */
   ::-webkit-scrollbar { width: 0; }
+
+  /* ── Reduce heavy page-level padding ── */
+  .dashboard-main [style*="padding: 28px 32px"] {
+    padding: 16px 14px !important;
+  }
+  .dashboard-main [style*="padding: 24px 32px"] {
+    padding: 16px 14px !important;
+  }
+  .dashboard-main [style*="padding: 24px 28px"] {
+    padding: 16px 14px !important;
+  }
+  .dashboard-main [style*="padding: 22px 26px"] {
+    padding: 16px 14px !important;
+  }
+
+  /* ── 3-column grids → single column ── */
+  .dashboard-main [style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── 2-column grids → single column on narrow screens ── */
+  .dashboard-main [style*="grid-template-columns: repeat(2"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Billing: current plan card wraps on mobile ── */
+  .billing-current-plan {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+  }
+  .billing-manage-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .billing-progress-bar {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* ── Prevent hardcoded widths from overflowing ── */
+  .dashboard-main [style*="width: 160"] {
+    width: 100% !important;
+    max-width: 160px;
+  }
+
+  /* ── 4-column grids → 2 columns ── */
+  .dashboard-main [style*="grid-template-columns: repeat(4"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* ── Inline two-col grids → single column ── */
+  .dashboard-main [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Consulting quick-starts: horizontal scroll pill list stays as-is ── */
+
+  /* ── Voiceover / thumbnails two-panel layouts ── */
+  .dash-two-col {
+    flex-direction: column !important;
+  }
+  .dash-two-col > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* ── Topbar subtitle hide on very small screens ── */
+  .topbar-subtitle {
+    display: none;
+  }
 }
