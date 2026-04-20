@@ -57,6 +57,7 @@ const STAGE_ACTIONS: Record<TaskStatus, { icon: React.ReactNode; label: string; 
     { icon: <Film size={13} color="#a78bfa" />, label: "Pexels B-Roll", sub: "Free stock footage for your video", href: "https://www.pexels.com/videos/", external: true },
   ],
   editing: [
+    { icon: <Film size={13} color="#a78bfa" />, label: "AI Video Editor ✨", sub: "Scene-by-scene editor with AI image generation", href: "/dashboard/video-editor" },
     { icon: <Film size={13} color="#fb923c" />, label: "CapCut (free editor)", sub: "Edit your video with auto-captions", href: "https://www.capcut.com", external: true },
     { icon: <Film size={13} color="#fb923c" />, label: "DaVinci Resolve", sub: "Professional free video editor", href: "https://www.blackmagicdesign.com/products/davinciresolve", external: true },
   ],
