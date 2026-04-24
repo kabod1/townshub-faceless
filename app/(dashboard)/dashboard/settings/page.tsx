@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { Topbar } from "@/components/dashboard/topbar";
 import { createClient } from "@/lib/supabase/client";
+import { usePlan } from "@/lib/hooks/use-plan";
 import {
   User, Mail, Puzzle, CheckCircle2, AlertCircle, Shield,
-  Bell, Globe, Trash2, ExternalLink, Zap, Key, LogOut,
+  Bell, Globe, Trash2, ExternalLink, Zap, Key, LogOut, Share2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -47,10 +48,21 @@ const S = {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { plan } = usePlan();
   const [name, setName] = useLocalStorage("th_settings_name", "Towns Hub");
   const [notifications, setNotifications] = useLocalStorage<Record<string, boolean>>("th_notifications", NOTIFICATION_DEFAULTS);
   const [saved, setSaved] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>("");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) setUserEmail(user.email);
+    });
+  }, []);
+
+  const planLabel = plan === "elite" ? "Townshub AI (Elite)" : plan === "pro" ? "Pro" : "Starter";
 
   const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
   const toggleNotification = (label: string) => setNotifications((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -105,7 +117,7 @@ export default function SettingsPage() {
               <label style={S.label}>Email</label>
               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <Mail size={14} color="#475569" />
-                <span style={{ fontSize: 13, color: "#94a3b8", flex: 1 }}>kabodnnamdi@gmail.com</span>
+                <span style={{ fontSize: 13, color: "#94a3b8", flex: 1 }}>{userEmail || "—"}</span>
                 <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "rgba(52,211,153,0.12)", color: "#34d399", border: "1px solid rgba(52,211,153,0.2)" }}>Verified</span>
               </div>
             </div>
@@ -114,7 +126,7 @@ export default function SettingsPage() {
               <label style={S.label}>Plan</label>
               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <Zap size={14} color="#00D4FF" />
-                <span style={{ fontSize: 13, color: "#e2e8f0", fontWeight: 600, flex: 1 }}>Starter Plan</span>
+                <span style={{ fontSize: 13, color: "#e2e8f0", fontWeight: 600, flex: 1 }}>{planLabel}</span>
                 <Link href="/dashboard/billing" style={{ fontSize: 12, color: "#fb923c", fontWeight: 700, textDecoration: "none" }}>Upgrade →</Link>
               </div>
             </div>
@@ -238,6 +250,76 @@ export default function SettingsPage() {
                 <span style={{ fontSize: 13, color: "#00D4FF" }}>→</span>
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Social Media Integrations */}
+        <div style={S.card}>
+          <div style={S.cardHeader}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Share2 size={14} color="#00D4FF" />
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Social Media Integrations</span>
+            </div>
+            <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0" }}>
+              Connect platforms via n8n webhooks to publish videos directly from the Video Editor
+            </p>
+          </div>
+          <div style={S.cardBody}>
+            {[
+              { id: "youtube",   name: "YouTube",    color: "#FF0000", envKey: "N8N_YOUTUBE_UPLOAD_WEBHOOK_URL",   note: "YouTube Data API v3 in n8n" },
+              { id: "tiktok",    name: "TikTok",     color: "#69C9D0", envKey: "N8N_TIKTOK_UPLOAD_WEBHOOK_URL",    note: "TikTok for Developers" },
+              { id: "instagram", name: "Instagram",  color: "#E1306C", envKey: "N8N_INSTAGRAM_UPLOAD_WEBHOOK_URL", note: "Meta Graph API (Business account required)" },
+              { id: "facebook",  name: "Facebook",   color: "#1877F2", envKey: "N8N_FACEBOOK_UPLOAD_WEBHOOK_URL",  note: "Meta Graph API" },
+              { id: "twitter",   name: "X / Twitter",color: "#e2e8f0", envKey: "N8N_TWITTER_UPLOAD_WEBHOOK_URL",   note: "Twitter v2 API (OAuth 2.0)" },
+            ].map((p, i, arr) => (
+              <div key={p.id} style={{
+                display: "flex", alignItems: "center", gap: 14,
+                padding: "13px 10px",
+                borderBottom: i < arr.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+              }}>
+                <div style={{
+                  width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
+                  background: p.color, boxShadow: `0 0 6px ${p.color}60`,
+                }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", margin: 0 }}>{p.name}</p>
+                  <p style={{ fontSize: 10, color: "#475569", margin: "3px 0 0", fontFamily: "monospace" }}>
+                    {p.envKey}
+                  </p>
+                  <p style={{ fontSize: 10, color: "#334155", margin: "2px 0 0" }}>{p.note}</p>
+                </div>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 99,
+                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
+                  color: "#475569", flexShrink: 0, textTransform: "uppercase" as const, letterSpacing: "0.08em",
+                }}>Not set</span>
+              </div>
+            ))}
+
+            <div style={{
+              marginTop: 16, padding: "14px 16px", borderRadius: 10,
+              background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)",
+            }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#fbbf24", margin: "0 0 8px" }}>How to activate</p>
+              <ol style={{ fontSize: 11, color: "#94a3b8", margin: 0, paddingLeft: 16, lineHeight: 1.8 }}>
+                <li>In n8n, create a workflow: <strong style={{ color: "#e2e8f0" }}>Webhook → Platform Upload Node</strong></li>
+                <li>Copy the webhook URL from n8n</li>
+                <li>Add it as an environment variable in Vercel (e.g. <code style={{ background: "rgba(0,212,255,0.08)", color: "#00D4FF", padding: "1px 5px", borderRadius: 3 }}>N8N_YOUTUBE_UPLOAD_WEBHOOK_URL</code>)</li>
+                <li>Re-deploy — the platform will activate automatically</li>
+              </ol>
+            </div>
+
+            <Link
+              href="/dashboard/publish"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                marginTop: 14, padding: "10px 16px", borderRadius: 10,
+                background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.15)",
+                color: "#00D4FF", fontSize: 12, fontWeight: 700, textDecoration: "none",
+              }}
+            >
+              <Share2 size={13} /> Open Publisher <ExternalLink size={11} />
+            </Link>
           </div>
         </div>
 

@@ -142,12 +142,21 @@ function PublishPageInner() {
     tiktok: false, instagram: false, facebook: false, twitter: false,
   });
 
-  // Check for videoUrl passed from voiceover page
+  // Pre-populate from video editor: videoUrl, title, platform
   useEffect(() => {
-    const param = searchParams.get("videoUrl");
-    if (param) {
-      setUploadedUrl(param);
-      setVideoUrl(param);
+    const urlParam      = searchParams.get("videoUrl");
+    const titleParam    = searchParams.get("title");
+    const platformParam = searchParams.get("platform");
+
+    if (urlParam) { setUploadedUrl(urlParam); setVideoUrl(urlParam); }
+    if (titleParam) setTitle(titleParam);
+    if (platformParam) {
+      // Pre-select only the specified platform, deselect others
+      setSelected(prev => {
+        const next = Object.fromEntries(Object.keys(prev).map(k => [k, false]));
+        if (platformParam in next) next[platformParam] = true;
+        return next;
+      });
     }
   }, [searchParams]);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Plus, ChevronUp, ChevronDown, Sparkles,
@@ -47,6 +48,7 @@ function blankScene(index: number): Scene {
 }
 
 export default function VideoEditorPage() {
+  const router = useRouter();
   const [scenes, setScenes] = useState<Scene[]>([blankScene(1)]);
   const [activeId, setActiveId] = useState<string>(scenes[0].id);
   const [projectName, setProjectName] = useState("Untitled Video");
@@ -60,10 +62,21 @@ export default function VideoEditorPage() {
   const [planning, setPlanning] = useState(false);
   const [planTopic, setPlanTopic] = useState("");
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const [showPreview, setShowPreview]     = useState(false);
-  const [previewTime, setPreviewTime]     = useState(0);
+  const [showPreview, setShowPreview]       = useState(false);
+  const [previewTime, setPreviewTime]       = useState(0);
   const [previewPlaying, setPreviewPlaying] = useState(false);
   const previewTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Render states
+  const [showRender, setShowRender]         = useState(false);
+  const [rendering, setRendering]           = useState(false);
+  const [renderProgress, setRenderProgress] = useState(0);
+  const [renderDone, setRenderDone]         = useState(false);
+  const [renderedBlob, setRenderedBlob]     = useState<Blob | null>(null);
+  const [renderExt, setRenderExt]           = useState("webm");
+  const [renderError, setRenderError]       = useState("");
+  const [uploadingToCloud, setUploadingToCloud] = useState(false);
+  const [uploadPlatform, setUploadPlatform]     = useState("");
 
   const active = scenes.find(s => s.id === activeId) ?? null;
   const totalSec = scenes.reduce((a, s) => a + s.duration, 0);
@@ -195,6 +208,186 @@ export default function VideoEditorPage() {
     URL.revokeObjectURL(url);
   }
 
+  async function handlePublishTo(platformId?: string) {
+    if (!renderedBlob) return;
+    setUploadingToCloud(true);
+    setUploadPlatform(platformId ?? "");
+    try {
+      const form = new FormData();
+      const ext = renderExt;
+      form.append("video", new File([renderedBlob], `${projectName}.${ext}`, { type: renderedBlob.type }));
+      const res = await fetch("/api/upload-video", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error || "Upload failed");
+      const params = new URLSearchParams({ videoUrl: data.url, title: projectName });
+      if (platformId) params.set("platform", platformId);
+      router.push(`/dashboard/publish?${params.toString()}`);
+    } catch (err) {
+      setRenderError(err instanceof Error ? err.message : "Upload to cloud failed");
+    } finally {
+      setUploadingToCloud(false);
+      setUploadPlatform("");
+    }
+  }
+
+  async function renderVideo() {
+    setShowRender(true);
+    setRendering(true);
+    setRenderProgress(0);
+    setRenderDone(false);
+    setRenderedBlob(null);
+    setRenderError("");
+
+    try {
+      const W = 1280, H = 720, FPS = 30;
+      const FADE_F = Math.round(FPS * 0.5);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext("2d")!;
+
+      // Pick best supported format
+      const mime =
+        MediaRecorder.isTypeSupported("video/mp4")          ? "video/mp4" :
+        MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" :
+        "video/webm";
+      const ext = mime.startsWith("video/mp4") ? "mp4" : "webm";
+      setRenderExt(ext);
+
+      const stream = canvas.captureStream(FPS);
+      const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 });
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.start(100);
+
+      // Pre-load images
+      const loadImg = (url: string): Promise<HTMLImageElement | null> => {
+        if (!url) return Promise.resolve(null);
+        return new Promise(res => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => res(img);
+          img.onerror = () => res(null);
+          img.src = url;
+        });
+      };
+      const imgs = await Promise.all(scenes.map(sc => loadImg(sc.imageUrl || sc.videoThumb)));
+
+      // Cover-fit draw helper
+      const drawImg = (img: HTMLImageElement, alpha: number, offsetX = 0) => {
+        ctx.globalAlpha = alpha;
+        const scale = Math.max(W / img.width, H / img.height);
+        const sw = img.width * scale, sh = img.height * scale;
+        ctx.drawImage(img, (W - sw) / 2 + offsetX, (H - sh) / 2, sw, sh);
+      };
+
+      const COLORS = ["#0f172a","#1e1b4b","#172554","#14532d","#1c1917"];
+      const drawPlaceholder = (idx: number, alpha: number, offsetX = 0) => {
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = COLORS[idx % COLORS.length];
+        ctx.fillRect(offsetX, 0, W, H);
+      };
+
+      const drawMedia = (scIdx: number, alpha: number, offsetX = 0) => {
+        const img = imgs[scIdx];
+        if (img) drawImg(img, alpha, offsetX);
+        else drawPlaceholder(scIdx, alpha, offsetX);
+      };
+
+      const drawTextOverlay = (sc: Scene, alpha: number) => {
+        if (!sc.textOverlay?.text) return;
+        ctx.globalAlpha = alpha;
+        ctx.font = "bold 52px Inter, Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.shadowColor = "rgba(0,0,0,0.9)";
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = sc.textOverlay.color;
+        const y = sc.textOverlay.position === "top" ? H * 0.12
+          : sc.textOverlay.position === "center" ? H * 0.5
+          : H * 0.88;
+        ctx.fillText(sc.textOverlay.text, W / 2, y, W - 120);
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+      };
+
+      const totalFrames = scenes.reduce((a, s) => a + Math.round(s.duration * FPS), 0);
+      let done = 0;
+
+      for (let i = 0; i < scenes.length; i++) {
+        const sc = scenes[i];
+        const scFrames = Math.round(sc.duration * FPS);
+        const tr = sc.transition;
+        const hasNext = i < scenes.length - 1;
+
+        for (let f = 0; f < scFrames; f++) {
+          ctx.clearRect(0, 0, W, H);
+          const inFade  = i === 0 && f < FADE_F;
+          const outFade = hasNext && f >= scFrames - FADE_F;
+
+          if (inFade) {
+            const a = f / FADE_F;
+            drawMedia(i, a);
+            drawTextOverlay(sc, a);
+          } else if (outFade) {
+            const p = (scFrames - f) / FADE_F; // 1→0
+            if (tr === "cut") {
+              // Hard cut at the exact boundary frame
+              if (f === scFrames - 1) { drawMedia(i + 1, 1); }
+              else { drawMedia(i, 1); drawTextOverlay(sc, 1); }
+            } else if (tr === "fade") {
+              drawMedia(i + 1, 1 - p);
+              drawMedia(i,     p);
+              drawTextOverlay(sc, p);
+            } else if (tr === "slide") {
+              const off = Math.round((1 - p) * W);
+              drawMedia(i,     1, -off);
+              drawMedia(i + 1, 1,  W - off);
+            } else if (tr === "zoom") {
+              drawMedia(i + 1, 1 - p);
+              ctx.save();
+              ctx.translate(W / 2, H / 2);
+              ctx.scale(1 + (1 - p) * 0.08, 1 + (1 - p) * 0.08);
+              ctx.translate(-W / 2, -H / 2);
+              drawMedia(i, p);
+              ctx.restore();
+              drawTextOverlay(sc, p);
+            }
+          } else {
+            drawMedia(i, 1);
+            drawTextOverlay(sc, 1);
+          }
+
+          ctx.globalAlpha = 1;
+          done++;
+          if (done % 10 === 0) setRenderProgress(Math.round((done / totalFrames) * 100));
+          await new Promise(r => setTimeout(r, 1000 / FPS));
+        }
+      }
+
+      recorder.stop();
+      await new Promise<void>(r => { recorder.onstop = () => r(); });
+      const blob = new Blob(chunks, { type: mime });
+      setRenderedBlob(blob);
+      setRenderDone(true);
+    } catch (err) {
+      console.error("Render error:", err);
+      setRenderError("Render failed. Please try again in Chrome or Edge.");
+    } finally {
+      setRendering(false);
+      setRenderProgress(100);
+    }
+  }
+
+  function downloadRender() {
+    if (!renderedBlob) return;
+    const url = URL.createObjectURL(renderedBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${projectName.replace(/\s+/g, "-").toLowerCase()}.${renderExt}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function openPreview() {
     setPreviewTime(0);
     setPreviewPlaying(true);
@@ -270,6 +463,22 @@ export default function VideoEditorPage() {
             }}
           >
             <Play size={12} /> Preview
+          </button>
+          <button
+            onClick={renderVideo}
+            disabled={rendering}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", borderRadius: 9, border: "none",
+              background: rendering
+                ? "rgba(255,255,255,0.06)"
+                : "linear-gradient(135deg, #f97316, #dc2626)",
+              color: rendering ? "#475569" : "#fff",
+              fontSize: 12, fontWeight: 800, cursor: rendering ? "default" : "pointer",
+              opacity: rendering ? 0.7 : 1,
+            }}
+          >
+            <Film size={12} /> {rendering ? `Rendering ${renderProgress}%` : "Render Video"}
           </button>
           <button
             onClick={exportHyperFrames}
@@ -1283,6 +1492,208 @@ export default function VideoEditorPage() {
                 {planning ? "Planning scenes…" : "✨ Generate Scene Plan"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Render Modal ────────────────────────────────────── */}
+      {showRender && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 3000,
+          background: "rgba(0,0,0,0.92)", backdropFilter: "blur(16px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <div style={{
+            background: "#0A1020", borderRadius: 24,
+            border: "1px solid rgba(255,255,255,0.09)",
+            padding: "32px", width: 520, maxWidth: "90vw",
+            boxShadow: "0 40px 120px rgba(0,0,0,0.8)",
+          }}>
+
+            {/* ── Rendering in progress ── */}
+            {rendering && (
+              <>
+                <div style={{ textAlign: "center", marginBottom: 28 }}>
+                  <div style={{
+                    width: 56, height: 56, margin: "0 auto 16px",
+                    border: "4px solid rgba(249,115,22,0.2)",
+                    borderTopColor: "#f97316", borderRadius: "50%",
+                    animation: "spin 0.8s linear infinite",
+                  }} />
+                  <h2 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 6px" }}>Rendering Video</h2>
+                  <p style={{ fontSize: 12, color: "#475569", margin: 0 }}>
+                    Processing {scenes.length} scenes · frame by frame in your browser
+                  </p>
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, color: "#64748b" }}>Progress</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "#f97316" }}>{renderProgress}%</span>
+                  </div>
+                  <div style={{ height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 99, overflow: "hidden" }}>
+                    <div style={{
+                      height: "100%", borderRadius: 99,
+                      background: "linear-gradient(90deg, #f97316, #dc2626)",
+                      width: `${renderProgress}%`,
+                      transition: "width 0.3s ease",
+                    }} />
+                  </div>
+                </div>
+
+                <div style={{
+                  background: "rgba(249,115,22,0.06)", borderRadius: 12,
+                  border: "1px solid rgba(249,115,22,0.15)", padding: "12px 16px",
+                }}>
+                  <p style={{ fontSize: 11, color: "#94a3b8", margin: 0, lineHeight: 1.6 }}>
+                    Rendering runs in your browser using the MediaRecorder API.
+                    Keep this tab active for best results. For high-quality MP4 output, use the HyperFrames export instead.
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* ── Error state ── */}
+            {!rendering && renderError && (
+              <>
+                <div style={{ textAlign: "center", marginBottom: 24 }}>
+                  <p style={{ fontSize: 40, margin: "0 0 12px" }}>⚠️</p>
+                  <h2 style={{ fontSize: 18, fontWeight: 900, color: "#f87171", margin: "0 0 8px" }}>Render Failed</h2>
+                  <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{renderError}</p>
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button
+                    onClick={() => { setShowRender(false); setRenderError(""); }}
+                    style={{ flex: 1, padding: "12px", borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                  >Close</button>
+                  <button
+                    onClick={renderVideo}
+                    style={{ flex: 2, padding: "12px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #f97316, #dc2626)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+                  >Retry Render</button>
+                </div>
+              </>
+            )}
+
+            {/* ── Render done ── */}
+            {!rendering && renderDone && renderedBlob && (
+              <>
+                <div style={{ textAlign: "center", marginBottom: 24 }}>
+                  <p style={{ fontSize: 44, margin: "0 0 12px" }}>🎬</p>
+                  <h2 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 6px" }}>Video Ready!</h2>
+                  <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
+                    {projectName} · {renderExt.toUpperCase()} · {Math.round(renderedBlob.size / 1024 / 1024 * 10) / 10} MB
+                  </p>
+                </div>
+
+                {/* Download button */}
+                <button
+                  onClick={downloadRender}
+                  style={{
+                    width: "100%", padding: "14px", borderRadius: 12, border: "none",
+                    background: "linear-gradient(135deg, #f97316, #dc2626)",
+                    color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    marginBottom: 20,
+                  }}
+                >
+                  <Download size={16} /> Download {renderExt.toUpperCase()}
+                </button>
+
+                {/* Open in Publisher — uploads blob then navigates */}
+                <button
+                  onClick={() => handlePublishTo()}
+                  disabled={uploadingToCloud}
+                  style={{
+                    width: "100%", padding: "13px", borderRadius: 12, border: "none",
+                    background: uploadingToCloud
+                      ? "rgba(255,255,255,0.06)"
+                      : "linear-gradient(135deg, #7c3aed, #a78bfa)",
+                    color: uploadingToCloud ? "#475569" : "#fff",
+                    fontSize: 13, fontWeight: 800, cursor: uploadingToCloud ? "default" : "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    marginBottom: 12,
+                  }}
+                >
+                  {uploadingToCloud && !uploadPlatform ? (
+                    <>
+                      <div style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.2)", borderTopColor: "#fff", animation: "spin 0.7s linear infinite" }} />
+                      Uploading to cloud…
+                    </>
+                  ) : (
+                    <><Download size={15} /> Open in Publisher</>
+                  )}
+                </button>
+
+                {/* Per-platform quick-publish */}
+                <div style={{
+                  background: "rgba(255,255,255,0.02)", borderRadius: 14,
+                  border: "1px solid rgba(255,255,255,0.07)", padding: "16px", marginBottom: 16,
+                }}>
+                  <p style={{ fontSize: 10, fontWeight: 800, color: "#4A6080", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 14px" }}>
+                    Quick-publish to a platform
+                  </p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {[
+                      { id: "youtube",   name: "YouTube",   color: "#FF0000", bg: "rgba(255,0,0,0.08)",     border: "rgba(255,0,0,0.2)",     emoji: "▶" },
+                      { id: "tiktok",    name: "TikTok",    color: "#69C9D0", bg: "rgba(105,201,208,0.08)", border: "rgba(105,201,208,0.2)", emoji: "♪" },
+                      { id: "instagram", name: "Instagram", color: "#E1306C", bg: "rgba(225,48,108,0.08)",  border: "rgba(225,48,108,0.2)",  emoji: "◎" },
+                      { id: "twitter",   name: "X / Twitter", color: "#e2e8f0", bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.12)", emoji: "𝕏" },
+                      { id: "facebook",  name: "Facebook",  color: "#1877F2", bg: "rgba(24,119,242,0.08)",  border: "rgba(24,119,242,0.2)",  emoji: "f" },
+                    ].map(p => {
+                      const isUploading = uploadingToCloud && uploadPlatform === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => handlePublishTo(p.id)}
+                          disabled={uploadingToCloud}
+                          style={{
+                            padding: "10px 12px", borderRadius: 10,
+                            background: p.bg, border: `1px solid ${p.border}`,
+                            color: p.color, fontSize: 11, fontWeight: 700,
+                            cursor: uploadingToCloud ? "default" : "pointer",
+                            display: "flex", alignItems: "center", gap: 7,
+                            opacity: uploadingToCloud && !isUploading ? 0.4 : 1,
+                            transition: "opacity 0.15s",
+                          }}
+                        >
+                          {isUploading
+                            ? <div style={{ width: 12, height: 12, borderRadius: "50%", border: `2px solid ${p.color}40`, borderTopColor: p.color, animation: "spin 0.7s linear infinite" }} />
+                            : <span style={{ fontSize: 13 }}>{p.emoji}</span>
+                          }
+                          {p.name}
+                          {!isUploading && <span style={{ marginLeft: "auto", fontSize: 8, opacity: 0.5, fontWeight: 600 }}>PUBLISH</span>}
+                        </button>
+                      );
+                    })}
+                    <button
+                      onClick={exportHyperFrames}
+                      style={{
+                        padding: "10px 12px", borderRadius: 10,
+                        background: "rgba(34,211,153,0.06)", border: "1px solid rgba(34,211,153,0.2)",
+                        color: "#34d399", fontSize: 11, fontWeight: 700, cursor: "pointer",
+                        display: "flex", alignItems: "center", gap: 7,
+                      }}
+                    >
+                      <Code2 size={13} /> HyperFrames HTML
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 10, color: "#475569", margin: "12px 0 0", lineHeight: 1.5 }}>
+                    Clicking a platform uploads your video to cloud storage, then opens the Publisher with that platform pre-selected.
+                    Configure n8n upload webhooks in Settings to activate each platform.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => { setShowRender(false); setRenderDone(false); setRenderedBlob(null); }}
+                  style={{
+                    width: "100%", padding: "11px", borderRadius: 10,
+                    background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)",
+                    color: "#64748b", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                  }}
+                >Close</button>
+              </>
+            )}
           </div>
         </div>
       )}
