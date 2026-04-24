@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Plus, ChevronUp, ChevronDown, Sparkles,
   Search, Film, Mic, Download, Wand2, X, Check,
   Sliders, Type, Image as ImageIcon, Layers,
+  Play, Pause, Code2,
 } from "lucide-react";
+import { buildHyperFramesComposition } from "@/lib/hyperframes/composition-builder";
 
 type Transition = "fade" | "cut" | "slide" | "zoom";
 type RightTab = "properties" | "overlay" | "audio";
@@ -58,6 +60,10 @@ export default function VideoEditorPage() {
   const [planning, setPlanning] = useState(false);
   const [planTopic, setPlanTopic] = useState("");
   const [showPlanModal, setShowPlanModal] = useState(false);
+  const [showPreview, setShowPreview]     = useState(false);
+  const [previewTime, setPreviewTime]     = useState(0);
+  const [previewPlaying, setPreviewPlaying] = useState(false);
+  const previewTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const active = scenes.find(s => s.id === activeId) ?? null;
   const totalSec = scenes.reduce((a, s) => a + s.duration, 0);
@@ -178,6 +184,42 @@ export default function VideoEditorPage() {
     URL.revokeObjectURL(url);
   }
 
+  function exportHyperFrames() {
+    const html = buildHyperFramesComposition(scenes, projectName);
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${projectName.replace(/\s+/g, "-").toLowerCase()}.hyperframes.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function openPreview() {
+    setPreviewTime(0);
+    setPreviewPlaying(true);
+    setShowPreview(true);
+  }
+
+  useEffect(() => {
+    if (!showPreview) {
+      if (previewTimerRef.current) clearInterval(previewTimerRef.current);
+      setPreviewPlaying(false);
+      return;
+    }
+    if (previewPlaying) {
+      previewTimerRef.current = setInterval(() => {
+        setPreviewTime(t => {
+          if (t >= totalSec) { setPreviewPlaying(false); return totalSec; }
+          return t + 0.1;
+        });
+      }, 100);
+    } else {
+      if (previewTimerRef.current) clearInterval(previewTimerRef.current);
+    }
+    return () => { if (previewTimerRef.current) clearInterval(previewTimerRef.current); };
+  }, [previewPlaying, showPreview, totalSec]);
+
   const sceneReadiness = active ? [
     { label: "Visual",   ok: !!(active.imageUrl || active.videoUrl) },
     { label: "Script",   ok: active.script.trim().length > 0 },
@@ -219,6 +261,30 @@ export default function VideoEditorPage() {
             <Sparkles size={13} /> AI Scene Planner
           </button>
           <button
+            onClick={openPreview}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", borderRadius: 9, border: "none",
+              background: "linear-gradient(135deg, #00D4FF, #0080cc)",
+              color: "#04080F", fontSize: 12, fontWeight: 800, cursor: "pointer",
+            }}
+          >
+            <Play size={12} /> Preview
+          </button>
+          <button
+            onClick={exportHyperFrames}
+            title="Download as HyperFrames HTML — render to MP4 with: npx hyperframes render"
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", borderRadius: 9,
+              border: "1px solid rgba(34,211,153,0.25)",
+              background: "rgba(34,211,153,0.06)", color: "#34d399",
+              fontSize: 12, fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            <Code2 size={13} /> HyperFrames
+          </button>
+          <button
             onClick={exportProject}
             style={{
               display: "flex", alignItems: "center", gap: 6,
@@ -228,7 +294,7 @@ export default function VideoEditorPage() {
               fontSize: 12, fontWeight: 700, cursor: "pointer",
             }}
           >
-            <Download size={13} /> Export
+            <Download size={13} /> JSON
           </button>
         </div>
       </div>
@@ -952,6 +1018,191 @@ export default function VideoEditorPage() {
         </div>
       </div>
 
+      {/* ── Video Preview Modal ─────────────────────────────── */}
+      {showPreview && (() => {
+        // Compute which scene is active at previewTime
+        let elapsed = 0;
+        let previewSceneIdx = 0;
+        for (let i = 0; i < scenes.length; i++) {
+          if (previewTime < elapsed + scenes[i].duration) { previewSceneIdx = i; break; }
+          elapsed += scenes[i].duration;
+          if (i === scenes.length - 1) previewSceneIdx = i;
+        }
+        const pScene = scenes[previewSceneIdx];
+        const progressPct = totalSec > 0 ? (previewTime / totalSec) * 100 : 0;
+        const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s) % 60).padStart(2, "0")}`;
+
+        return (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 2000,
+            background: "rgba(0,0,0,0.92)", backdropFilter: "blur(12px)",
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          }}>
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, width: "min(90vw, 900px)" }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 14, fontWeight: 800, color: "#fff", margin: 0 }}>{projectName}</p>
+                <p style={{ fontSize: 11, color: "#475569", margin: 0 }}>
+                  Scene {previewSceneIdx + 1} of {scenes.length} · {fmt(previewTime)} / {fmt(totalSec)}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPreview(false)}
+                style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12 }}
+              >✕ Close</button>
+            </div>
+
+            {/* Canvas */}
+            <div style={{
+              width: "min(90vw, 900px)", aspectRatio: "16/9",
+              background: "#000", borderRadius: 12, overflow: "hidden",
+              position: "relative", border: "1px solid rgba(255,255,255,0.08)",
+              boxShadow: "0 40px 120px rgba(0,0,0,0.8)",
+            }}>
+              {/* Media */}
+              {pScene.videoUrl ? (
+                <video
+                  key={pScene.id}
+                  src={pScene.videoUrl}
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                  autoPlay muted loop playsInline
+                />
+              ) : pScene.imageUrl ? (
+                <img
+                  key={pScene.id}
+                  src={pScene.imageUrl}
+                  alt={pScene.title}
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", animation: "previewFadeIn 0.4s ease" }}
+                />
+              ) : (
+                <div
+                  key={pScene.id}
+                  style={{
+                    position: "absolute", inset: 0,
+                    background: ["#0f172a","#1e1b4b","#172554","#14532d","#1c1917"][previewSceneIdx % 5],
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    animation: "previewFadeIn 0.4s ease",
+                  }}
+                >
+                  <span style={{ fontSize: 80, fontWeight: 900, color: "rgba(255,255,255,0.06)" }}>
+                    {previewSceneIdx + 1}
+                  </span>
+                </div>
+              )}
+
+              {/* Text overlay */}
+              {pScene.textOverlay?.text && (
+                <div style={{
+                  position: "absolute",
+                  ...(pScene.textOverlay.position === "top"    ? { top: "8%" }    : {}),
+                  ...(pScene.textOverlay.position === "center" ? { top: "50%", transform: "translateY(-50%)" } : {}),
+                  ...(pScene.textOverlay.position === "bottom" ? { bottom: "8%" } : {}),
+                  left: "5%", right: "5%", textAlign: "center", zIndex: 3,
+                  animation: "previewFadeIn 0.5s ease 0.2s both",
+                }}>
+                  <p style={{ fontSize: "clamp(16px,2.8vw,32px)", fontWeight: 900, color: pScene.textOverlay.color, textShadow: "0 3px 14px rgba(0,0,0,0.9)", margin: 0 }}>
+                    {pScene.textOverlay.text}
+                  </p>
+                </div>
+              )}
+
+              {/* Scene title lower-third */}
+              <div style={{ position: "absolute", bottom: 14, left: 16, zIndex: 3, animation: "previewFadeIn 0.3s ease" }}>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", margin: 0 }}>{pScene.title}</p>
+              </div>
+
+              {/* Progress bar on canvas */}
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.1)", zIndex: 4 }}>
+                <div style={{ height: "100%", width: `${progressPct}%`, background: "#00D4FF", transition: "width 0.1s linear" }} />
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 14, width: "min(90vw, 900px)" }}>
+              <button
+                onClick={() => setPreviewPlaying(p => !p)}
+                style={{
+                  width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
+                  background: "linear-gradient(135deg, #00D4FF, #0080cc)",
+                  border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                {previewPlaying
+                  ? <Pause size={16} color="#04080F" fill="#04080F" />
+                  : <Play  size={16} color="#04080F" fill="#04080F" />}
+              </button>
+
+              {/* Seekbar */}
+              <div style={{ flex: 1, position: "relative", height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 99, cursor: "pointer" }}
+                onClick={e => {
+                  const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                  setPreviewTime(((e.clientX - rect.left) / rect.width) * totalSec);
+                }}
+              >
+                <div style={{ height: "100%", width: `${progressPct}%`, background: "#00D4FF", borderRadius: 99, pointerEvents: "none" }} />
+                {/* Scene markers */}
+                {(() => { let mt = 0; return scenes.slice(0, -1).map((s, i) => { mt += s.duration; return (
+                  <div key={i} style={{ position: "absolute", top: -3, left: `${(mt / totalSec) * 100}%`, width: 2, height: 10, background: "rgba(255,255,255,0.25)", borderRadius: 1, transform: "translateX(-1px)", pointerEvents: "none" }} />
+                ); }); })()}
+              </div>
+
+              <span style={{ fontSize: 11, color: "#475569", whiteSpace: "nowrap" }}>{fmt(previewTime)} / {fmt(totalSec)}</span>
+            </div>
+
+            {/* Scene strip */}
+            <div style={{ display: "flex", gap: 6, marginTop: 12, overflowX: "auto", maxWidth: "min(90vw, 900px)", width: "100%", paddingBottom: 4 }}>
+              {scenes.map((sc, idx) => {
+                const scStart = scenes.slice(0, idx).reduce((a, s) => a + s.duration, 0);
+                const isActive = idx === previewSceneIdx;
+                return (
+                  <div
+                    key={sc.id}
+                    onClick={() => { setPreviewTime(scStart); setPreviewPlaying(false); }}
+                    style={{
+                      flexShrink: 0, width: 80, borderRadius: 7, overflow: "hidden",
+                      border: isActive ? "1.5px solid #00D4FF" : "1px solid rgba(255,255,255,0.08)",
+                      cursor: "pointer", background: "#0A1020", opacity: isActive ? 1 : 0.6,
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    <div style={{
+                      width: "100%", aspectRatio: "16/9",
+                      backgroundImage: sc.imageUrl || sc.videoThumb ? `url(${sc.imageUrl || sc.videoThumb})` : "none",
+                      backgroundSize: "cover", backgroundPosition: "center",
+                      background: (!sc.imageUrl && !sc.videoThumb) ? "#0E1828" : undefined,
+                    }} />
+                    <div style={{ padding: "3px 5px" }}>
+                      <p style={{ fontSize: 8, color: isActive ? "#00D4FF" : "#475569", margin: 0, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {idx + 1}. {sc.title}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* HyperFrames render hint */}
+            <div style={{
+              marginTop: 16, padding: "10px 16px", borderRadius: 10,
+              background: "rgba(34,211,153,0.05)", border: "1px solid rgba(34,211,153,0.15)",
+              display: "flex", alignItems: "center", gap: 10, width: "min(90vw, 900px)",
+            }}>
+              <Code2 size={14} color="#34d399" style={{ flexShrink: 0 }} />
+              <p style={{ fontSize: 11, color: "#64748b", margin: 0 }}>
+                Export as HyperFrames HTML, then render to MP4 with:{" "}
+                <code style={{ color: "#34d399", background: "rgba(34,211,153,0.1)", padding: "1px 6px", borderRadius: 4 }}>
+                  npx hyperframes render --input composition.html --output video.mp4
+                </code>
+              </p>
+              <button onClick={exportHyperFrames} style={{ flexShrink: 0, padding: "5px 12px", borderRadius: 7, border: "1px solid rgba(34,211,153,0.3)", background: "rgba(34,211,153,0.08)", color: "#34d399", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                Download HTML
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── AI Scene Planner Modal ──────────────────────────── */}
       {showPlanModal && (
         <div style={{
@@ -1038,6 +1289,7 @@ export default function VideoEditorPage() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes previewFadeIn { from { opacity: 0; } to { opacity: 1; } }
         * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.07) transparent; }
         *::-webkit-scrollbar { width: 4px; height: 4px; }
         *::-webkit-scrollbar-track { background: transparent; }
