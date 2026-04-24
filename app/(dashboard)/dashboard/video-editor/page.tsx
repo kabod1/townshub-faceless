@@ -132,8 +132,18 @@ export default function VideoEditorPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Image generation failed");
-      if (data.url) upd(active.id, { imageUrl: data.url, videoUrl: "", videoThumb: "" });
-      else throw new Error("No image returned");
+      if (!data.url) throw new Error("No image returned");
+
+      // Wait for image to fully load (Pollinations generates on-demand — URL exists before image is ready)
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        const timer = setTimeout(() => reject(new Error("Image timed out — try again")), 60000);
+        img.onload = () => { clearTimeout(timer); resolve(); };
+        img.onerror = () => { clearTimeout(timer); reject(new Error("Image failed to load")); };
+        img.src = data.url;
+      });
+
+      upd(active.id, { imageUrl: data.url, videoUrl: "", videoThumb: "" });
     } catch (err: unknown) {
       setGenerateError(err instanceof Error ? err.message : "Generation failed");
     } finally {
