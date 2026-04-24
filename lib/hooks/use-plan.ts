@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { type Plan, PLAN_LIMITS } from "@/lib/plan-config";
+import { type Plan, PLAN_LIMITS, ADMIN_EMAILS, UNLIMITED_LIMITS } from "@/lib/plan-config";
 
 export interface PlanData {
   plan: Plan;
   isPro: boolean;
   isElite: boolean;
+  isAdmin: boolean;
   scriptsUsed: number;
   scriptsLimit: number;
   thumbnailsLimit: number;
+  teamMembersLimit: number;
   status: string;
   currentPeriodEnd: string | null;
   loading: boolean;
@@ -20,12 +22,28 @@ const DEFAULT: PlanData = {
   plan: "starter",
   isPro: false,
   isElite: false,
+  isAdmin: false,
   scriptsUsed: 0,
   scriptsLimit: 4,
   thumbnailsLimit: 120,
+  teamMembersLimit: 1,
   status: "active",
   currentPeriodEnd: null,
   loading: true,
+};
+
+const ADMIN_DATA: PlanData = {
+  plan: "elite",
+  isPro: true,
+  isElite: true,
+  isAdmin: true,
+  scriptsUsed: 0,
+  scriptsLimit: UNLIMITED_LIMITS.scripts,
+  thumbnailsLimit: UNLIMITED_LIMITS.thumbnails,
+  teamMembersLimit: UNLIMITED_LIMITS.teamMembers,
+  status: "active",
+  currentPeriodEnd: null,
+  loading: false,
 };
 
 export function usePlan(): PlanData {
@@ -36,8 +54,11 @@ export function usePlan(): PlanData {
 
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setData({ ...DEFAULT, loading: false });
+      if (!user) { setData({ ...DEFAULT, loading: false }); return; }
+
+      // Admin accounts get unlimited access immediately — no DB query needed
+      if (user.email && ADMIN_EMAILS.has(user.email)) {
+        setData(ADMIN_DATA);
         return;
       }
 
@@ -65,9 +86,11 @@ export function usePlan(): PlanData {
         plan,
         isPro: limits.isPro,
         isElite: limits.isElite,
+        isAdmin: false,
         scriptsUsed: scriptsResult.count ?? 0,
         scriptsLimit: limits.scripts,
         thumbnailsLimit: limits.thumbnails,
+        teamMembersLimit: limits.teamMembers,
         status: subResult.data?.status ?? "active",
         currentPeriodEnd: subResult.data?.current_period_end ?? null,
         loading: false,

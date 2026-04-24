@@ -88,7 +88,7 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { plan, scriptsUsed, scriptsLimit, loading: planLoading } = usePlan();
+  const { plan, scriptsUsed, scriptsLimit, loading: planLoading, isAdmin } = usePlan();
   const planLimits = PLAN_LIMITS[plan];
 
   useEffect(() => {
@@ -222,10 +222,10 @@ export function Sidebar() {
               : "1px solid rgba(0,212,255,0.12)",
           }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: plan === "elite" ? "#facc15" : "#00D4FF" }}>
-                {planLoading ? "Loading…" : planLimits.label + " Plan"}
+              <span style={{ fontSize: 11, fontWeight: 700, color: isAdmin ? "#34d399" : plan === "elite" ? "#facc15" : "#00D4FF" }}>
+                {planLoading ? "Loading…" : isAdmin ? "Unlimited" : planLimits.label + " Plan"}
               </span>
-              {plan !== "elite" && (
+              {!isAdmin && plan !== "elite" && (
                 <Link href="/dashboard/billing" style={{
                   fontSize: 10, fontWeight: 700, color: "#fb923c", textDecoration: "none",
                   padding: "2px 8px", borderRadius: 5,
@@ -235,20 +235,28 @@ export function Sidebar() {
             </div>
             {!planLoading && (
               <>
-                <div style={{ width: "100%", height: 3, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                  <div style={{
-                    width: `${Math.min((scriptsUsed / scriptsLimit) * 100, 100)}%`,
-                    height: "100%", borderRadius: 99,
-                    background: scriptsUsed >= scriptsLimit
-                      ? "linear-gradient(90deg, #f87171, #ef4444)"
-                      : plan === "elite"
-                        ? "linear-gradient(90deg, #facc15, #f59e0b)"
-                        : "linear-gradient(90deg, #00D4FF, #0080cc)",
-                  }} />
-                </div>
-                <p style={{ fontSize: 10, color: "#64748b", marginTop: 6 }}>
-                  {scriptsLimit - scriptsUsed} of {scriptsLimit} scripts remaining
-                </p>
+                {isAdmin ? (
+                  <p style={{ fontSize: 10, color: "#34d399", marginTop: 2 }}>
+                    ∞ Unlimited access · all features
+                  </p>
+                ) : (
+                  <>
+                    <div style={{ width: "100%", height: 3, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                      <div style={{
+                        width: `${Math.min((scriptsUsed / scriptsLimit) * 100, 100)}%`,
+                        height: "100%", borderRadius: 99,
+                        background: scriptsUsed >= scriptsLimit
+                          ? "linear-gradient(90deg, #f87171, #ef4444)"
+                          : plan === "elite"
+                            ? "linear-gradient(90deg, #facc15, #f59e0b)"
+                            : "linear-gradient(90deg, #00D4FF, #0080cc)",
+                      }} />
+                    </div>
+                    <p style={{ fontSize: 10, color: "#64748b", marginTop: 6 }}>
+                      {scriptsLimit - scriptsUsed} of {scriptsLimit} scripts remaining
+                    </p>
+                  </>
+                )}
               </>
             )}
           </div>

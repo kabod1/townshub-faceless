@@ -125,7 +125,7 @@ function formatDateLabel(ts: number): string {
 }
 
 export default function ConsultingPage() {
-  const { isElite } = usePlan();
+  const { isElite, isAdmin } = usePlan();
   const [messages, setMessages] = useState<Message[]>([WELCOME_MSG]);
   const [msgCount, setMsgCount] = useState(0);
   const [input, setInput] = useState("");
@@ -136,6 +136,8 @@ export default function ConsultingPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const FREE_LIMIT = 5;
+  // Admin accounts have the same unlimited access as Elite
+  const hasUnlimitedAccess = isElite || isAdmin;
 
   // Load chat history — Supabase first, localStorage fallback
   useEffect(() => {
@@ -201,7 +203,7 @@ export default function ConsultingPage() {
   const sendMessage = async (text?: string) => {
     const content = (text || input).trim();
     if (!content || loading) return;
-    if (!isElite && msgCount >= FREE_LIMIT) return;
+    if (!hasUnlimitedAccess && msgCount >= FREE_LIMIT) return;
 
     const userMsg: Message = { id: Date.now().toString(), role: "user", content, ts: Date.now() };
     const newMessages = [...messages, userMsg];
@@ -263,7 +265,7 @@ export default function ConsultingPage() {
     saveToSupabase(fresh, 0);
   };
 
-  const atLimit = !isElite && msgCount >= FREE_LIMIT;
+  const atLimit = !hasUnlimitedAccess && msgCount >= FREE_LIMIT;
 
   return (
     <div style={{ minHeight: "100vh", background: "#080D1A" }}>
@@ -310,7 +312,7 @@ export default function ConsultingPage() {
           </div>
 
           {/* Usage */}
-          {!isElite && (
+          {!hasUnlimitedAccess && (
             <div style={{
               borderRadius: 12, padding: "14px", marginBottom: 20,
               background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)",

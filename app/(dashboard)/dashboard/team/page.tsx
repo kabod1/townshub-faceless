@@ -83,7 +83,7 @@ const S = {
 const OWNER_EMAIL = "townshub1@gmail.com";
 
 export default function TeamPage() {
-  const { isPro, isElite } = usePlan();
+  const { isPro, isElite, isAdmin } = usePlan();
   const [userEmail, setUserEmail] = useState("");
   const [authReady, setAuthReady] = useState(false);
 
@@ -96,7 +96,7 @@ export default function TeamPage() {
   }, []);
 
   const isOwner = userEmail === OWNER_EMAIL;
-  const canManageTeam = isOwner || isPro || isElite;
+  const canManageTeam = isOwner || isPro || isElite || isAdmin;
 
   const [members, setMembers] = useState<Member[]>([
     { id: "1", name: "Towns Hub", email: OWNER_EMAIL, role: "admin", status: "active", joinedAt: "Apr 1, 2026", avatar: "T" },
@@ -110,7 +110,7 @@ export default function TeamPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  const maxMembers = isOwner ? 99 : isElite ? 10 : isPro ? 5 : 1;
+  const maxMembers = isAdmin || isOwner ? 999999 : isElite ? 10 : isPro ? 5 : 1;
 
   const handleInvite = async () => {
     if (!inviteEmail.trim() || inviting) return;
