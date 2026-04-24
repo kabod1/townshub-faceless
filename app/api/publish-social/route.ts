@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Expected dimensions per platform — n8n workflows can use these to transcode
+// before uploading. Browser renders at these exact resolutions when the user
+// picks the matching format in the Video Editor.
+const PLATFORM_FORMAT: Record<string, { width: number; height: number; ratio: string; fps: number }> = {
+  youtube:   { width: 1280, height: 720,  ratio: "16:9", fps: 30 },
+  facebook:  { width: 1280, height: 720,  ratio: "16:9", fps: 30 },
+  twitter:   { width: 1280, height: 720,  ratio: "16:9", fps: 30 },
+  tiktok:    { width: 720,  height: 1280, ratio: "9:16", fps: 30 },
+  instagram: { width: 720,  height: 1280, ratio: "9:16", fps: 30 },
+};
+
 const WEBHOOKS: Record<string, string | undefined> = {
   youtube:   process.env.N8N_YOUTUBE_UPLOAD_WEBHOOK_URL,
   tiktok:    process.env.N8N_TIKTOK_UPLOAD_WEBHOOK_URL,
@@ -30,12 +41,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Inject platform format spec so n8n can validate or transcode accordingly
+  const formatSpec = PLATFORM_FORMAT[platform] ?? PLATFORM_FORMAT.youtube;
+
   let res: Response;
   try {
     res = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, formatSpec }),
     });
   } catch (e: unknown) {
     return NextResponse.json(

@@ -77,6 +77,10 @@ export default function VideoEditorPage() {
   const [renderError, setRenderError]       = useState("");
   const [uploadingToCloud, setUploadingToCloud] = useState(false);
   const [uploadPlatform, setUploadPlatform]     = useState("");
+  // "landscape" = 1280×720 (YouTube/Facebook/X)
+  // "portrait"  = 720×1280 (TikTok/Instagram Reels)
+  // "square"    = 720×720  (Instagram Feed)
+  const [renderFormat, setRenderFormat] = useState<"landscape"|"portrait"|"square">("landscape");
 
   const active = scenes.find(s => s.id === activeId) ?? null;
   const totalSec = scenes.reduce((a, s) => a + s.duration, 0);
@@ -219,7 +223,7 @@ export default function VideoEditorPage() {
       const res = await fetch("/api/upload-video", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok || !data.url) throw new Error(data.error || "Upload failed");
-      const params = new URLSearchParams({ videoUrl: data.url, title: projectName });
+      const params = new URLSearchParams({ videoUrl: data.url, title: projectName, format: renderFormat });
       if (platformId) params.set("platform", platformId);
       router.push(`/dashboard/publish?${params.toString()}`);
     } catch (err) {
@@ -230,8 +234,16 @@ export default function VideoEditorPage() {
     }
   }
 
-  async function renderVideo() {
+  function openRenderModal() {
     setShowRender(true);
+    setRendering(false);
+    setRenderDone(false);
+    setRenderedBlob(null);
+    setRenderError("");
+    setRenderProgress(0);
+  }
+
+  async function renderVideo() {
     setRendering(true);
     setRenderProgress(0);
     setRenderDone(false);
@@ -239,7 +251,9 @@ export default function VideoEditorPage() {
     setRenderError("");
 
     try {
-      const W = 1280, H = 720, FPS = 30;
+      const W = renderFormat === "landscape" ? 1280 : 720;
+      const H = renderFormat === "landscape" ? 720 : renderFormat === "portrait" ? 1280 : 720;
+      const FPS = 30;
       const FADE_F = Math.round(FPS * 0.5);
 
       const canvas = document.createElement("canvas");
@@ -465,7 +479,7 @@ export default function VideoEditorPage() {
             <Play size={12} /> Preview
           </button>
           <button
-            onClick={renderVideo}
+            onClick={openRenderModal}
             disabled={rendering}
             style={{
               display: "flex", alignItems: "center", gap: 6,
@@ -1509,6 +1523,121 @@ export default function VideoEditorPage() {
             padding: "32px", width: 520, maxWidth: "90vw",
             boxShadow: "0 40px 120px rgba(0,0,0,0.8)",
           }}>
+
+            {/* ── Format picker (before render starts) ── */}
+            {!rendering && !renderDone && !renderError && (
+              <>
+                <div style={{ marginBottom: 24 }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 4px" }}>Render Settings</h2>
+                  <p style={{ fontSize: 11, color: "#475569", margin: 0 }}>Choose the format for your target platform</p>
+                </div>
+
+                <div style={{ marginBottom: 20 }}>
+                  <p style={{ fontSize: 10, fontWeight: 800, color: "#4A6080", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 12px" }}>
+                    Video Format
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {([
+                      {
+                        id: "landscape" as const,
+                        label: "Landscape  16:9",
+                        dims: "1280 × 720",
+                        platforms: "YouTube · Facebook · X/Twitter",
+                        color: "#FF0000",
+                      },
+                      {
+                        id: "portrait" as const,
+                        label: "Portrait  9:16",
+                        dims: "720 × 1280",
+                        platforms: "TikTok · Instagram Reels",
+                        color: "#E1306C",
+                      },
+                      {
+                        id: "square" as const,
+                        label: "Square  1:1",
+                        dims: "720 × 720",
+                        platforms: "Instagram Feed",
+                        color: "#1877F2",
+                      },
+                    ] as const).map(f => (
+                      <div
+                        key={f.id}
+                        onClick={() => setRenderFormat(f.id)}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 14,
+                          padding: "14px 16px", borderRadius: 12, cursor: "pointer",
+                          border: renderFormat === f.id
+                            ? `1.5px solid ${f.color}60`
+                            : "1px solid rgba(255,255,255,0.07)",
+                          background: renderFormat === f.id
+                            ? `${f.color}0D`
+                            : "rgba(255,255,255,0.02)",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        {/* Aspect ratio preview box */}
+                        <div style={{
+                          flexShrink: 0,
+                          width: f.id === "portrait" ? 22 : f.id === "square" ? 28 : 44,
+                          height: f.id === "portrait" ? 38 : f.id === "square" ? 28 : 28,
+                          borderRadius: 4,
+                          background: renderFormat === f.id ? `${f.color}30` : "rgba(255,255,255,0.08)",
+                          border: `1.5px solid ${renderFormat === f.id ? f.color : "rgba(255,255,255,0.15)"}`,
+                        }} />
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: 13, fontWeight: 700, color: renderFormat === f.id ? "#fff" : "#94a3b8", margin: 0 }}>
+                            {f.label}
+                          </p>
+                          <p style={{ fontSize: 10, color: "#475569", margin: "2px 0 0", fontFamily: "monospace" }}>{f.dims}</p>
+                          <p style={{ fontSize: 10, color: "#334155", margin: "2px 0 0" }}>{f.platforms}</p>
+                        </div>
+                        <div style={{
+                          width: 18, height: 18, borderRadius: "50%", flexShrink: 0,
+                          border: `2px solid ${renderFormat === f.id ? f.color : "rgba(255,255,255,0.12)"}`,
+                          background: renderFormat === f.id ? f.color : "transparent",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                          {renderFormat === f.id && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{
+                  background: "rgba(249,115,22,0.05)", borderRadius: 10,
+                  border: "1px solid rgba(249,115,22,0.12)", padding: "10px 14px", marginBottom: 20,
+                }}>
+                  <p style={{ fontSize: 10, color: "#94a3b8", margin: 0, lineHeight: 1.6 }}>
+                    <strong style={{ color: "#fb923c" }}>Tip:</strong> If publishing to multiple platforms, render each format separately.
+                    The canvas re-renders at the correct dimensions — portrait content will be letterboxed from your 16:9 scenes.
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button
+                    onClick={() => setShowRender(false)}
+                    style={{
+                      flex: 1, padding: "12px", borderRadius: 10,
+                      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                      color: "#64748b", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                    }}
+                  >Cancel</button>
+                  <button
+                    onClick={renderVideo}
+                    style={{
+                      flex: 2, padding: "12px", borderRadius: 10, border: "none",
+                      background: "linear-gradient(135deg, #f97316, #dc2626)",
+                      color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    }}
+                  >
+                    <Film size={15} />
+                    Start Render · {renderFormat === "landscape" ? "1280×720" : renderFormat === "portrait" ? "720×1280" : "720×720"}
+                  </button>
+                </div>
+              </>
+            )}
 
             {/* ── Rendering in progress ── */}
             {rendering && (
