@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { Topbar } from "@/components/dashboard/topbar";
+import { usePlan } from "@/lib/hooks/use-plan";
 import {
   Wand2, Download, Plus, Palette, Type, Layers,
   Sparkles, ZoomIn, RotateCcw, AlignLeft, AlignCenter,
@@ -24,7 +25,7 @@ interface ThumbnailAsset {
 }
 
 export default function ThumbnailsPage() {
-  const isPro = false; // TODO: wire to real plan
+  const { isPro } = usePlan();
   const [activeTab, setActiveTab] = useState<"create" | "library">("create");
   const [titleText, setTitleText] = useState("Why 99% of YouTube Channels FAIL");
   const [subtitleText, setSubtitleText] = useState("(And How to Be the 1%)");
@@ -98,26 +99,28 @@ export default function ThumbnailsPage() {
       neon: "neon cyberpunk futuristic", gold: "premium luxury gold",
       nature: "natural organic lush", fire: "fire energy intense",
     };
-    const prompt = encodeURIComponent(
+    const prompt =
       `YouTube thumbnail, ${styleNames[selectedStyle] || "dramatic"} style, ` +
       `large bold text "${titleText.slice(0, 60)}", ` +
       `${subtitleText ? `subtitle "${subtitleText.slice(0, 40)}", ` : ""}` +
       `accent color ${effectiveAccent}, professional, eye-catching, high contrast, ` +
-      `studio quality, 4k, sharp focus`
-    );
-    const url = `https://image.pollinations.ai/prompt/${prompt}?width=1280&height=720&nologo=true&model=flux&seed=${Date.now()}`;
+      `studio quality, 4k, sharp focus`;
 
     try {
-      // Pre-fetch to verify it loads before showing
-      await new Promise<void>((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error("Image failed to load"));
-        img.src = url;
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, width: 1280, height: 720 }),
       });
-      setGeneratedImageUrl(url);
-          } catch {
-      setGenerateError("Generation failed. Check your connection and try again.");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Generation failed" }));
+        throw new Error(err.error || "Generation failed");
+      }
+      const data = await res.json();
+      if (!data.url) throw new Error("No image returned");
+      setGeneratedImageUrl(data.url);
+    } catch (err: unknown) {
+      setGenerateError(err instanceof Error ? err.message : "Generation failed. Try again.");
     } finally {
       setGenerating(false);
     }
@@ -145,20 +148,26 @@ export default function ThumbnailsPage() {
     if (!bgPrompt.trim()) return;
     setBgGenerating(true);
     setBgError(null);
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-      `${bgPrompt}, YouTube thumbnail background, cinematic, 4K, no text, wide angle, dramatic lighting, ultra detailed`
-    )}?width=1280&height=720&nologo=true&model=flux&seed=${Date.now()}`;
     try {
-      await new Promise<void>((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve();
-        img.onerror = () => reject();
-        img.src = url;
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: `${bgPrompt}, YouTube thumbnail background, cinematic, 4K, no text, wide angle, dramatic lighting, ultra detailed`,
+          width: 1280,
+          height: 720,
+        }),
       });
-      setBgImageUrl(url);
-      setGeneratedImageUrl(url);
-          } catch {
-      setBgError("Generation failed. Check connection and try again.");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Generation failed" }));
+        throw new Error(err.error || "Generation failed");
+      }
+      const data = await res.json();
+      if (!data.url) throw new Error("No image returned");
+      setBgImageUrl(data.url);
+      setGeneratedImageUrl(data.url);
+    } catch (err: unknown) {
+      setBgError(err instanceof Error ? err.message : "Generation failed. Try again.");
     } finally {
       setBgGenerating(false);
     }

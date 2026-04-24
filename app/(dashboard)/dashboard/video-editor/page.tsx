@@ -123,9 +123,14 @@ export default function VideoEditorPage() {
     if (!active?.prompt.trim()) return;
     setGenerating(true);
     try {
-      const seed = Math.floor(Math.random() * 999999);
-      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(active.prompt)}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
-      upd(active.id, { imageUrl: url, videoUrl: "", videoThumb: "" });
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: active.prompt, width: 1280, height: 720 }),
+      });
+      if (!res.ok) throw new Error("Image generation failed");
+      const data = await res.json();
+      if (data.url) upd(active.id, { imageUrl: data.url, videoUrl: "", videoThumb: "" });
     } finally {
       setGenerating(false);
     }
