@@ -58,6 +58,7 @@ export default function VideoEditorPage() {
   const [stockQuery, setStockQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
   const [generatingPrompt, setGeneratingPrompt] = useState(false);
   const [planning, setPlanning] = useState(false);
   const [planTopic, setPlanTopic] = useState("");
@@ -122,15 +123,19 @@ export default function VideoEditorPage() {
   async function generateImage() {
     if (!active?.prompt.trim()) return;
     setGenerating(true);
+    setGenerateError(null);
     try {
       const res = await fetch("/api/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: active.prompt, width: 1280, height: 720 }),
       });
-      if (!res.ok) throw new Error("Image generation failed");
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Image generation failed");
       if (data.url) upd(active.id, { imageUrl: data.url, videoUrl: "", videoThumb: "" });
+      else throw new Error("No image returned");
+    } catch (err: unknown) {
+      setGenerateError(err instanceof Error ? err.message : "Generation failed");
     } finally {
       setGenerating(false);
     }
@@ -793,11 +798,14 @@ export default function VideoEditorPage() {
                           <Sparkles size={13} /> {generating ? "Generating…" : "Generate AI Image"}
                         </button>
                       </div>
-                      {active.imageUrl && (
+                      {active.imageUrl && !generateError && (
                         <p style={{ marginTop: 9, fontSize: 10, color: "#22c55e" }}>✓ Image generated — visible in preview above</p>
                       )}
+                      {generateError && (
+                        <p style={{ marginTop: 9, fontSize: 10, color: "#f87171" }}>✗ {generateError}</p>
+                      )}
                       <p style={{ marginTop: 6, fontSize: 10, color: "#1e3050" }}>
-                        Powered by Flux via Pollinations AI — free, no credits needed
+                        Powered by FLUX.1 via fal.ai
                       </p>
                     </div>
                   )}
