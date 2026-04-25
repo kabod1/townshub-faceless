@@ -103,12 +103,14 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    const words = transcript.words ?? [];
+
     await supabase
       .from("user_videos")
-      .update({ transcript, captions, status: "ready" })
+      .update({ transcript, captions, words, status: "ready" })
       .eq("id", videoId);
 
-    return NextResponse.json({ transcript, captions });
+    return NextResponse.json({ transcript, captions, words });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

@@ -9,19 +9,22 @@ import {
 } from "lucide-react";
 
 interface Caption { start: number; end: number; text: string; }
+interface Word { start: number; end: number; word: string; }
 interface CaptionStyle {
-  fontSize: number; color: string; bgColor: string;
-  position: "top" | "center" | "bottom"; bold: boolean; animation: "none" | "fade" | "slide";
+  fontSize: number; color: string; highlightColor: string; bgColor: string;
+  position: "top" | "center" | "bottom"; bold: boolean;
+  animation: "none" | "fade" | "slide" | "karaoke" | "wordpop";
 }
 interface UserVideo {
   id: string; title: string; video_url: string; filename: string;
   duration: number; file_size: number; status: string;
-  captions: Caption[] | null; caption_style: CaptionStyle | null; created_at: string;
+  captions: Caption[] | null; words: Word[] | null;
+  caption_style: CaptionStyle | null; created_at: string;
 }
 
 const DEFAULT_STYLE: CaptionStyle = {
-  fontSize: 28, color: "#FFFFFF", bgColor: "rgba(0,0,0,0.6)",
-  position: "bottom", bold: true, animation: "fade",
+  fontSize: 32, color: "#FFFFFF", highlightColor: "#FACC15", bgColor: "rgba(0,0,0,0.65)",
+  position: "bottom", bold: true, animation: "karaoke",
 };
 
 function fmtDuration(s: number) {
@@ -42,6 +45,7 @@ export default function MyVideosPage() {
   const [transcribing, setTranscribing] = useState(false);
   const [transcribeError, setTranscribeError] = useState<string | null>(null);
   const [captions, setCaptions] = useState<Caption[]>([]);
+  const [words, setWords] = useState<Word[]>([]);
   const [style, setStyle] = useState<CaptionStyle>(DEFAULT_STYLE);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -65,6 +69,7 @@ export default function MyVideosPage() {
   function openVideo(v: UserVideo) {
     setSelected(v);
     setCaptions(v.captions || []);
+    setWords(v.words || []);
     setStyle(v.caption_style || DEFAULT_STYLE);
     setCurrentTime(0);
     setPlaying(false);
@@ -110,9 +115,10 @@ export default function MyVideosPage() {
     });
     const data = await res.json();
     if (!res.ok) { setTranscribeError(data.error || "Transcription failed"); setTranscribing(false); return; }
-    const updated: UserVideo = { ...selected, captions: data.captions, status: "ready" };
+    const updated: UserVideo = { ...selected, captions: data.captions, words: data.words || [], status: "ready" };
     setSelected(updated);
     setCaptions(data.captions);
+    setWords(data.words || []);
     setVideos(prev => prev.map(v => v.id === selected.id ? updated : v));
     setTranscribing(false);
   }
@@ -134,28 +140,9 @@ export default function MyVideosPage() {
     if (selected?.id === id) setSelected(null);
   }
 
-  // Draw captions onto canvas overlay during export
-  const drawCaption = useCallback((ctx: CanvasRenderingContext2D, text: string, w: number, h: number, s: CaptionStyle) => {
-    const fs = s.fontSize * (w / 640);
-    ctx.font = `${s.bold ? "bold" : "normal"} ${fs}px Inter, sans-serif`;
-    ctx.textAlign = "center";
-    const lines = wrapText(ctx, text, w * 0.85);
-    const lineH = fs * 1.4;
-    const totalH = lines.length * lineH + 16;
-    const y = s.position === "top" ? fs + 24 : s.position === "center" ? h / 2 - totalH / 2 : h - totalH - 24;
-    if (s.bgColor !== "transparent") {
-      ctx.fillStyle = s.bgColor;
-      ctx.beginPath();
-      ctx.roundRect(w / 2 - w * 0.44, y - 8, w * 0.88, totalH, 8);
-      ctx.fill();
-    }
-    ctx.fillStyle = s.color;
-    lines.forEach((line, i) => ctx.fillText(line, w / 2, y + i * lineH + fs));
-  }, []);
-
   function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
-    const words = text.split(" "); const lines: string[] = []; let cur = "";
-    for (const w of words) {
+    const ws = text.split(" "); const lines: string[] = []; let cur = "";
+    for (const w of ws) {
       const test = cur ? `${cur} ${w}` : w;
       if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
       else cur = test;
@@ -163,6 +150,113 @@ export default function MyVideosPage() {
     if (cur) lines.push(cur);
     return lines;
   }
+
+  // Draw animated captions frame-by-frame onto canvas
+  const drawCaption = useCallback((
+    ctx: CanvasRenderingContext2D,
+    caption: Caption,
+    allWords: Word[],
+    currentTime: number,
+    W: number,
+    H: number,
+    s: CaptionStyle,
+  ) => {
+    const fs = s.fontSize * (W / 640);
+    const baseFont = `${s.bold ? "bold" : "normal"} ${fs}px Inter, sans-serif`;
+    ctx.textAlign = "left";
+
+    // Words that belong to this caption segment
+    const segWords = allWords.filter(w => w.start >= caption.start - 0.1 && w.end <= caption.end + 0.1);
+
+    if ((s.animation === "karaoke" || s.animation === "wordpop") && segWords.length > 0) {
+      // ── Karaoke / Word-pop: word-level rendering ──────────────────────────
+      ctx.font = baseFont;
+
+      // Layout words into lines
+      const maxLineW = W * 0.88;
+      type WordLine = { word: Word; x: number }[];
+      const lines: WordLine[] = [];
+      let currentLine: WordLine = [];
+      let lineW = 0;
+
+      for (const word of segWords) {
+        const ww = ctx.measureText(word.word + " ").width;
+        if (lineW + ww > maxLineW && currentLine.length) {
+          lines.push(currentLine);
+          currentLine = []; lineW = 0;
+        }
+        currentLine.push({ word, x: lineW });
+        lineW += ww;
+      }
+      if (currentLine.length) lines.push(currentLine);
+
+      const lineH = fs * 1.55;
+      const totalH = lines.length * lineH + 20;
+      const baseY = s.position === "top" ? 24 : s.position === "center" ? H / 2 - totalH / 2 : H - totalH - 24;
+
+      // Background
+      if (s.bgColor !== "transparent") {
+        ctx.fillStyle = s.bgColor;
+        ctx.beginPath();
+        ctx.roundRect(W * 0.06 - 8, baseY - 8, W * 0.88 + 16, totalH, 10);
+        ctx.fill();
+      }
+
+      lines.forEach((line, li) => {
+        const lineTextW = line.reduce((acc, { word }) => acc + ctx.measureText(word.word + " ").width, 0);
+        const startX = W / 2 - lineTextW / 2;
+        const y = baseY + li * lineH + fs;
+
+        line.forEach(({ word, x: relX }) => {
+          const isCurrent = currentTime >= word.start && currentTime <= word.end;
+          const isPast = currentTime > word.end;
+
+          if (s.animation === "wordpop") {
+            // Words pop in when their time comes; future words are invisible
+            if (!isPast && !isCurrent) return;
+            const progress = isCurrent ? Math.min(1, (currentTime - word.start) / 0.12) : 1;
+            const scale = 0.6 + 0.4 * progress;
+            ctx.save();
+            ctx.translate(startX + relX + ctx.measureText(word.word).width / 2, y - fs / 2);
+            ctx.scale(scale, scale);
+            ctx.translate(-(startX + relX + ctx.measureText(word.word).width / 2), -(y - fs / 2));
+            ctx.fillStyle = isCurrent ? s.highlightColor : s.color;
+            ctx.font = isCurrent ? `bold ${fs}px Inter, sans-serif` : baseFont;
+            ctx.fillText(word.word, startX + relX, y);
+            ctx.restore();
+          } else {
+            // Karaoke: all words visible, highlight current
+            ctx.fillStyle = isCurrent ? s.highlightColor : isPast ? s.color : `${s.color}66`;
+            ctx.font = isCurrent ? `bold ${fs * 1.08}px Inter, sans-serif` : baseFont;
+            ctx.fillText(word.word, startX + relX, y);
+          }
+
+          // Reset font for width measurements
+          ctx.font = baseFont;
+          // Space after word
+          ctx.fillStyle = `${s.color}66`;
+          ctx.fillText(" ", startX + relX + ctx.measureText(word.word).width, y);
+        });
+      });
+
+    } else {
+      // ── Standard: fade / slide / none ─────────────────────────────────────
+      ctx.font = baseFont;
+      ctx.textAlign = "center";
+      const lines = wrapText(ctx, caption.text, W * 0.85);
+      const lineH = fs * 1.4;
+      const totalH = lines.length * lineH + 16;
+      const y = s.position === "top" ? fs + 24 : s.position === "center" ? H / 2 - totalH / 2 : H - totalH - 24;
+      if (s.bgColor !== "transparent") {
+        ctx.fillStyle = s.bgColor;
+        ctx.beginPath();
+        ctx.roundRect(W / 2 - W * 0.44, y - 8, W * 0.88, totalH, 8);
+        ctx.fill();
+      }
+      ctx.fillStyle = s.color;
+      lines.forEach((line, i) => ctx.fillText(line, W / 2, y + i * lineH + fs));
+    }
+  }, [wrapText]);
 
   function activeCaption(t: number): Caption | null {
     return captions.find(c => t >= c.start && t <= c.end) || null;
@@ -179,12 +273,12 @@ export default function MyVideosPage() {
       canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 360;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const cap = activeCaption(video.currentTime);
-      if (cap) drawCaption(ctx, cap.text, canvas.width, canvas.height, style);
+      if (cap) drawCaption(ctx, cap, words, video.currentTime, canvas.width, canvas.height, style);
       animFrameRef.current = requestAnimationFrame(draw);
     }
     animFrameRef.current = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, [selected, captions, style, drawCaption]);
+  }, [selected, captions, words, style, drawCaption]);
 
   async function handleExport(format: "16:9" | "9:16" | "1:1") {
     const video = videoRef.current; if (!video || !selected) return;
@@ -223,7 +317,7 @@ export default function MyVideosPage() {
           const dx = (W - vw * scale) / 2; const dy = (H - vh * scale) / 2;
           ctx.drawImage(video, dx, dy, vw * scale, vh * scale);
           const cap = activeCaption(video.currentTime);
-          if (cap) drawCaption(ctx, cap.text, W, H, style);
+          if (cap) drawCaption(ctx, cap, words, video.currentTime, W, H, style);
           setExportProgress(Math.round((video.currentTime / (video.duration || 1)) * 100));
           requestAnimationFrame(draw);
         }
@@ -379,16 +473,43 @@ export default function MyVideosPage() {
                 </div>
 
                 {/* Animation */}
-                <label style={{ fontSize: 11, color: "#64748b", display: "block", marginBottom: 6 }}>Animation</label>
-                <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-                  {(["none", "fade", "slide"] as const).map(a => (
-                    <button key={a} onClick={() => saveStyle({ ...style, animation: a })} style={{
-                      flex: 1, padding: "5px 0", borderRadius: 6, fontSize: 11, border: "none",
-                      background: style.animation === a ? "rgba(167,139,250,0.15)" : "rgba(255,255,255,0.05)",
-                      color: style.animation === a ? "#a78bfa" : "#64748b", cursor: "pointer",
-                    }}>{a.charAt(0).toUpperCase() + a.slice(1)}</button>
+                <label style={{ fontSize: 11, color: "#64748b", display: "block", marginBottom: 6 }}>Animation Style</label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+                  {([
+                    { id: "karaoke", label: "🎤 Karaoke" },
+                    { id: "wordpop", label: "⚡ Word Pop" },
+                    { id: "fade",    label: "Fade" },
+                    { id: "slide",   label: "Slide" },
+                    { id: "none",    label: "None" },
+                  ] as const).map(({ id, label }) => (
+                    <button key={id} onClick={() => saveStyle({ ...style, animation: id })} style={{
+                      padding: "5px 10px", borderRadius: 6, fontSize: 11, border: "none",
+                      background: style.animation === id ? "rgba(167,139,250,0.2)" : "rgba(255,255,255,0.05)",
+                      color: style.animation === id ? "#a78bfa" : "#64748b",
+                      fontWeight: style.animation === id ? 700 : 400, cursor: "pointer",
+                      border: style.animation === id ? "1px solid rgba(167,139,250,0.3)" : "1px solid transparent",
+                    }}>{label}</button>
                   ))}
                 </div>
+
+                {/* Highlight colour (karaoke/wordpop) */}
+                {(style.animation === "karaoke" || style.animation === "wordpop") && (
+                  <>
+                    <label style={{ fontSize: 11, color: "#64748b", display: "block", marginBottom: 6 }}>Highlight Colour</label>
+                    <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                      {["#FACC15", "#FF6B6B", "#00D4FF", "#4ADE80", "#FF4ECD"].map(c => (
+                        <button key={c} onClick={() => saveStyle({ ...style, highlightColor: c })} style={{
+                          width: 24, height: 24, borderRadius: "50%", background: c,
+                          border: style.highlightColor === c ? "2px solid #fff" : "2px solid transparent", cursor: "pointer",
+                        }} />
+                      ))}
+                      <label style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "1px dashed #334155", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Palette size={10} color="#64748b" />
+                        <input type="color" value={style.highlightColor} onChange={e => saveStyle({ ...style, highlightColor: e.target.value })} style={{ opacity: 0, width: 0, height: 0, position: "absolute" }} />
+                      </label>
+                    </div>
+                  </>
+                )}
 
                 {/* Bold */}
                 <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
