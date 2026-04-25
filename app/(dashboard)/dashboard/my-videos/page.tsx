@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Topbar } from "@/components/dashboard/topbar";
 import {
   Upload, Video, Trash2, Mic, Play, Pause, Download,
-  AlertCircle, CheckCircle, Loader2, ChevronLeft, Type,
+  AlertCircle, CheckCircle, Loader2, ChevronLeft,
   AlignCenter, AlignLeft, AlignRight, Palette,
 } from "lucide-react";
 
@@ -199,11 +199,10 @@ export default function MyVideosPage() {
     const chunks: Blob[] = [];
     const stream = canvas.captureStream(30);
 
-    let audioStream: MediaStream | null = null;
     try {
       // @ts-expect-error - captureStream on HTMLVideoElement
-      audioStream = video.captureStream();
-      const audioTrack = audioStream.getAudioTracks()[0];
+      const audioStream: MediaStream = video.captureStream();
+      const audioTrack = audioStream?.getAudioTracks()[0];
       if (audioTrack) stream.addTrack(audioTrack);
     } catch { /* no audio */ }
 
