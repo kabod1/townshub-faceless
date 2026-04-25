@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Sparkles, Lightbulb, PenLine, ScrollText,
   Kanban, Image, Compass, Users, CreditCard, Settings,
   LogOut, ChevronLeft, Mic, CalendarClock, Share2, Bookmark,
-  Bot, GitMerge, Headphones, Monitor, Clapperboard,
+  Bot, GitMerge, Headphones, Monitor, Clapperboard, Film,
 } from "lucide-react";
 
 function THMark({ size = 32 }: { size?: number }) {
@@ -50,6 +50,7 @@ const nav = [
     items: [
       { href: "/dashboard/production",      label: "Production Board",   icon: Kanban },
       { href: "/dashboard/video-editor",    label: "AI Video Editor",    icon: Clapperboard },
+      { href: "/dashboard/my-videos",        label: "My Videos",          icon: Film },
       { href: "/dashboard/thumbnails",       label: "Thumbnails",         icon: Image },
       { href: "/dashboard/voiceover",        label: "AI Voiceover",       icon: Mic },
       { href: "/dashboard/scheduler",        label: "YT Scheduler",       icon: CalendarClock },
