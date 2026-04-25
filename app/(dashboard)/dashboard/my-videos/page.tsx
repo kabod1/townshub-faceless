@@ -483,7 +483,7 @@ export default function MyVideosPage() {
                     { id: "none",    label: "None" },
                   ] as const).map(({ id, label }) => (
                     <button key={id} onClick={() => saveStyle({ ...style, animation: id })} style={{
-                      padding: "5px 10px", borderRadius: 6, fontSize: 11, border: "none",
+                      padding: "5px 10px", borderRadius: 6, fontSize: 11,
                       background: style.animation === id ? "rgba(167,139,250,0.2)" : "rgba(255,255,255,0.05)",
                       color: style.animation === id ? "#a78bfa" : "#64748b",
                       fontWeight: style.animation === id ? 700 : 400, cursor: "pointer",
