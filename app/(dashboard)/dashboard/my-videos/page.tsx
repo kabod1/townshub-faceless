@@ -10,6 +10,7 @@ import {
 
 interface Caption { start: number; end: number; text: string; }
 interface Word { start: number; end: number; word: string; }
+type WordLine = { word: Word; x: number }[];
 interface CaptionStyle {
   fontSize: number; color: string; highlightColor: string; bgColor: string;
   position: "top" | "center" | "bottom"; bold: boolean;
@@ -174,7 +175,6 @@ export default function MyVideosPage() {
 
       // Layout words into lines
       const maxLineW = W * 0.88;
-      type WordLine = { word: Word; x: number }[];
       const lines: WordLine[] = [];
       let currentLine: WordLine = [];
       let lineW = 0;
