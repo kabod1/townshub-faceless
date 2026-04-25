@@ -39,10 +39,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fallback: Pollinations.ai (free, no credits needed)
+    // Fallback: Pollinations.ai — download server-side and return data URL for reliability
     const seed = Math.floor(Math.random() * 999999);
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&nologo=true&model=flux&seed=${seed}`;
-    return NextResponse.json({ url, provider: "pollinations" });
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&nologo=true&model=flux&seed=${seed}&nofeed=true`;
+
+    let attempt = 0;
+    while (attempt < 3) {
+      try {
+        const imgRes = await fetch(pollinationsUrl, { signal: AbortSignal.timeout(55000) });
+        if (!imgRes.ok) throw new Error(`Pollinations ${imgRes.status}`);
+        const contentType = imgRes.headers.get("content-type") || "image/jpeg";
+        const buffer = await imgRes.arrayBuffer();
+        const base64 = Buffer.from(buffer).toString("base64");
+        const dataUrl = `data:${contentType};base64,${base64}`;
+        return NextResponse.json({ url: dataUrl, provider: "pollinations" });
+      } catch {
+        attempt++;
+        if (attempt >= 3) break;
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+
+    return NextResponse.json({ error: "Image generation failed after retries. Try again." }, { status: 502 });
 
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
